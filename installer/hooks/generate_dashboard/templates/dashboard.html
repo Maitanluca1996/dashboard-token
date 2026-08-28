@@ -1695,13 +1695,27 @@ __SITE_HEADER__
     var centsStr = centsPart < 10 ? '0' + centsPart : String(centsPart);
     return sign + groupThousands(String(intPart)) + ',' + centsStr;
   }
-  function fmtUsd(n) { return '$' + fmtDecimal2(n); }
+  // Simbolo in coda per tutte e due le valute, come si scrive in italiano.
+  // Prima il dollaro lo teneva davanti ("$12,34") e l'euro dietro
+  // ("12,34 €"): cambiare unita' faceva saltare il simbolo da un lato
+  // all'altro del numero, un movimento che si notava e non significava
+  // niente. Se un giorno si torna al simbolo davanti, va spostato in
+  // entrambe -- e anche negli assi, dove fmtMoneyAxis prende il simbolo
+  // come parametro (vedi UNIT_MODES).
+  // [EN] Trailing symbol for both currencies, as written in Italian. The
+  // [EN] dollar used to keep it in front ("$12.34") and the euro behind
+  // [EN] ("12,34 €"): switching unit made the symbol jump from one side of
+  // [EN] the number to the other, a movement you noticed and that meant
+  // [EN] nothing. If one day the leading symbol comes back, it must move in
+  // [EN] both -- and in the axes too, where fmtMoneyAxis takes the symbol
+  // [EN] as a parameter (see UNIT_MODES).
+  function fmtUsd(n) { return fmtDecimal2(n) + ' $'; }
   // Prende SEMPRE un importo in dollari e applica il cambio internamente:
   // chi chiama non deve mai ricordarsi di moltiplicare (e non rischia di
-  // farlo due volte). Simbolo in coda, come si scrive in italiano.
+  // farlo due volte).
   // [EN] ALWAYS takes an amount in dollars and applies the exchange rate
   // [EN] internally: callers never need to remember to multiply (and cannot
-  // [EN] do it twice). Trailing symbol, as written in Italian.
+  // [EN] do it twice).
   function fmtEur(usd) { return fmtDecimal2(usd * USD_TO_EUR) + ' €'; }
   // Coppia "valore ufficiale + controvalore", il formato usato nei tooltip
   // dei grafici: il dollaro e' il dato di listino, l'euro e' la conversione.
@@ -2951,7 +2965,7 @@ __SITE_HEADER__
   var UNIT_MODES = {
     usd: {
       valueOf: function (d) { return d.cost; },
-      axis: function (v, scale) { return fmtMoneyAxis(v, scale, '$', ''); },
+      axis: function (v, scale) { return fmtMoneyAxis(v, scale, '', ' $'); },
       barNoun: 'Costo totale',
       lineTitle: 'Andamento costo nel tempo',
       aria: 'Costo stimato in dollari'
@@ -3184,12 +3198,26 @@ __SITE_HEADER__
     day: {
       noun: 'per giorno',
       keyFn: function (t) { return dayKey(t.ts); },
+      // Giorno e mese in cifre ("27/08"): k e' gia' "AAAA-MM-GG" con
+      // entrambi a due cifre, quindi bastano le due parti in ordine
+      // inverso. Non usa fmtDayNice ("27 ago") perche' qui le etichette
+      // stanno una accanto all'altra sotto le barre, dove la forma
+      // numerica e' tutta della stessa larghezza e si scorre a colpo
+      // d'occhio; fmtDayNice resta dov'e' il mese scritto aiuta a leggere
+      // (tooltip e tacche del grafico a linea).
+      // [EN] Day and month in digits ("27/08"): k is already "YYYY-MM-DD"
+      // [EN] with both zero-padded, so the two parts in reverse order are
+      // [EN] enough. It does not use fmtDayNice ("27 ago") because here the
+      // [EN] labels sit side by side under the bars, where the numeric form
+      // [EN] is all the same width and scans at a glance; fmtDayNice stays
+      // [EN] where the spelled-out month helps reading (tooltips and line
+      // [EN] chart ticks).
       label: function (k) {
         var parts = k.split('-');
-        return fmtDayNice(parseInt(parts[2], 10), parseInt(parts[1], 10));
+        return parts[2] + '/' + parts[1];
       },
-      // Etichette dritte: "12 ago" ci sta anche con 31 barre.
-      // [EN] Upright labels: "12 ago" fits even with 31 bars.
+      // Etichette dritte: "12/08" ci sta anche con 31 barre.
+      // [EN] Upright labels: "12/08" fits even with 31 bars.
       rotateLabels: false,
       /* Quante barre mostrare. Senza periodo selezionato restano gli ultimi
          14 giorni di sempre. Con un periodo il tetto sale a 31, perche' un
