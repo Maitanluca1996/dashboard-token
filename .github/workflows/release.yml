@@ -1,0 +1,242 @@
+name: Build e pubblica gli installer
+
+# Ogni push su main che tocchi il codice produce una nuova release, ed e'
+# quella release che le installazioni gia' presenti sulle altre macchine
+# vedono e scaricano da sole entro 24 ore.
+#
+# Il filtro "paths" e' importante: le pagine HTML nella radice del repo sono
+# output rigenerato a ogni turno di Claude Code, non sorgenti. Senza filtro
+# ogni loro commit sfornerebbe una release identica alla precedente.
+# [EN] Every push to main that touches the code produces a new release, and
+# [EN] it is that release that the installations already present on
+# [EN] other machines see and download on their own within 24 hours.
+# [EN]
+# [EN] The "paths" filter matters: the HTML pages in the repo root are
+# [EN] output regenerated at every Claude Code turn, not sources. Without
+# [EN] the filter each of their commits would churn out a release identical
+# [EN] to the previous one.
+on:
+  push:
+    branches: [main]
+    paths:
+      - "installer/hooks/**"
+      - "packaging/**"
+      - ".github/workflows/release.yml"
+  workflow_dispatch:
+
+# Necessario perche' il job finale possa creare la release.
+# [EN] Needed so the final job can create the release.
+permissions:
+  contents: write
+
+env:
+  # github.run_number cresce di 1 a ogni esecuzione del workflow: da' tag
+  # sempre crescenti e mai duplicati senza dover gestire un file di versione
+  # a mano.
+  # [EN] github.run_number grows by 1 at each workflow run: it gives
+  # [EN] ever-growing, never-duplicated tags without having to manage a
+  # [EN] version file by hand.
+  VERSION: v1.0.${{ github.run_number }}
+
+jobs:
+  # I test del merge di settings.json e del recupero retroattivo non
+  # dipendono dalla piattaforma e sono veloci: girano una volta sola, e se
+  # falliscono non si costruisce nulla. Sono i due punti in cui il codice
+  # riscrive file che appartengono all'utente (settings.json e i CSV dei
+  # consumi), quindi quelli in cui un errore fa il danno peggiore.
+  # [EN] The tests for the settings.json merge and for the retroactive
+  # [EN] recovery do not depend on the platform and are fast: they run only
+  # [EN] once, and if they fail nothing gets built. They are the two spots
+  # [EN] where the code rewrites files that belong to the user
+  # [EN] (settings.json and the usage CSVs), hence the ones where a mistake
+  # [EN] does the worst damage.
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python packaging/test_setup_hooks.py
+      - run: python packaging/test_backfill.py
+
+  build:
+    name: ${{ matrix.asset }}
+    needs: test
+    runs-on: ${{ matrix.os }}
+    strategy:
+      # fail-fast disattivato: se la build macOS si rompe vogliamo comunque
+      # vedere il risultato di Windows e Linux, non tre job annullati.
+      # [EN] fail-fast disabled: if the macOS build breaks we still want to
+      # [EN] see the Windows and Linux results, not three cancelled jobs.
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            asset: dashboard-token-windows.exe
+            app: dist/app/dashboard-token/dashboard-token.exe
+            installer: dist/dashboard-token-installer.exe
+          - os: macos-latest
+            asset: dashboard-token-macos
+            app: dist/app/dashboard-token/dashboard-token
+            installer: dist/dashboard-token-installer
+          - os: ubuntu-latest
+            asset: dashboard-token-linux
+            app: dist/app/dashboard-token/dashboard-token
+            installer: dist/dashboard-token-installer
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Installa PyInstaller
+        run: python -m pip install --upgrade pip pyinstaller
+
+      - name: Timbra la versione nel sorgente
+        run: python packaging/set_version.py "$VERSION"
+        shell: bash
+
+      # Stadio 1: l'applicazione in forma onedir, quella che finira'
+      # installata e che Claude Code lancia a ogni turno.
+      # [EN] Stage 1: the application in onedir form, the one that will end
+      # [EN] up installed and that Claude Code launches at every turn.
+      - name: Build applicazione (onedir)
+        run: pyinstaller --clean --noconfirm --distpath dist/app --workpath build/app packaging/app.spec
+
+      # Verifica che il binario non sia solo "un file che esiste": deve
+      # saper importare gli hook e caricare i template. Se questo passo
+      # fallisce la release non viene pubblicata, e le installazioni restano
+      # sulla versione precedente, che funziona.
+      # [EN] Verifies the binary is not just "a file that exists": it must
+      # [EN] be able to import the hooks and load the templates. If this
+      # [EN] step fails the release is not published, and installations stay
+      # [EN] on the previous version, which works.
+      - name: Selftest dell'applicazione
+        run: "${{ matrix.app }} selftest"
+        shell: bash
+
+      # Stadio 2: l'installer onefile, che si porta dentro lo stadio 1.
+      # [EN] Stage 2: the onefile installer, which carries stage 1 inside it.
+      - name: Build installer (onefile)
+        run: pyinstaller --clean --noconfirm --distpath dist --workpath build/installer packaging/installer.spec
+
+      - name: Verifica che l'installer riconosca il proprio ruolo
+        shell: bash
+        run: |
+          "${{ matrix.installer }}" version
+          "${{ matrix.installer }}" version | grep -q "(installer)"
+
+      - name: Rinomina e calcola il checksum
+        shell: bash
+        run: |
+          mkdir -p out
+          cp "${{ matrix.installer }}" "out/${{ matrix.asset }}"
+          # Il checksum lo calcola uno script Python invece di sha256sum o
+          # shasum: quei due comandi NON ci sono entrambi su tutti i runner
+          # (macOS ha solo shasum, il Git Bash di Windows solo sha256sum).
+          # [EN] The checksum is computed by a Python script instead of
+          # [EN] sha256sum or shasum: those two commands are NOT both
+          # [EN] present on every runner (macOS only has shasum, Windows'
+          # [EN] Git Bash only sha256sum).
+          python packaging/sha256.py "out/${{ matrix.asset }}" > "out/${{ matrix.asset }}.sha256"
+          cat "out/${{ matrix.asset }}.sha256"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.asset }}
+          path: out/*
+          if-no-files-found: error
+
+  release:
+    name: Pubblica la release
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          merge-multiple: true
+
+      - name: Raccoglie i checksum in un unico SHA256SUMS
+        run: |
+          cd artifacts
+          cat *.sha256 > SHA256SUMS
+          rm -f *.sha256
+          echo "--- contenuto della release ---"
+          ls -la
+          cat SHA256SUMS
+
+      # Le note su file invece che inline: cosi' backtick e pipe delle
+      # tabelle non passano mai per l'interprete della shell.
+      # [EN] The notes go on a file rather than inline: this way the
+      # [EN] tables' backticks and pipes never pass through the shell
+      # [EN] interpreter.
+      - name: Prepara le note della release
+        run: |
+          cat > notes.md <<'NOTE'
+          Automated build.
+
+          Already installed? Nothing to do: the application checks once a
+          day and updates itself.
+
+          **First install** — download the file for your system and
+          double-click it:
+
+          | System | File |
+          |---|---|
+          | Windows | `dashboard-token-windows.exe` |
+          | macOS | `dashboard-token-macos` |
+          | Linux | `dashboard-token-linux` |
+
+          The binaries are unsigned: on first launch Windows shows
+          SmartScreen ("More info" > "Run anyway") and macOS requires
+          right-click > Open.
+
+          `SHA256SUMS` holds the checksums, which the auto-update also
+          verifies before installing what it downloads.
+
+          Note: the generated pages and the installer messages are in
+          Italian.
+
+          ---
+
+          Build automatica.
+
+          Chi ha gia' installato non deve fare niente: l'applicazione
+          controlla una volta al giorno e si aggiorna da sola.
+
+          **Prima installazione** — scarica il file per il tuo sistema e
+          fai doppio click:
+
+          | Sistema | File |
+          |---|---|
+          | Windows | `dashboard-token-windows.exe` |
+          | macOS | `dashboard-token-macos` |
+          | Linux | `dashboard-token-linux` |
+
+          I binari non sono firmati: al primo avvio Windows mostra
+          SmartScreen ("Ulteriori informazioni" > "Esegui comunque") e macOS
+          richiede tasto destro > Apri.
+
+          `SHA256SUMS` contiene i checksum, verificati anche dall'auto-update
+          prima di installare quello che scarica.
+          NOTE
+
+      # gh e' preinstallato sui runner: evita di dipendere da una action di
+      # terze parti solo per creare una release.
+      # [EN] gh is preinstalled on the runners: it avoids depending on a
+      # [EN] third-party action just to create a release.
+      - name: Crea la release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "$VERSION" \
+            --repo "$GITHUB_REPOSITORY" \
+            --target "$GITHUB_SHA" \
+            --title "$VERSION" \
+            --notes-file notes.md \
+            artifacts/*

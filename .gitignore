@@ -1,0 +1,36 @@
+*.zip
+
+# Configurazione locale di Claude Code (launch.json per l'anteprima, i
+# worktree di appoggio, ecc.): dipende dalla singola macchina e dal singolo
+# sviluppatore, quindi non va condivisa.
+# [EN] Local Claude Code configuration (launch.json for the preview, the
+# [EN] support worktrees, etc.): it depends on the individual machine and
+# [EN] on the individual developer, so it must not be shared.
+.claude/
+local/
+# [EN] Local working instructions for the assistant: they are not part of
+# [EN] the application code, so they stay on the developer's machine.
+# Istruzioni di lavoro locali per l'assistente: non fanno parte del codice
+# dell'applicazione, quindi restano sulla macchina dello sviluppatore.
+CLAUDE.md
+
+__pycache__/
+*.pyc
+
+# Output delle build PyInstaller (locali e di CI), mai da committare
+# [EN] PyInstaller build output (local and CI), never to be committed
+build/
+dist/
+build-onedir/
+dist-onedir/
+
+# Pagine e dati che generate_dashboard riscrive ad ogni turno: sono output,
+# non sorgenti. I sorgenti che li producono stanno in installer/hooks/.
+# [EN] Pages and data that generate_dashboard rewrites at every turn: they
+# [EN] are output, not sources. The sources producing them live in
+# [EN] installer/hooks/.
+dashboard.html
+pricing.html
+guida-costi.html
+dashboard-data.js
+site-meta.js

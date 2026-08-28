@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🪙</text></svg>" />
+<title>Tariffario prezzi &mdash; Claude Code</title>
+<style>
+  :root {
+    color-scheme: light;
+    --surface-1: #fcfcfb; --page: #f9f9f7; --text-primary: #0b0b0b;
+    --text-secondary: #52514e; --text-muted: #898781; --gridline: #e1e0d9;
+    --series-1: #2a78d6; --border: rgba(11, 11, 11, 0.10);
+    --control-bg: #ffffff;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      color-scheme: dark;
+      --surface-1: #1a1a19; --page: #0d0d0d; --text-primary: #ffffff;
+      --text-secondary: #c3c2b7; --text-muted: #898781; --gridline: #2c2c2a;
+      --series-1: #3987e5; --border: rgba(255, 255, 255, 0.10);
+      --control-bg: #24241f;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; padding: 24px 16px 48px; background: var(--page); color: var(--text-primary); font-family: system-ui, -apple-system, "Segoe UI", sans-serif; }
+__HEADER_CSS__
+  .panel { background: var(--surface-1); border: 1px solid var(--border); border-radius: 12px; padding: 16px 18px; margin-bottom: 16px; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th { text-align: left; color: var(--text-muted); font-weight: 500; font-size: 11px; text-transform: uppercase; letter-spacing: 0.02em; padding: 8px; border-bottom: 1px solid var(--gridline); white-space: nowrap; }
+  td { padding: 8px; border-bottom: 1px solid var(--gridline); vertical-align: top; }
+  tr:last-child td { border-bottom: none; }
+  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+  td.model-name { font-weight: 600; }
+  /* Nota su riga propria (colspan 6), non incastrata nella cella ID assieme
+     al <code> -- stonava, specialmente su note lunghe che andavano a capo
+     dentro una cella gia' stretta. padding-top:0 la avvicina alla riga del
+     modello a cui si riferisce, il border-bottom standard resta a separare
+     la coppia (riga modello + nota) dalla riga successiva.
+     [EN] Note on its own row (colspan 6), not crammed into the ID cell next
+     to the <code> -- it looked off, especially with long notes wrapping
+     inside an already narrow cell. padding-top:0 keeps it close to the model
+     row it refers to, while the standard border-bottom still separates the
+     pair (model row + note) from the next row. */
+  tr.note-row td { padding-top: 0; }
+  /* Le righe entrano a cascata invece di comparire tutte insieme:
+     --row-i (l'indice di riga, scritto nell'HTML da render_pricing.py) fa
+     da moltiplicatore del ritardo, con un tetto a 12 perche' su un
+     tariffario lungo le ultime righe non debbano aspettare secondi.
+     "backwards" tiene la riga trasparente anche prima della partenza --
+     necessario proprio per via del ritardo scaglionato.
+     [EN] Rows enter in a cascade instead of showing up all at once:
+     --row-i (the row index, written into the HTML by render_pricing.py)
+     multiplies the delay, capped at 12 so that on a long price list the
+     last rows do not have to wait whole seconds. "backwards" keeps a row
+     transparent even before its start -- needed precisely because of the
+     staggered delay. */
+  tbody tr {
+    animation: row-in 0.38s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+    animation-delay: calc(min(var(--row-i, 0), 12) * 45ms);
+  }
+  @keyframes row-in { from { opacity: 0; transform: translateY(8px); } }
+  @media (prefers-reduced-motion: reduce) { tbody tr { animation: none; } }
+  td.model-note { color: var(--text-muted); font-size: 11px; font-style: italic; }
+  .hint { font-size: 12.5px; color: var(--text-muted); margin: 12px 2px 0; line-height: 1.5; }
+  code { font-family: ui-monospace, "Cascadia Code", monospace; font-size: 11.5px; color: var(--text-secondary); }
+</style>
+__REVEAL_BOOT__
+</head>
+<body>
+<div class="wrap">
+__SITE_HEADER__
+
+  <div class="page-title-block">
+    <h1>Tariffario prezzi &mdash; Claude Code</h1>
+    <p class="page-desc">Prezzi di listino Anthropic come configurati nel tariffario locale, in $ per milione di token (input, output, cache)</p>
+  </div>
+
+  <div class="panel" data-reveal>
+    <table>
+      <thead><tr>
+        <th>Modello</th><th class="num">Input</th><th class="num">Output</th>
+        <th class="num">Cache write</th><th class="num">Cache read</th><th>ID / note</th>
+      </tr></thead>
+      <tbody>
+        __ROWS__
+      </tbody>
+    </table>
+  </div>
+  <p class="hint" data-reveal>
+    Cache write = 1,25&times; il prezzo input con TTL 5 minuti, <strong>2&times; con TTL 1 ora</strong>
+    (quella usata da Claude Code, e quindi la quasi totalita' delle scritture di cache) &middot;
+    cache read = 0,1&times; il prezzo input &mdash; moltiplicatori standard Anthropic, uguali per ogni modello.<br>
+    Questi sono i prezzi ufficiali dell'API a consumo: se l'account e' su piano Pro/Team a canone fisso
+    non c'e' fatturazione a token, ma la dashboard li usa comunque come stima di riferimento.
+  </p>
+</div>
+__REVEAL_JS__
+</body>
+</html>

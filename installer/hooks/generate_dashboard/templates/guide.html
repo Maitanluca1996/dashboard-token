@@ -1,0 +1,626 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🪙</text></svg>" />
+<title>Guida all'ottimizzazione dei costi &mdash; Claude Code</title>
+<style>
+  :root {
+    color-scheme: light;
+    --surface-1: #fcfcfb; --page: #f9f9f7; --text-primary: #0b0b0b;
+    --text-secondary: #52514e; --text-muted: #898781; --gridline: #e1e0d9;
+    --series-1: #2a78d6; --border: rgba(11, 11, 11, 0.10);
+    --accent-bg: rgba(42, 120, 214, 0.08); --accent-br: rgba(42, 120, 214, 0.30);
+    --pos: #2f6f4a; --warn: #9a5b12; --warn-bg: rgba(154, 91, 18, 0.09);
+    --alert: #a33a2a;
+    --control-bg: #ffffff;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      color-scheme: dark;
+      --surface-1: #1a1a19; --page: #0d0d0d; --text-primary: #ffffff;
+      --text-secondary: #c3c2b7; --text-muted: #898781; --gridline: #2c2c2a;
+      --series-1: #3987e5; --border: rgba(255, 255, 255, 0.10);
+      --accent-bg: rgba(57, 135, 229, 0.13); --accent-br: rgba(57, 135, 229, 0.38);
+      --pos: #6cbf90; --warn: #d69b4e; --warn-bg: rgba(214, 155, 78, 0.12);
+      --alert: #e08571;
+      --control-bg: #24241f;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; padding: 24px 16px 56px; background: var(--page); color: var(--text-primary); font-family: system-ui, -apple-system, "Segoe UI", sans-serif; }
+__HEADER_CSS__
+
+  .page-title-block { margin-bottom: 8px; }
+
+  .sec { margin-bottom: 24px; scroll-margin-top: 20px; }
+  .sec:last-child { margin-bottom: 0; }
+
+  /* Sezioni collassabili: bottone di testata + wrapper animato via
+     grid-template-rows (0fr -> 1fr), il modo per animare un'altezza
+     "auto" senza dover misurare nulla in JS. Il fade sul contenuto interno
+     rende il movimento morbido invece dello scatto secco di <details>.
+     [EN] Collapsible sections: header button + wrapper animated via
+     grid-template-rows (0fr -> 1fr), the way to animate an "auto" height
+     without measuring anything in JS. The fade on the inner content makes
+     the movement smooth instead of the abrupt snap of <details>. */
+  .sec-summary { all: unset; box-sizing: border-box; display: flex; align-items: flex-start; gap: 10px; padding: 10px 0; margin-bottom: 6px; border-radius: 8px; cursor: pointer; width: 100%; }
+  .sec-summary:hover .sec-head-text h2 { color: var(--series-1); }
+  .sec-summary:focus-visible { outline: 2px solid var(--series-1); outline-offset: 4px; }
+  .sec.open .sec-summary { margin-bottom: 16px; }
+  .sec-chevron { flex-shrink: 0; margin-top: 5px; color: var(--text-muted); transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1); }
+  .sec.open .sec-chevron { transform: rotate(90deg); }
+  .sec-head-text { flex: 1; min-width: 0; }
+  .sec-eyebrow { font-size: 11px; color: var(--series-1); font-weight: 700; letter-spacing: 0.06em; display: block; margin-bottom: 4px; text-transform: uppercase; }
+  h2 { font-size: 19px; margin: 0; letter-spacing: -0.01em; transition: color 0.15s ease; }
+  .sec-sub { color: var(--text-secondary); font-size: 13.5px; margin: 6px 0 0; line-height: 1.55; }
+
+  .sec-body { display: grid; grid-template-rows: 0fr; transition: grid-template-rows 0.32s cubic-bezier(0.4, 0, 0.2, 1); }
+  .sec.open .sec-body { grid-template-rows: 1fr; }
+  .sec-body-inner { overflow: hidden; opacity: 0; transition: opacity 0.2s ease; }
+  .sec.open .sec-body-inner { opacity: 1; transition: opacity 0.3s ease 0.08s; }
+
+  .group-divider { display: flex; align-items: center; gap: 12px; margin: 40px 0 24px; }
+  .group-divider:first-child { margin-top: 0; }
+  .group-divider .gd-title { font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); white-space: nowrap; }
+  .group-divider .gd-line { height: 1px; background: var(--gridline); flex: 1; }
+
+  .panel { background: var(--surface-1); border: 1px solid var(--border); border-radius: 12px; padding: 16px 18px; margin-bottom: 14px; }
+  .prose { font-size: 13.5px; line-height: 1.65; color: var(--text-secondary); }
+  .prose p { margin: 0 0 12px; }
+  .prose p:last-child { margin-bottom: 0; }
+  .prose strong { color: var(--text-primary); font-weight: 600; }
+  h3 { font-size: 13.5px; margin: 18px 0 8px; color: var(--text-primary); }
+  h3:first-child { margin-top: 0; }
+
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th { text-align: left; color: var(--text-muted); font-weight: 500; font-size: 11px; text-transform: uppercase; letter-spacing: 0.02em; padding: 8px; border-bottom: 1px solid var(--gridline); white-space: nowrap; }
+  td { padding: 8px; border-bottom: 1px solid var(--gridline); vertical-align: top; color: var(--text-secondary); line-height: 1.5; }
+  tr:last-child td { border-bottom: none; }
+  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  td.model-name { font-weight: 600; color: var(--text-primary); white-space: nowrap; }
+  td strong { color: var(--text-primary); font-weight: 600; }
+  tr.row-hi td { background: var(--accent-bg); }
+  .cell-note { display: block; color: var(--text-muted); font-size: 11.5px; margin-top: 2px; font-style: italic; }
+
+  .keybox { background: var(--accent-bg); border: 1px solid var(--accent-br); border-radius: 12px; padding: 14px 18px; margin-bottom: 14px; font-size: 13.5px; line-height: 1.65; color: var(--text-secondary); }
+  .keybox .kb-label { font-size: 11px; font-weight: 600; letter-spacing: 0.06em; color: var(--series-1); margin: 0 0 6px; }
+  .keybox p { margin: 0; }
+  .keybox p + p { margin-top: 10px; }
+  .keybox strong { color: var(--text-primary); font-weight: 600; }
+
+  .callout { border: 1px solid var(--border); border-left: 3px solid var(--warn); background: var(--warn-bg); border-radius: 0 12px 12px 0; padding: 14px 18px; margin-bottom: 14px; font-size: 13px; line-height: 1.6; color: var(--text-secondary); }
+  .callout-title { display: block; font-weight: 600; color: var(--warn); margin-bottom: 5px; }
+  .callout p { margin: 0; }
+
+  .scen-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; margin-bottom: 14px; }
+  .scen { background: var(--surface-1); border: 1px solid var(--border); border-radius: 12px; padding: 16px 18px; }
+  .scen-ppu { border-top: 3px solid var(--series-1); }
+  .scen-flat { border-top: 3px solid var(--pos); }
+  .scen-kicker { font-size: 11px; font-weight: 600; letter-spacing: 0.06em; margin: 0 0 3px; }
+  .scen-ppu .scen-kicker { color: var(--series-1); }
+  .scen-flat .scen-kicker { color: var(--pos); }
+  .scen h3 { margin: 0 0 2px; font-size: 15px; }
+  .scen-who { font-size: 12px; color: var(--text-muted); margin: 0 0 14px; }
+  .scen dl { margin: 0; }
+  .scen dt { font-size: 11px; font-weight: 600; letter-spacing: 0.04em; color: var(--text-muted); margin-top: 12px; }
+  .scen dt:first-child { margin-top: 0; }
+  .scen dd { margin: 3px 0 0; font-size: 13px; line-height: 1.55; color: var(--text-secondary); }
+  .scen dd strong { color: var(--text-primary); font-weight: 600; }
+
+  .lever { background: var(--surface-1); border: 1px solid var(--border); border-radius: 12px; margin-bottom: 12px; overflow: hidden; }
+  .lever-main { padding: 16px 18px 14px; display: flex; gap: 14px; }
+  .lever-rank { flex-shrink: 0; width: 26px; height: 26px; border-radius: 8px; background: var(--page); border: 1px solid var(--gridline); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: var(--text-muted); }
+  .lever-body { flex: 1; min-width: 0; }
+  .lever-top { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: 8px; }
+  .lever-top h3 { margin: 0; font-size: 14.5px; flex: 1 1 auto; min-width: 180px; }
+  .impact { font-size: 10px; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase; padding: 3px 7px; border-radius: 5px; white-space: nowrap; }
+  .impact-alto { background: rgba(163, 58, 42, 0.10); color: var(--alert); }
+  .impact-medio { background: var(--warn-bg); color: var(--warn); }
+  .impact-basso { background: var(--gridline); color: var(--text-muted); }
+  .lever .prose { font-size: 13px; }
+
+  .antis { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 12px; }
+  .anti { background: var(--surface-1); border: 1px solid var(--border); border-left: 3px solid var(--alert); border-radius: 0 12px 12px 0; padding: 14px 16px; }
+  .anti h3 { margin: 0 0 5px; font-size: 13.5px; color: var(--alert); }
+  .anti p { margin: 0; font-size: 12.5px; line-height: 1.55; color: var(--text-secondary); }
+
+  .check-panel { padding: 4px 0 0; }
+  .check-groups { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; }
+  .check-group { padding: 16px 18px; border-left: 1px solid var(--gridline); }
+  .check-group:first-child { border-left: none; }
+  .check-group h3 { margin: 0 0 10px; font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-muted); display: flex; align-items: center; gap: 7px; }
+  .check-group .cg-num { display: inline-flex; align-items: center; justify-content: center; width: 16px; height: 16px; border-radius: 50%; background: var(--accent-bg); color: var(--series-1); font-size: 9.5px; font-weight: 700; }
+  .check-group ul { margin: 0; padding: 0; list-style: none; }
+  .check-group li { position: relative; padding-left: 20px; margin-bottom: 9px; font-size: 12.5px; line-height: 1.5; color: var(--text-secondary); }
+  .check-group li:last-child { margin-bottom: 0; }
+  .check-group li::before { content: ""; position: absolute; left: 0; top: 4px; width: 11px; height: 11px; border: 1.5px solid var(--gridline); border-radius: 3px; background: var(--page); }
+  @media (max-width: 760px) {
+    .check-groups { grid-template-columns: 1fr; }
+    .check-group { border-left: none; border-top: 1px solid var(--gridline); }
+    .check-group:first-child { border-top: none; }
+  }
+
+  .hint { font-size: 12.5px; color: var(--text-muted); margin: 0 0 10px; line-height: 1.55; }
+  .hint:last-child { margin-bottom: 0; }
+  .hint strong { color: var(--text-secondary); font-weight: 600; }
+  code { font-family: ui-monospace, "Cascadia Code", monospace; font-size: 11.5px; color: var(--text-secondary); }
+  @media (prefers-reduced-motion: reduce) {
+    * { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
+    html { scroll-behavior: auto; }
+  }
+</style>
+__REVEAL_BOOT__
+</head>
+<body>
+<div class="wrap">
+__SITE_HEADER__
+
+  <div class="page-title-block">
+    <h1>Guida all'ottimizzazione dei costi</h1>
+    <p class="page-desc">Leve operative per ridurre il costo di una sessione, seguite dai meccanismi &mdash; consumo di contesto, cache, prezzi, modalit&agrave; di fatturazione &mdash; che le determinano.</p>
+  </div>
+
+  <div class="sec open" data-reveal id="in-breve">
+    <button class="sec-summary" type="button" aria-expanded="true" aria-controls="in-breve-body">
+      <svg class="sec-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+      <div class="sec-head-text">
+        <span class="sec-eyebrow">Guida pratica</span>
+        <h2>In breve</h2>
+        <p class="sec-sub">Checklist operativa per l'uso quotidiano dello strumento.</p>
+      </div>
+    </button>
+    <div class="sec-body" id="in-breve-body"><div class="sec-body-inner">
+    <div class="panel check-panel">
+      <div class="check-groups">
+        <div class="check-group">
+          <h3><span class="cg-num">1</span>Prima di iniziare</h3>
+          <ul>
+            <li>La sessione aperta serve ancora alla richiesta successiva? Altrimenti <code>/clear</code>.</li>
+            <li>Il punto di intervento &egrave; gi&agrave; noto? Indicarlo vale pi&ugrave; di qualsiasi altra ottimizzazione.</li>
+            <li>Il compito &egrave; meccanico, ordinario o difficile? Scegliere il modello di conseguenza.</li>
+            <li>Ci sono server MCP attivi che il progetto corrente non utilizza?</li>
+          </ul>
+        </div>
+        <div class="check-group">
+          <h3><span class="cg-num">2</span>Durante</h3>
+          <ul>
+            <li>Log o dump lunghi: indicare il file, non incollarne il contenuto.</li>
+            <li>Ricerche ampie nel codice: delegarle a un sotto-agente.</li>
+            <li>Due tentativi falliti sullo stesso punto: fermarsi, ripartire pulito, eventualmente salire di modello.</li>
+            <li>Verifica: eseguire il test invece di chiedere conferma al modello.</li>
+          </ul>
+        </div>
+        <div class="check-group">
+          <h3><span class="cg-num">3</span>Periodicamente</h3>
+          <ul>
+            <li>Rivedere <code>CLAUDE.md</code>: contiene solo ci&ograve; che serve quasi sempre?</li>
+            <li>Controllare in dashboard il rapporto fra token nuovi e token totali.</li>
+            <li>Osservare la media di token nuovi per interazione: se cresce, le sessioni sono troppo lunghe.</li>
+            <li>Verificare che il tariffario sia allineato ai prezzi correnti.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="keybox">
+      <p class="kb-label">AZIONE PRIORITARIA</p>
+      <p>Chiudere la sessione con <code>/clear</code> quando cambia argomento. Il costo di una sessione cresce con il quadrato della sua lunghezza (spiegato in &laquo;Come si forma il costo&raquo; pi&ugrave; sotto): &egrave; l'azione con il maggiore impatto sul costo complessivo.</p>
+    </div>
+    </div></div>
+  </div>
+
+  <div class="sec open" data-reveal id="leve">
+    <button class="sec-summary" type="button" aria-expanded="true" aria-controls="leve-body">
+      <svg class="sec-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+      <div class="sec-head-text">
+        <span class="sec-eyebrow">Guida pratica</span>
+        <h2>Le leve, in ordine di impatto</h2>
+        <p class="sec-sub">Ordinate per effetto reale sul costo, non per facilit&agrave;. Valgono per la fatturazione a consumo (API a token) &mdash; la nota in fondo alla sezione chiarisce cosa cambia con un piano flat.</p>
+      </div>
+    </button>
+    <div class="sec-body" id="leve-body"><div class="sec-body-inner">
+
+    <article class="lever">
+      <div class="lever-main">
+        <span class="lever-rank">1</span>
+        <div class="lever-body">
+          <div class="lever-top"><span class="impact impact-alto">Impatto alto</span><h3>Chiudere la sessione quando cambia argomento</h3></div>
+          <div class="prose">
+            <p>Un <code>/clear</code> fra due attivit&agrave; scorrelate riporta il contesto rispedito quasi a zero. Tenere viva una sessione che ha attraversato cinque argomenti diversi significa pagarli tutti e cinque ad ogni turno.</p>
+            <p>Il criterio &egrave; il cambio di argomento, non il tempo trascorso: se la richiesta successiva non ha bisogno di nulla di quanto precede, non serve portarselo dietro. &Egrave; la leva con il maggiore impatto sul costo complessivo, per il meccanismo quadratico descritto in &laquo;Come si forma il costo&raquo;.</p>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <article class="lever">
+      <div class="lever-main">
+        <span class="lever-rank">2</span>
+        <div class="lever-body">
+          <div class="lever-top"><span class="impact impact-alto">Impatto alto</span><h3>Indicare il punto esatto invece di far cercare</h3></div>
+          <div class="prose">
+            <p>&laquo;Sistema il bug del login&raquo; costringe a esplorare: ricerche, letture di file interi, tentativi, tutti rispediti ad ogni turno successivo. <code>auth.ts:42, il token scade prima del refresh</code> arriva allo stesso risultato senza caricare nulla di superfluo.</p>
+            <p>Richiede pochi secondi di formulazione in pi&ugrave; e pu&ograve; escludere decine di migliaia di token dal contesto permanente, non rispediti per tutti i turni a seguire.</p>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <article class="lever">
+      <div class="lever-main">
+        <span class="lever-rank">3</span>
+        <div class="lever-body">
+          <div class="lever-top"><span class="impact impact-alto">Impatto alto</span><h3>Fermare i tentativi a vuoto entro il secondo</h3></div>
+          <div class="prose">
+            <p>Quando il modello ripete variazioni della stessa correzione senza avvicinarsi alla soluzione, ogni turno aggiuntivo costa di pi&ugrave; e riesce con meno probabilit&agrave;, perch&eacute; il contesto si riempie di tentativi falliti.</p>
+            <p>La mossa corretta: interrompere, ripartire da un contesto pulito con quanto appreso dal fallimento, eventualmente salire di modello. Evita la coda di spesa pi&ugrave; costosa e meno produttiva.</p>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <article class="lever">
+      <div class="lever-main">
+        <span class="lever-rank">4</span>
+        <div class="lever-body">
+          <div class="lever-top"><span class="impact impact-medio">Impatto medio</span><h3>Tenere <code>CLAUDE.md</code> asciutto</h3></div>
+          <div class="prose">
+            <p>Incluso <strong>ad ogni turno di ogni sessione</strong>. Duemila token di convenzioni utili si ripagano subito; diecimila token di documentazione discorsiva sono una tassa fissa permanente moltiplicata per ogni turno di tutto il team. Va inserito solo ci&ograve; che serve quasi sempre.</p>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <article class="lever">
+      <div class="lever-main">
+        <span class="lever-rank">5</span>
+        <div class="lever-body">
+          <div class="lever-top"><span class="impact impact-medio">Impatto medio</span><h3>Disattivare i server MCP non in uso</h3></div>
+          <div class="prose">
+            <p>Ogni server MCP inserisce gli schemi dei propri strumenti nel contesto ad ogni turno, indipendentemente dal fatto che vengano usati. Tenere attivi solo quelli utili al progetto corrente richiede una verifica una tantum e produce un risparmio costante nel tempo.</p>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <article class="lever">
+      <div class="lever-main">
+        <span class="lever-rank">6</span>
+        <div class="lever-body">
+          <div class="lever-top"><span class="impact impact-medio">Impatto medio</span><h3>Delegare l'esplorazione a un sotto-agente</h3></div>
+          <div class="prose">
+            <p>Un sotto-agente lavora in un contesto proprio e restituisce solo la conclusione. Conviene quando la ricerca &egrave; ampia e il risultato &egrave; breve; non conviene su compiti piccoli, dove il costo di avvio supera il risparmio.</p>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <article class="lever">
+      <div class="lever-main">
+        <span class="lever-rank">7</span>
+        <div class="lever-body">
+          <div class="lever-top"><span class="impact impact-medio">Impatto medio</span><h3>Indicare i file invece di incollarne il contenuto</h3></div>
+          <div class="prose">
+            <p>Uno stack trace incollato in chat resta nel contesto fino alla fine della sessione. Lo stesso file lasciato su disco, con l'indicazione di dove guardare, viene letto in modo mirato e costa una frazione &mdash; un singolo incolla di grandi dimensioni pu&ograve; costare pi&ugrave; dell'intera sessione che lo contiene.</p>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <article class="lever">
+      <div class="lever-main">
+        <span class="lever-rank">8</span>
+        <div class="lever-body">
+          <div class="lever-top"><span class="impact impact-medio">Impatto medio</span><h3>Lavorare a blocchi continui</h3></div>
+          <div class="prose">
+            <p>La cache ha una TTL predefinita di cinque minuti. Tre turni ravvicinati riusano il contesto a un decimo del prezzo; gli stessi tre turni distribuiti lungo la mattinata lo ripagano ogni volta quasi per intero &mdash; fino a circa <strong>__EX_RATIO__&times;</strong> sul costo di input di una sessione lunga.</p>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <article class="lever">
+      <div class="lever-main">
+        <span class="lever-rank">9</span>
+        <div class="lever-body">
+          <div class="lever-top"><span class="impact impact-basso">Impatto basso</span><h3>Pianificare una volta ed eseguire a lungo</h3></div>
+          <div class="prose">
+            <p>Su interventi ampi, un passaggio iniziale di pianificazione produce una scaletta che l'esecuzione segue senza ripensamenti, invece di dieci correzioni di rotta che rispedirebbero ogni volta tutto il contesto. Si ripaga sui lavori grandi, &egrave; sovrastruttura su quelli piccoli.</p>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <article class="lever">
+      <div class="lever-main">
+        <span class="lever-rank">10</span>
+        <div class="lever-body">
+          <div class="lever-top"><span class="impact impact-basso">Impatto basso</span><h3>Far verificare alla macchina, non al modello</h3></div>
+          <div class="prose">
+            <p>Chiedere conferma della correttezza costa un turno di ragionamento e produce un'opinione. Eseguire il test costa quasi nulla e produce un fatto. Piccolo ma frequente: buona pratica indipendentemente dal costo.</p>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <div class="callout"><span class="callout-title">Con un piano flat cambia poco</span><p>Queste priorit&agrave; restano le stesse. La quota di un piano flat &egrave; pesata sul modello, quindi un modello pi&ugrave; caro la erode all'incirca alla stessa velocit&agrave; con cui eroderebbe il budget a consumo: non &egrave; un token gratuito. L'unica differenza reale &egrave; che <strong>se non si &egrave; mai vicini al limite del piano, ottimizzare non serve</strong> &mdash; sotto soglia va bene usare il modello migliore senza ulteriori calcoli. Vicino al limite, per&ograve;, valgono esattamente le stesse leve qui sopra, con l'unit&agrave; di misura cambiata da euro a minuti di lavoro bloccato.</p></div>
+    </div></div>
+  </div>
+
+  <div class="sec open" data-reveal id="antipattern">
+    <button class="sec-summary" type="button" aria-expanded="true" aria-controls="antipattern-body">
+      <svg class="sec-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+      <div class="sec-head-text">
+        <span class="sec-eyebrow">Guida pratica</span>
+        <h2>Anti-pattern</h2>
+        <p class="sec-sub">Comportamenti che sembrano prudenti e non lo sono, o che costano molto senza che si veda.</p>
+      </div>
+    </button>
+    <div class="sec-body" id="antipattern-body"><div class="sec-body-inner">
+    <div class="antis">
+      <div class="anti"><h3>La sessione eterna</h3>
+        <p>Una sola sessione tenuta aperta per giorni su argomenti diversi. &Egrave; il modo pi&ugrave; costoso di usare lo strumento e peggiora anche la qualit&agrave; delle risposte.</p></div>
+      <div class="anti"><h3>Il modello economico per principio</h3>
+        <p>Scegliere sempre il modello meno caro per risparmiare, ottenendo tre tentativi falliti al posto di uno riuscito. Si paga di pi&ugrave;, in denaro e in tempo.</p></div>
+      <div class="anti"><h3>Il micro-risparmio a spese proprie</h3>
+        <p>Impiegare cinque minuti a formulare la richiesta pi&ugrave; breve possibile per risparmiare qualche centesimo. Il tempo di lavoro vale ordini di grandezza di pi&ugrave;.</p></div>
+      <div class="anti"><h3>Il <code>CLAUDE.md</code> enciclopedico</h3>
+        <p>Documentazione estesa collocata dove viene riletta ad ogni turno. Un costo fisso invisibile moltiplicato per ogni sviluppatore e ogni sessione.</p></div>
+      <div class="anti"><h3>La compattazione subita</h3>
+        <p>Lasciare che la compattazione automatica intervenga a met&agrave; di un ragionamento invece di chiuderlo o compattare a un confine naturale.</p></div>
+      <div class="anti"><h3>&laquo;Tanto &egrave; flat&raquo;</h3>
+        <p>Dare per scontato che con l'abbonamento il modello pi&ugrave; caro sia gratuito. Erode la quota alla stessa velocit&agrave;: il conto arriva sotto forma di blocco, non di fattura.</p></div>
+    </div>
+    </div></div>
+  </div>
+
+  <div class="group-divider" data-reveal><span class="gd-title">Come funziona</span><span class="gd-line"></span></div>
+
+  <div class="sec" data-reveal id="modello">
+    <button class="sec-summary" type="button" aria-expanded="false" aria-controls="modello-body">
+      <svg class="sec-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+      <div class="sec-head-text">
+        <span class="sec-eyebrow">Teoria</span>
+        <h2>Come si forma il costo</h2>
+        <p class="sec-sub">Il contesto rispedito ad ogni turno, non l'output generato, &egrave; la voce di costo dominante in una sessione agentica.</p>
+      </div>
+    </button>
+    <div class="sec-body" id="modello-body"><div class="sec-body-inner">
+
+    <div class="panel prose">
+      <p>L'intuizione naturale &egrave; che si paghi quello che Claude scrive. In una sessione di coding agentico &egrave; quasi il contrario: <strong>il costo dominante &egrave; il contesto che viene rispedito ad ogni turno</strong> &mdash; istruzioni di sistema, <code>CLAUDE.md</code>, schemi degli strumenti, file letti, output dei comandi, tutti i messaggi precedenti.</p>
+      <p>Ne discende una conseguenza poco intuitiva: <strong>il costo di una sessione non cresce in proporzione alla sua durata, ma molto pi&ugrave; in fretta</strong>. Se ogni turno aggiunge una quantit&agrave; di contesto pi&ugrave; o meno costante, il totale rispedito dopo n turni cresce come n&sup2;. Raddoppiare la lunghezza di una sessione ne quadruplica il costo.</p>
+    </div>
+
+    <div class="keybox">
+      <p class="kb-label">ESEMPIO NUMERICO</p>
+      <p>Una sessione che aggiunge circa 3.000 token di contesto per turno, portata avanti per <strong>40 turni</strong>, rispedisce complessivamente circa <strong>2,46 milioni</strong> di token. Le stesse 40 interazioni divise in <strong>4 sessioni da 10 turni</strong> ne rispediscono <strong>660.000</strong>: <strong>3,7 volte di meno</strong>, a parit&agrave; assoluta di lavoro svolto.</p>
+    </div>
+
+    <div class="panel">
+      <h3>Il prompt caching corregge una parte del problema</h3>
+      <p class="hint">Il contesto ripetuto viene messo in cache e rileggerlo costa una frazione. I moltiplicatori si applicano al prezzo di input e sono uguali per ogni modello.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Voce</th><th class="num">Moltiplicatore</th><th>Quando si paga</th></tr></thead>
+          <tbody>
+            <tr><td class="model-name">Token di input</td><td class="num">1,00&times;</td>
+              <td>Contenuto nuovo, mai visto prima in questa sessione.</td></tr>
+            <tr><td class="model-name">Cache write</td><td class="num">__CW__&times;</td>
+              <td>Prima volta che un blocco di contesto viene memorizzato. TTL predefinita 5 minuti.</td></tr>
+            <tr class="row-hi"><td class="model-name">Cache read</td><td class="num">__CR__&times;</td>
+              <td>Ogni riutilizzo del blocco finch&eacute; la cache &egrave; valida. <strong>Dieci volte pi&ugrave; economico.</strong></td></tr>
+            <tr><td class="model-name">Token di output</td><td class="num">&mdash;</td>
+              <td>Listino a parte, tipicamente 5&times; il prezzo di input dello stesso modello.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="panel prose">
+      <p>In pratica: una sessione di __EX_TURNS__ turni su __EX_CTX__ token di contesto costa circa <strong>__EX_NOCACHE__</strong>
+        di solo input senza cache, e circa <strong>__EX_CACHE__</strong> con la cache calda &mdash; una differenza di
+        <strong>__EX_RATIO__&times;</strong> (calcolo su __BASE_LABEL__, ai prezzi correnti del tariffario).
+        L'unica condizione: <strong>la cache scade</strong>. Una pausa di venti minuti a met&agrave; lavoro la lascia
+        raffreddare, e il turno successivo ricomincia a prezzo pieno.</p>
+      <p>La dashboard misura esattamente questo: la card <strong>Token nuovi</strong> confrontata con
+        <strong>Token totali (con cache)</strong>. Se il rapporto &egrave; molto sbilanciato verso i totali, la cache sta
+        lavorando bene.</p>
+    </div>
+    </div></div>
+  </div>
+
+  <div class="sec" data-reveal id="modelli">
+    <button class="sec-summary" type="button" aria-expanded="false" aria-controls="modelli-body">
+      <svg class="sec-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+      <div class="sec-head-text">
+        <span class="sec-eyebrow">Teoria</span>
+        <h2>Modello economico o modello caro?</h2>
+        <p class="sec-sub">Soglia di convenienza tra prezzo unitario e consumo atteso, calcolata sui prezzi correnti di tariffario.</p>
+      </div>
+    </button>
+    <div class="sec-body" id="modelli-body"><div class="sec-body-inner">
+
+    <div class="panel">
+      <p class="hint">Un modello pi&ugrave; economico conviene solo se il suo maggiore consumo resta sotto il rapporto fra
+        i due prezzi. Soglie calcolate su <strong>__BASE_LABEL__</strong> come riferimento, ai prezzi attualmente
+        in tariffario ($ per milione di token).</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr>
+            <th>Modello</th><th class="num">Input</th><th class="num">Output</th>
+            <th class="num">Rapporto</th><th>Soglia di convenienza</th>
+          </tr></thead>
+          <tbody>
+            __PRICE_ROWS__
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    __PROMO_BLOCK__
+
+    <div class="panel prose">
+      <h3>Il consumo di token dipende dal modello</h3>
+      <p>Il conteggio dei token <strong>non &egrave; indipendente dal modello</strong>. Un modello pi&ugrave; debole su un
+        compito difficile non consuma semplicemente un po' di pi&ugrave;: sbaglia strada, rilegge file, tenta correzioni,
+        e ogni tentativo &egrave; un turno in pi&ugrave; che rispedisce tutto il contesto accumulato.</p>
+    </div>
+
+    <div class="panel prose">
+      <h3>Il fallimento di un modello economico si paga in tempo di lavoro</h3>
+      <p>Questa voce non compare in nessun listino: quando il modello pi&ugrave; economico non arriva in fondo al compito,
+        la differenza si paga in tempo dello sviluppatore, non solo in token. Un'ora di lavoro umano vale, come ordine di
+        grandezza, quanto <strong>decine di ore</strong> di utilizzo intensivo di Claude Code.</p>
+    </div>
+
+    <div class="panel">
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Tipo di compito</th><th>Modello</th><th>Motivo</th></tr></thead>
+          <tbody>
+            <tr><td class="model-name">Meccanico e specificato</td><td>Haiku</td>
+              <td>Rinomina, riformattazioni, estrazione dati da log, modifiche ripetitive con regola chiara.
+                Il consumo &egrave; quasi identico a quello del modello di riferimento, quindi il risparmio &egrave; reale.</td></tr>
+            <tr class="row-hi"><td class="model-name">Sviluppo ordinario</td><td>Sonnet</td>
+              <td>Il default corretto per la maggior parte del lavoro. Non richiede giustificazione.</td></tr>
+            <tr><td class="model-name">Difficile o ad alto rischio</td><td>Opus</td>
+              <td>Debug non ovvio, refactoring architetturale, ragionamento su codice sconosciuto. Basta che riduca
+                il numero di turni oltre la soglia della tabella sopra per ripagarsi.</td></tr>
+            <tr><td class="model-name">Gi&agrave; fallito una volta</td><td>Salire di modello</td>
+              <td>Insistere con lo stesso modello su un compito che ha gi&agrave; sbagliato &egrave; il modo pi&ugrave;
+                affidabile di consumare token senza risultato.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    </div></div>
+  </div>
+
+  <div class="sec" data-reveal id="scenari">
+    <button class="sec-summary" type="button" aria-expanded="false" aria-controls="scenari-body">
+      <svg class="sec-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+      <div class="sec-head-text">
+        <span class="sec-eyebrow">Teoria</span>
+        <h2>Tariffa a consumo o abbonamento flat</h2>
+        <p class="sec-sub">Confronto tra le due modalit&agrave; di fatturazione e le implicazioni pratiche di ciascuna.</p>
+      </div>
+    </button>
+    <div class="sec-body" id="scenari-body"><div class="sec-body-inner">
+
+    <div class="scen-grid">
+      <div class="scen scen-ppu">
+        <p class="scen-kicker">SCENARIO A</p>
+        <h3>Tariffa a consumo</h3>
+        <p class="scen-who">Fatturazione API a consumo &middot; per token</p>
+        <dl>
+          <dt>RISORSA SCARSA</dt><dd>Denaro, in modo continuo e proporzionale.</dd>
+          <dt>COSTO MARGINALE DI UN TOKEN</dt><dd>Costante e sempre positivo. Ogni token consumato compare in fattura.</dd>
+          <dt>FORMA DELLA CURVA</dt><dd>Lineare. Nessuna soglia e nessun tetto: il decimo milione di token costa quanto il primo.</dd>
+          <dt>SEGNALE DA GUARDARE</dt><dd>La spesa aggregata, in fattura e nella dashboard.</dd>
+        </dl>
+      </div>
+      <div class="scen scen-flat">
+        <p class="scen-kicker">SCENARIO B</p>
+        <h3>Abbonamento flat</h3>
+        <p class="scen-who">Piano in abbonamento &middot; canone fisso mensile</p>
+        <dl>
+          <dt>RISORSA SCARSA</dt><dd>La quota di utilizzo del piano, che si ricarica a finestre.</dd>
+          <dt>COSTO MARGINALE DI UN TOKEN</dt><dd><strong>Zero fino al limite, poi bloccante.</strong> &Egrave; una funzione a gradino, non una retta.</dd>
+          <dt>FORMA DELLA CURVA</dt><dd>Piatta, poi un muro. Superata la soglia non si paga di pi&ugrave;: semplicemente ci si ferma.</dd>
+          <dt>SEGNALE DA GUARDARE</dt><dd>Quante volte in un mese si resta bloccati prima della ricarica della finestra.</dd>
+        </dl>
+      </div>
+    </div>
+
+    <div class="keybox">
+      <p class="kb-label">SINTESI</p>
+      <p><strong>Con l'abbonamento flat un modello costoso non &egrave; gratuito.</strong> La quota dei piani non si conta
+        a messaggi: &egrave; pesata sul modello, e un modello pi&ugrave; caro erode la quota all'incirca alla stessa
+        velocit&agrave; con cui eroderebbe il budget a consumo. Non esiste quindi un budget di token da risparmiare
+        pagando di pi&ugrave;: non sono due valute separate, sono la stessa valuta con due etichette.</p>
+      <p>L'asimmetria reale &egrave; un'altra, ed &egrave; quella del gradino: <strong>se non si tocca mai il limite del
+        piano, ottimizzare non ha alcun valore</strong>. Il token risparmiato non diventa denaro, non si accumula e non
+        serve a nulla, mentre il tempo speso a risparmiarlo &egrave; una perdita secca. Sotto soglia la strategia corretta
+        &egrave; usare il modello migliore senza ulteriori considerazioni.</p>
+      <p>Nel momento in cui si inizia a raggiungere il limite, per&ograve;, la quota torna a comportarsi come denaro:
+        da l&igrave; in poi valgono <strong>esattamente le stesse leve</strong> dello scenario a consumo, con l'unit&agrave;
+        di misura cambiata da euro a minuti di lavoro bloccato.</p>
+    </div>
+
+    <div class="panel">
+      <h3>Cosa cambia nella pratica</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Aspetto</th><th>A consumo</th><th>Flat</th></tr></thead>
+          <tbody>
+            <tr><td class="model-name">Sotto soglia</td>
+              <td>Non esiste un sotto soglia: si paga sempre, quindi ogni spreco eliminato &egrave; denaro risparmiato subito.</td>
+              <td>Ottimizzare &egrave; <strong>controproducente</strong>: costa tempo e non produce alcun beneficio.</td></tr>
+            <tr><td class="model-name">Scelta del modello caro</td>
+              <td>Va giustificata dal calcolo della sezione precedente: meno turni e minore rischio di fallimento.</td>
+              <td>Va giustificata allo stesso modo, ma la valuta &egrave; la quota. <strong>Non &egrave; una scelta neutra.</strong></td></tr>
+            <tr><td class="model-name">Prove esplorative</td>
+              <td>Hanno un prezzo. Meglio circoscriverle con un sotto-agente o una sessione dedicata.</td>
+              <td>Con margine di quota disponibile, non ci sono ragioni per limitarle: &egrave; l'uso migliore di una
+                risorsa che altrimenti scade inutilizzata.</td></tr>
+            <tr class="row-hi"><td class="model-name">Regola comune</td>
+              <td colspan="2">In entrambi gli scenari il principio &egrave; identico: <strong>eliminare lo spreco, mai l'uso</strong>.
+                Un turno speso a rispedire contesto inutile &egrave; spreco. Un turno speso a risolvere un problema reale
+                non lo &egrave;, e non va tagliato in nessuno dei due casi.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    </div></div>
+  </div>
+
+  <div class="group-divider" data-reveal><span class="gd-title">Riferimenti</span><span class="gd-line"></span></div>
+
+  <div class="sec" data-reveal id="note">
+    <button class="sec-summary" type="button" aria-expanded="false" aria-controls="note-body">
+      <svg class="sec-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+      <div class="sec-head-text">
+        <h2>Note sulle fonti</h2>
+      </div>
+    </button>
+    <div class="sec-body" id="note-body"><div class="sec-body-inner">
+    <div class="panel">
+      <p class="hint"><strong>Prezzi e soglie.</strong> Tutti i valori di questa pagina sono calcolati automaticamente dal
+        tariffario in <code>generate_dashboard/pricing.py</code> alla rigenerazione: le soglie di convenienza della sezione
+        &laquo;Modello economico o modello caro?&raquo; e l'esempio numerico della sezione &laquo;Come si forma il costo&raquo;
+        si aggiornano da soli quando cambiano i prezzi, senza interventi sul testo.
+        Il tariffario completo &egrave; nella <a href="pricing.html">pagina dedicata</a>.</p>
+      <p class="hint"><strong>Cache.</strong> I moltiplicatori usati (__CW__&times; in scrittura, __CR__&times; in lettura) sono
+        quelli con cui la dashboard calcola i costi, con TTL predefinita di 5 minuti. Esistono opzioni di cache con TTL
+        pi&ugrave; lunga e costo di scrittura superiore, non contemplate dal calcolo attuale.</p>
+      <p class="hint"><strong>Limiti dei piani in abbonamento.</strong> Descritti volutamente in modo qualitativo: soglie,
+        finestre di ricarica e pesi per modello vengono riviste periodicamente. Il ragionamento di questa pagina &mdash;
+        quota pesata sul modello, costo marginale a gradino &mdash; resta valido a prescindere dai valori esatti, ma i
+        numeri specifici vanno verificati sul piano effettivamente in uso.</p>
+      <p class="hint"><strong>Esempi numerici.</strong> Le cifre delle sezioni teoriche servono a dare l'ordine di grandezza dei
+        rapporti fra le voci, non a prevedere una spesa. I dati reali di utilizzo sono nella
+        <a href="dashboard.html">dashboard</a>.</p>
+    </div>
+    </div></div>
+  </div>
+
+</div>
+<script>
+  // Accordion: click sul bottone di testata apre/chiude la sezione,
+  // animata via CSS (grid-template-rows 0fr -> 1fr), niente JS di misura.
+  // [EN] Accordion: clicking the header button opens/closes the section,
+  // [EN] animated via CSS (grid-template-rows 0fr -> 1fr), no measuring JS.
+  document.querySelectorAll('.sec-summary').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var sec = btn.closest('.sec');
+      var isOpen = sec.classList.toggle('open');
+      btn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+    });
+  });
+</script>
+__REVEAL_JS__
+</body>
+</html>
