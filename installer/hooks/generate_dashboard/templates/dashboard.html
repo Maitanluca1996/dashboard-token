@@ -167,178 +167,96 @@ __HEADER_CSS__
     border: 1px solid var(--border);
     transition: box-shadow 0.2s ease, border-color 0.2s ease;
   }
-  /* La barra resta a portata mentre si scorre una tabella lunga, agganciata
-     subito sotto l'intestazione (--header-h la pubblica header.py, perche'
-     quell'altezza cambia quando le schede vanno a capo).
-     Ad agganciarsi e' il CONTENITORE, non la barra: opaco e a tutta
-     larghezza, le fa da piano d'appoggio e copre il contenuto che le passa
-     dietro nei quattro spicchi d'angolo (la parte di rettangolo che il
-     raggio di 12px lascia scoperta). Prima si agganciava la barra stessa e
-     per quegli spicchi ero costretto a squadrarle gli angoli alti: un
-     rimedio che si vedeva. Cosi' il raggio resta intero su tutti e quattro.
-     Solo da 700px in su: piu' stretto di cosi' i sei filtri si impilano e
-     con l'intestazione arriverebbero a occupare il 70% dello schermo,
-     lasciando una finestrella per i dati. Li' e' meglio che scorrano via.
-     [EN] The bar stays within reach while scrolling a long table, docked
-     right below the header (--header-h is published by header.py, because
-     that height changes when the tabs wrap).
-     What docks is the CONTAINER, not the bar: opaque and full-width, it
-     acts as its supporting surface and covers the content sliding behind it
-     in the four corner slivers (the part of the rectangle the 12px radius
-     leaves uncovered). Previously the bar itself was docked and for those
-     slivers its top corners had to be squared off: a visible workaround.
-     This way the radius stays intact on all four corners.
-     Only from 700px up: any narrower and the six filters stack, and with
-     the header they would take up 70% of the screen, leaving a small
-     window for the data. There it is better to let them scroll away. */
-  @media (min-width: 700px) {
-    .filters-dock {
-      position: sticky;
-      /* Un pixel piu' su dell'altezza dichiarata: --header-h e' un intero
-         (offsetHeight) mentre l'intestazione puo' essere alta 52,4px, e la
-         differenza lascerebbe passare una riga di contenuto in movimento
-         tra le due. Sovrapporre un pixel non si vede -- il contenitore e'
-         opaco e passa sotto l'intestazione -- e chiude la fessura.
-         [EN] One pixel above the declared height: --header-h is an integer
-         (offsetHeight) while the header can be 52.4px tall, and the
-         difference would let a sliver of moving content show between the
-         two. Overlapping by one pixel is invisible -- the container is
-         opaque and slides under the header -- and closes the gap. */
-      top: calc(var(--header-h, 99px) - 1px);
-      z-index: 150;
-      background: var(--page);
-      /* Le fasce opache sopra e sotto la barra: da agganciata sono cio' che
-         la stacca dall'intestazione e dal contenuto in scorrimento. I 20px
-         di stacco dal resto della pagina restano gli stessi di prima, solo
-         divisi tra la fascia (10) e il margine del contenitore (10).
-         [EN] The opaque strips above and below the bar: when docked they
-         are what separates it from the header and from the scrolling
-         content. The 20px of spacing from the rest of the page stays the
-         same as before, just split between the strip (10) and the
-         container margin (10). */
-      padding: 10px 0;
-      margin-bottom: 10px;
+  /* --- La colonna dei filtri ---
+     I filtri globali non sono piu' una barra orizzontale sopra il contenuto
+     ma una colonna a sinistra, appiccicata sotto l'intestazione (--header-h
+     la pubblica header.py, perche' quell'altezza cambia quando le schede
+     vanno a capo). Restano cosi' a portata di clic per tutta la pagina
+     senza nessun meccanismo dedicato: e' la colonna stessa a essere
+     appiccicata, e non deve piu' coprire niente che le scorra dietro.
+     Con i filtri in verticale sono spariti insieme al loro motivo di
+     esistere il contenitore .filters-dock (faceva da piano d'appoggio
+     opaco alla barra agganciata), la classe .stuck e tutta la forma
+     "chrome-compact" della barra, che stringeva i sei filtri su una riga
+     sola allineandoli alle colonne della tabella: in colonna non c'e'
+     niente da stringere e nessuna colonna da inseguire.
+     La larghezza della pagina cresce esattamente di quanto occupa la
+     colonna (248 + 24 di gap), cosi' il contenuto resta largo i 900px di
+     sempre invece di stringersi per far posto ai filtri. L'aumento vale
+     solo qui: .wrap e' definita in header.py per tutte e tre le pagine, e
+     guida e tariffario non hanno una barra laterale.
+     [EN] --- The filters column ---
+     Global filters are no longer a horizontal bar above the content but a
+     left-hand column, stuck below the header (--header-h is published by
+     header.py, because that height changes when the tabs wrap). This keeps
+     them within reach for the whole page with no dedicated machinery: the
+     column itself is sticky, and no longer has to cover anything scrolling
+     behind it.
+     With the filters vertical, three things lost their reason to exist and
+     are gone: the .filters-dock container (an opaque resting surface for
+     the docked bar), the .stuck class and the whole "chrome-compact" form
+     of the bar, which squeezed the six filters onto a single row aligned
+     with the table columns -- in a column there is nothing to squeeze and
+     no column to follow.
+     The page width grows by exactly what the column takes (248 + 24 of
+     gap), so the content stays the usual 900px instead of shrinking to
+     make room. The increase applies here only: .wrap is defined in
+     header.py for all three pages, and the guide and price list have no
+     sidebar. */
+  .wrap { max-width: 1172px; }
+  .layout { display: grid; grid-template-columns: 248px minmax(0, 1fr); gap: 24px; align-items: start; }
+  .sidebar {
+    position: sticky;
+    top: calc(var(--header-h, 99px) + 10px);
+    /* Se i filtri sono piu' alti della finestra, "appiccicato" da solo ne
+       taglierebbe il fondo senza modo di raggiungerlo: con un'altezza
+       massima la colonna scorre per conto suo.
+       [EN] If the filters are taller than the window, sticky alone would
+       cut off their bottom with no way to reach it: with a max height the
+       column scrolls on its own. */
+    max-height: calc(100vh - var(--header-h, 99px) - 20px);
+    overflow-y: auto;
+    display: flex; flex-direction: column; gap: 18px;
+    background: var(--surface-1); border: 1px solid var(--border);
+    border-radius: 12px; padding: 16px;
+  }
+  .side-section { display: flex; flex-direction: column; gap: 10px; }
+  .side-title {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 10.5px; font-weight: 700; letter-spacing: 0.08em;
+    text-transform: uppercase; color: var(--text-muted);
+  }
+  .side-title::after { content: ""; flex: 1; height: 1px; background: var(--border); }
+  /* Dentro la colonna la griglia dei filtri diventa una pila, e la
+     superficie (sfondo, bordo, raggio) la fa la colonna: lasciarla anche a
+     #filters-bar darebbe una scatola dentro una scatola.
+     [EN] Inside the column the filter grid becomes a stack, and the
+     surface (background, border, radius) is the column's: leaving one on
+     #filters-bar as well would give a box inside a box. */
+  .sidebar #filters-bar {
+    display: flex; flex-direction: column; gap: 12px;
+    background: none; border: none; border-radius: 0;
+    padding: 0; margin: 0;
+  }
+  /* I tre segmenti dell'unita' si dividono in parti uguali la larghezza
+     della colonna, invece di dimensionarsi ciascuno sul proprio testo.
+     [EN] The three unit segments split the column width evenly, instead of
+     each sizing itself on its own text. */
+  .unit-control { display: flex; }
+  .unit-control button { flex: 1; padding: 6px 4px; }
+  /* Sotto questa larghezza la colonna toglierebbe troppo spazio ai
+     grafici: torna in cima a tutta larghezza e i filtri riprendono la
+     griglia a piu' colonne, che e' come stavano prima.
+     [EN] Below this width the column would take too much space from the
+     charts: it goes back on top at full width and the filters resume the
+     multi-column grid, which is how they used to sit. */
+  @media (max-width: 880px) {
+    .layout { grid-template-columns: minmax(0, 1fr); }
+    .sidebar { position: static; max-height: none; overflow: visible; }
+    .sidebar #filters-bar {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 14px 20px;
     }
-    .filters-dock #filters-bar { margin-bottom: 0; }
-    #filters-bar.stuck {
-      border-color: var(--gridline);
-      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
-    }
-    @media (prefers-color-scheme: dark) {
-      #filters-bar.stuck { box-shadow: 0 6px 16px rgba(0, 0, 0, 0.5); }
-    }
-    /* Forma compatta, in coppia con quella dell'intestazione (la classe la
-       accende header.py, cosi' le due si stringono insieme invece che una
-       per conto suo). I sei filtri passano da due righe a una: colonne piu'
-       strette, spaziature ridotte, etichette via.
-       Le etichette sono l'unica cosa che si perde, ed e' una perdita
-       piccola: senza un filtro scelto il controllo mostra la sua forma
-       breve, che e' l'etichetta stessa ("Periodi", "Sessioni", "Modelli",
-       "Progetti", "Account" -- vedi data-short piu' sotto); la ricerca ha
-       il suo segnaposto; e ogni cella tiene comunque la sua etichetta nel
-       title (la mette lo script piu' in basso) per chi ci passa sopra.
-       Basta risalire di un dito e tornano tutte.
-       [EN] Compact form, paired with the header's one (the class is
-       toggled by header.py, so the two shrink together instead of one on
-       its own). The six filters go from two rows to one: narrower columns,
-       reduced spacing, labels gone.
-       The labels are the only thing lost, and it is a small loss: with no
-       filter chosen the control shows its short form, which is the label
-       itself ("Periodi", "Sessioni", "Modelli", "Progetti", "Account" --
-       see data-short below); the search has its placeholder; and each cell
-       still keeps its label in the title attribute (set by the script
-       further down) for whoever hovers over it. Scroll back up a notch and
-       they all come back. */
-    html.chrome-compact .filters-dock { padding: 6px 0; margin-bottom: 8px; }
-    /* In forma compatta la barra smette di essere una griglia per conto suo
-       e prende la geometria della tabella: stesse colonne, stesso rientro
-       (--panel-pad, meno il pixel di bordo della barra), cosi' ogni filtro
-       cade esattamente sopra la colonna che filtra.
-         Periodo  -> freccia + Data e ora     Modello -> Modello
-         Sessione -> Sessione                 Cerca   -> Richiesta
-       Progetto e Account restano senza corrispondenza -- nella tabella non
-       hanno una colonna loro, compaiono come righine dentro la cella
-       Sessione -- e occupano lo spazio delle due colonne che a loro volta
-       non hanno un filtro, Totale e Costo. Non e' una corrispondenza, e'
-       l'avanzo che combacia con l'avanzo.
-       gap orizzontale zero: le colonne della tabella non hanno spazi tra
-       loro, e un gap sposterebbe ogni filtro rispetto alla sua colonna in
-       modo cumulativo. L'aria tra un controllo e l'altro la fa il rientro
-       destro delle celle, che non muove i bordi della griglia.
-       [EN] In compact form the bar stops being a grid of its own and takes
-       the table's geometry: same columns, same inset (--panel-pad, minus
-       the bar's one-pixel border), so each filter falls exactly on top of
-       the column it filters.
-         Periodo  -> arrow + Data e ora      Modello -> Modello
-         Sessione -> Sessione                Cerca   -> Richiesta
-       Progetto and Account remain without a counterpart -- in the table
-       they have no column of their own, they appear as small lines inside
-       the Sessione cell -- and take the space of the two columns that in
-       turn have no filter, Totale and Costo. It is not a correspondence,
-       it is leftover matching leftover.
-       Zero horizontal gap: the table columns have no space between them,
-       and a gap would shift each filter away from its column cumulatively.
-       The air between one control and the next comes from the cells' right
-       padding, which does not move the grid edges. */
-    html.chrome-compact #filters-bar {
-      grid-template-columns:
-        calc(var(--col-expand) + var(--col-ts))
-        var(--col-session)
-        1fr
-        var(--col-model)
-        var(--col-total)
-        var(--col-cost);
-      gap: 0;
-      padding: 8px calc(var(--panel-pad) - 1px);
-    }
-    html.chrome-compact #filters-bar .filter-item { padding-right: 8px; }
-    html.chrome-compact #fi-period { order: 1; }
-    html.chrome-compact #fi-session { order: 2; }
-    html.chrome-compact #fi-search { order: 3; }
-    html.chrome-compact #fi-model { order: 4; }
-    html.chrome-compact #fi-project { order: 5; }
-    html.chrome-compact #fi-account { order: 6; }
-    html.chrome-compact #filters-bar label { display: none; }
-    html.chrome-compact #filters-bar .dropdown-trigger,
-    html.chrome-compact #filters-bar .search-input {
-      padding: 5px 9px;
-      font-size: 12px;
-    }
-    /* Rientri e spazio della freccetta ridotti: sono ~7px per cella che
-       tornano al testo. Con le colonne fissate dalla tabella non si puo'
-       allargare la cella, quindi si guadagna da dentro -- ed e' cio' che
-       fa entrare "dashboard-token" per intero invece che per un pelo.
-       [EN] Reduced padding and chevron spacing: about 7px per cell handed
-       back to the text. With the columns fixed by the table the cell
-       cannot be widened, so the gain comes from inside -- and that is what
-       lets "dashboard-token" fit whole instead of just barely. */
-    html.chrome-compact #filters-bar .dropdown-trigger {
-      padding-left: 8px;
-      padding-right: 7px;
-      gap: 5px;
-    }
-    /* Forma breve del valore quando c'e' (la mette updateDropdownTrigger).
-       "Tutti gli account" in una colonna larga 104px diventa "Tutti gli
-       acc..."; "Account" ci sta, e per giunta e' l'etichetta che qui sopra
-       abbiamo nascosto -- il filtro torna a dire cosa filtra invece di
-       mostrare un troncamento. font-size 0 spegne il testo lungo senza
-       toglierlo dal DOM: resta nel title per il tooltip, e in forma
-       distesa ricompare senza che nessuno debba riscrivere niente.
-       [EN] Short form of the value when there is one (set by
-       updateDropdownTrigger). "Tutti gli account" in a 104px-wide column
-       becomes "Tutti gli acc..."; "Account" fits, and moreover it is the
-       label we hid above -- the filter goes back to saying what it filters
-       instead of showing a truncation. font-size 0 turns off the long text
-       without removing it from the DOM: it stays in the title for the
-       tooltip, and in the expanded form it reappears without anyone having
-       to rewrite anything. */
-    html.chrome-compact #filters-bar .dropdown-trigger-label[data-short] {
-      font-size: 0;
-    }
-    html.chrome-compact #filters-bar .dropdown-trigger-label[data-short]::before {
-      content: attr(data-short);
-      font-size: 12px;
-    }
+    .sidebar .unit-control { max-width: 360px; }
   }
   /* Entrata a cascata dei filtri: stessa curva delle schede totali, ritmo
      imparentato con quello delle righe della tabella.
@@ -1382,8 +1300,11 @@ __SITE_HEADER__
     </div></div>
   </details>
 
-  <div class="filters-dock" id="filters-dock">
-  <div class="filter-row" id="filters-bar" data-reveal>
+  <div class="layout">
+  <aside class="sidebar">
+    <div class="side-section">
+      <div class="side-title">Filtri</div>
+      <div class="filter-row" id="filters-bar" data-reveal>
     <div class="filter-item" id="fi-project">
       <label>Progetto:</label>
       <div id="project-filter-custom" class="custom-dropdown"></div>
@@ -1417,9 +1338,35 @@ __SITE_HEADER__
         <button type="button" class="search-clear" id="search-clear" hidden aria-label="Cancella la ricerca">&times;</button>
       </div>
     </div>
-  </div>
-  </div>
+      </div>
+    </div>
+    <div class="side-section">
+      <div class="side-title">Unità</div>
+      <!-- L'unita' di misura degli importi. Stava sopra il primo
+           grafico, che era il primo punto in cui la si incontrava
+           scorrendo: ora che c'e' una colonna per le scelte che
+           valgono per tutta la pagina, sta con le altre. Vale per
+           TUTTI i grafici, non per uno solo.
+           [EN] The unit of measure for amounts. It used to sit above
+           the first chart, the first place you met it while
+           scrolling: now that there is a column for choices that
+           apply to the whole page, it sits with the others. It
+           applies to ALL charts, not just one. -->
+      <div class="segmented-control unit-control" id="unit-filter-custom">
+        <div class="indicator"></div>
+        <button type="button" data-value="usd" class="active">Dollari</button>
+        <button type="button" data-value="eur">Euro</button>
+        <button type="button" data-value="tokens">Token</button>
+      </div>
+      <select id="unit-filter" style="display:none">
+        <option value="usd" selected>Dollari</option>
+        <option value="eur">Euro</option>
+        <option value="tokens">Token</option>
+      </select>
+    </div>
+  </aside>
 
+  <main class="content">
   <div class="stat-hero-grid" id="stat-hero"></div>
   <div class="stat-mini-grid" id="stat-mini"></div>
 
@@ -1449,30 +1396,6 @@ __SITE_HEADER__
           <select id="bar-group-filter" style="display:none">
             <option value="day" selected>Per giorno</option>
             <option value="month">Per mese</option>
-          </select>
-        </div>
-        <div class="filter-row chart-control">
-          <label>Unità:</label>
-          <div class="segmented-control" id="bar-unit-filter-custom">
-            <div class="indicator"></div>
-            <button type="button" data-value="usd" class="active">Dollari</button>
-            <button type="button" data-value="eur">Euro</button>
-            <button type="button" data-value="tokens">Token</button>
-          </div>
-          <!-- Questo controllo vale per TUTTI i grafici della pagina, non
-               solo per quello qui sotto: l'unita' di misura e' una scelta
-               sola (ripeterla sopra ogni grafico sarebbe una ridondanza).
-               Sta qui, sul primo grafico, perche' e' il primo punto in cui
-               la si incontra scorrendo la pagina.
-               [EN] This control applies to ALL the charts on the page, not
-               just the one below: the unit of measure is a single choice
-               (repeating it above every chart would be redundant). It sits
-               here, on the first chart, because it is the first point
-               where you meet it while scrolling the page. -->
-          <select id="unit-filter" style="display:none">
-            <option value="usd" selected>Dollari</option>
-            <option value="eur">Euro</option>
-            <option value="tokens">Token</option>
           </select>
         </div>
       </div>
@@ -1613,6 +1536,8 @@ __SITE_HEADER__
       <div class="pagination-pages" id="turns-pagination-pages"></div>
     </nav>
     <footer>File generato da ~/.claude/hooks/generate_dashboard/, richiamato dall'hook Stop.</footer>
+  </div>
+  </main>
   </div>
 </div>
 
@@ -4637,7 +4562,7 @@ __SITE_HEADER__
   wireSegmentedControl('mode-filter-custom', 'mode-filter');
   wireSegmentedControl('bar-group-filter-custom', 'bar-group-filter');
   wireSegmentedControl('bar2-group-filter-custom', 'bar2-group-filter');
-  wireSegmentedControl('bar-unit-filter-custom', 'unit-filter');
+  wireSegmentedControl('unit-filter-custom', 'unit-filter');
   updateSortHeaderUI();
 
   // Se la finestra cambia larghezza il testo dei bottoni non si riflow'a
@@ -4650,7 +4575,7 @@ __SITE_HEADER__
     positionSegmentedIndicator(document.getElementById('mode-filter-custom'));
     positionSegmentedIndicator(document.getElementById('bar-group-filter-custom'));
     positionSegmentedIndicator(document.getElementById('bar2-group-filter-custom'));
-    positionSegmentedIndicator(document.getElementById('bar-unit-filter-custom'));
+    positionSegmentedIndicator(document.getElementById('unit-filter-custom'));
   });
 
   // Ripristina i filtri scelti prima dell'ultima ricarica (altrimenti ogni
@@ -4699,7 +4624,7 @@ __SITE_HEADER__
     });
     if (restoredFilters.unit) {
       document.getElementById('unit-filter').value = restoredFilters.unit;
-      setSegmentedControl('bar-unit-filter-custom', restoredFilters.unit);
+      setSegmentedControl('unit-filter-custom', restoredFilters.unit);
     }
     if (restoredFilters.period) {
       document.getElementById('period-filter').value = restoredFilters.period;
@@ -4812,46 +4737,6 @@ __SITE_HEADER__
     var lab = el.querySelector('label');
     if (lab && !el.title) el.title = lab.textContent.trim().replace(/:$/, '');
   });
-
-  /* Accende "stuck" quando la barra dei filtri ha raggiunto la sua
-     posizione agganciata, per dividerla dal contenuto che le scorre sotto.
-     Si confronta la posizione reale con quella dichiarata in CSS (--header-h,
-     pubblicata da header.py) invece di una soglia inventata: cosi' resta
-     giusta anche quando l'intestazione cambia altezza.
-     [EN] Turns on "stuck" when the filter bar has reached its docked
-     position, to separate it from the content scrolling underneath. The
-     real position is compared with the one declared in CSS (--header-h,
-     published by header.py) instead of a made-up threshold: this keeps it
-     correct even when the header changes height. */
-  (function wireStickyFilters() {
-    // Si misura il contenitore, che e' l'elemento agganciato, e si accende
-    // la classe sulla barra, che e' quella che cambia aspetto.
-    // [EN] The container is measured, being the docked element, and the
-    // [EN] class is turned on on the bar, which is what changes look.
-    var dock = document.getElementById('filters-dock');
-    var row = document.getElementById('filters-bar');
-    if (!dock || !row) return;
-    function check() {
-      var cs = getComputedStyle(dock);
-      // Sotto i 700px il CSS non aggancia nulla: niente da segnalare.
-      // [EN] Below 700px the CSS docks nothing: nothing to signal.
-      if (cs.position !== 'sticky') { row.classList.remove('stuck'); return; }
-      // Si legge l'offset che il CSS ha GIA' risolto (il "top" calcolato),
-      // invece di ricavarlo di nuovo da --header-h: quel valore e' arrotondato
-      // all'intero e sbagliava di un paio di pixel, lasciando "stuck" sempre
-      // spento. Cosi' la soglia e' per costruzione la stessa del CSS.
-      // [EN] We read the offset the CSS has ALREADY resolved (the computed
-      // [EN] "top"), instead of deriving it again from --header-h: that
-      // [EN] value is rounded to an integer and was off by a couple of
-      // [EN] pixels, leaving "stuck" always off. This way the threshold is
-      // [EN] by construction the same as the CSS one.
-      var stickyTop = parseFloat(cs.top) || 0;
-      row.classList.toggle('stuck', dock.getBoundingClientRect().top <= stickyTop + 2);
-    }
-    window.addEventListener('scroll', check, { passive: true });
-    window.addEventListener('resize', check);
-    check();
-  })();
 
   // Righe per pagina: cambia la dimensione e riparte dalla prima pagina
   // (restare alla 9a con pagine da 100 non avrebbe senso).
