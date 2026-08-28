@@ -353,12 +353,12 @@ __HEADER_CSS__
   .filter-row label { font-size: 11px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--text-muted); white-space: nowrap; }
   /* Intestazione di un pannello-grafico: titolo a sinistra, controlli che
      riguardano SOLO quel grafico a destra. La usano sia il grafico a barre
-     (selettore unita') sia quello a linea (unita', modalita', periodo) --
-     per questo le classi non sono piu' specifiche di un grafico solo.
+     (selettore unita') sia quello a linea (modalita') -- per questo le
+     classi non sono piu' specifiche di un grafico solo.
      [EN] Header of a chart panel: title on the left, controls that concern
      ONLY that chart on the right. Used by both the bar chart (unit
-     selector) and the line chart (unit, mode, range) -- which is why the
-     classes are not specific to a single chart. */
+     selector) and the line chart (mode) -- which is why the classes are
+     not specific to a single chart. */
   .chart-header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; margin-bottom: 4px; }
   .chart-header h2 { margin: 0; }
   .chart-controls { display: flex; align-items: center; flex-wrap: wrap; gap: 10px 20px; }
@@ -369,8 +369,137 @@ __HEADER_CSS__
      of filters), so they fall back to a compact flex-row instead of
      inheriting the .filter-row grid. */
   .chart-control { margin-bottom: 0; display: flex; align-items: center; gap: 10px; }
+  /* La riga dei controlli quando sta sotto il titolo invece che accanto.
+     stretch e non center: il riquadro del periodo e' alto due righe (corsa
+     piu' didascalia) e quello della modalita' una sola -- allineati al
+     centro sembrerebbero due riquadri capitati li' per caso, alla stessa
+     altezza sembrano due meta' della stessa cosa.
+     [EN] The controls row when it sits below the title instead of beside
+     it. stretch and not center: the range box is two lines tall (track plus
+     caption) and the mode one is a single line -- centered they would look
+     like two boxes that happened to land there, at the same height they
+     look like two halves of one thing. */
+  .chart-controls-own-row {
+    align-items: stretch;
+    margin-bottom: 8px;
+    /* L'altezza della prima riga dei DUE riquadri, quella dei controlli
+       veri e propri. E' un numero solo, dichiarato una volta qui, perche'
+       e' esattamente il vincolo da rispettare: l'interruttore a segmenti e
+       la corsa del cursore sono alti diversi (34 e 22 pixel), e finche'
+       ogni riquadro si dimensiona sul proprio contenuto i due finiscono a
+       quote diverse. Imponendo la stessa altezza di riga a entrambi e
+       centrandoci dentro il contenuto, le due label e i due controlli
+       cadono sulla stessa linea per costruzione, non per coincidenza.
+       [EN] The height of the first row of BOTH boxes, the one with the
+       actual controls. It is a single number, declared once here, because
+       that is exactly the constraint to honor: the segmented switch and the
+       slider track are of different heights (34 and 22 pixels), and as long
+       as each box sizes itself on its own content the two end up at
+       different levels. By imposing the same row height on both and
+       centering the content inside it, the two labels and the two controls
+       fall on the same line by construction, not by coincidence. */
+    --ctl-h: 34px;
+  }
+  /* Stessa griglia per entrambi i riquadri: prima riga i controlli, seconda
+     riga (solo il periodo ce l'ha) la didascalia. align-content: start
+     tiene la prima riga in cima anche nel riquadro piu' basso dei due, che
+     viene stirato dall'altro: senza, il suo contenuto si ricentrerebbe
+     nell'altezza in eccesso e tornerebbe a scendere sotto l'altro.
+     [EN] The same grid for both boxes: first row the controls, second row
+     (only the range has one) the caption. align-content: start keeps the
+     first row at the top even in the shorter of the two boxes, the one
+     stretched by the other: without it, its content would re-center itself
+     in the excess height and go back to sitting below the other. */
+  .chart-controls-own-row .chart-control {
+    display: grid;
+    grid-template-columns: auto minmax(140px, 1fr);
+    grid-template-rows: var(--ctl-h) auto;
+    align-items: center;
+    align-content: start;
+    column-gap: 10px;
+    row-gap: 2px;
+  }
+  /* Altezza imposta, non naturale: e' gia' la sua (34px), ma scritta qui
+     resta legata a --ctl-h, cosi' cambiando quella non si scollano.
+     [EN] An imposed height, not the natural one: it already is its own
+     (34px), but written here it stays tied to --ctl-h, so changing that
+     does not pull the two apart. */
+  .chart-controls-own-row .segmented-control { height: var(--ctl-h); justify-self: start; }
+  /* Il cursore del periodo, in riquadro accanto alla modalita'. La corsa e'
+     elastica: e' l'unica cosa della riga che puo' cedere larghezza, e su
+     schermi stretti deve farlo prima che la riga vada a capo spezzando in
+     due i controlli di uno stesso grafico.
+     [EN] The period slider, in a box next to the mode one. The track is
+     elastic: it is the only thing on the row that can give up width, and on
+     narrow screens it must do so before the row wraps and splits one
+     chart's controls in two. */
+  /* Griglia a due colonne e non un flex in fila: la label e la corsa devono
+     stare sulla STESSA riga, centrate l'una sull'altra, mentre la
+     didascalia va sotto la sola corsa. Impilando corsa e didascalia dentro
+     una colonna, come prima, la label si centrava sull'insieme delle due e
+     finiva qualche pixel sotto la linea azzurra.
+     Il riquadro si prende poi tutta la larghezza che la modalita' lascia
+     libera sulla riga (flex-grow), invece di stringersi sul contenuto:
+     senza, la corsa si accorcia alla larghezza minima di un
+     input[type=range] e in fondo alla riga resta un buco.
+     [EN] A two-column grid and not a flex row: the label and the track must
+     sit on the SAME row, centered on each other, while the caption goes
+     under the track alone. Stacking track and caption inside a column, as
+     before, the label centered on the pair of them and ended up a few
+     pixels below the blue line.
+     The box then takes all the width the mode box leaves free on the row
+     (flex-grow), instead of shrinking to its content: without that the
+     track collapses to an input[type=range]'s minimum width and a hole is
+     left at the end of the row. */
+  .chart-control.range-control { flex: 1 1 300px; }
+  .range-control > label {
+    font-size: 12.5px;
+    color: var(--text-muted);
+  }
+  /* Seconda colonna, seconda riga: senza dirglielo la didascalia
+     ripartirebbe dalla prima colonna, sotto la label invece che sotto la
+     corsa.
+     [EN] Second column, second row: without being told, the caption would
+     restart from the first column, under the label instead of under the
+     track. */
+  .range-control > .range-caption { grid-column: 2; }
+  /* accent-color tinge corsa e pomello con la stessa variabile della prima
+     serie dei grafici, e segue da solo il tema chiaro/scuro: e' l'unica
+     riga che serve, contro le decine di ::-webkit-slider-* di uno stile
+     scritto a mano.
+     [EN] accent-color tints track and thumb with the same variable as the
+     charts' first series, and follows the light/dark theme on its own: it
+     is the only line needed, against the dozens of ::-webkit-slider-* of a
+     hand-written style. */
+  .range-control > input[type="range"] { width: 100%; accent-color: var(--series-1); margin: 0; }
+  /* Gli estremi scritti sotto la corsa dicono dove si arriva senza dover
+     trascinare fino in fondo per scoprirlo. Griglia 1fr-auto-1fr e non un
+     flex con space-between: cosi' la durata al centro e' centrata sulla
+     corsa davvero, invece di spostarsi a seconda di quanto sono lunghe le
+     due scritte ai lati.
+     [EN] The ends written under the track say where you can get to without
+     having to drag all the way to find out. A 1fr-auto-1fr grid and not a
+     flex with space-between: this way the duration in the middle is truly
+     centered on the track, instead of shifting depending on how long the
+     two side labels are. */
+  .range-caption {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: baseline;
+    gap: 8px;
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+  .range-end-max { text-align: right; }
+  .range-value {
+    text-align: center;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--text-primary);
+    white-space: nowrap;
+  }
   .chart-control label { text-transform: none; letter-spacing: normal; font-size: 12.5px; }
-  select#session-filter, select#account-filter, select#project-filter, select#range-filter {
+  select#session-filter, select#account-filter, select#project-filter {
     background: var(--control-bg);
     color: var(--text-primary);
     border: 1px solid var(--border);
@@ -713,6 +842,38 @@ __HEADER_CSS__
      real length of any line in a 640x200 viewBox -- see
      https://css-tricks.com/svg-line-animation-works/ for the standard
      technique. */
+  /* Legenda dei colori. Sta sotto il grafico e non accanto perche' le voci
+     sono nomi di progetto, di lunghezza imprevedibile: in colonna a destra
+     ruberebbero larghezza al disegno, a capo sotto l'asse no. Esiste solo
+     dove il colore CODIFICA qualcosa (le barre per sessione, tinte per
+     progetto): negli altri grafici tutte le barre sono dello stesso colore
+     e una legenda direbbe solo "blu = blu".
+     [EN] Color legend. It sits under the chart and not beside it because
+     the entries are project names, of unpredictable length: in a column on
+     the right they would steal width from the drawing, wrapping below the
+     axis they do not. It exists only where color ENCODES something (the
+     per-session bars, tinted by project): in the other charts every bar is
+     the same color and a legend would only say "blue = blue". */
+  .chart-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 14px;
+    margin-top: 10px;
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+  .legend-item { display: inline-flex; align-items: center; gap: 6px; }
+  .legend-swatch {
+    width: 10px;
+    height: 10px;
+    border-radius: 3px;
+    /* Un quadratino di 10px non si restringe mai, nemmeno quando la riga
+       va stretta: senza questo flex lo comprimerebbe fino a farlo sparire.
+       [EN] A 10px square must never shrink, not even when the row gets
+       tight: without this, flex would squeeze it until it disappears. */
+    flex: none;
+  }
+
   .bar {
     fill: var(--series-1);
     transform-box: fill-box;
@@ -1266,26 +1427,28 @@ __SITE_HEADER__
     <div class="chart-header">
       <h2 id="bar-chart-title">Costo totale per giorno (ultimi 14 giorni)</h2>
       <div class="chart-controls">
-        <!-- Cosa fa da barra: un giorno (l'andamento nel tempo) o un
-             progetto (il totale di ciascuno). E' una scelta che riguarda
-             SOLO questo grafico, per questo sta qui e non nella barra dei
-             filtri in alto.
-             [EN] What acts as a bar: a day (the trend over time) or a
-             project (each one's total). It is a choice that concerns ONLY
-             this chart, which is why it sits here and not in the filter
-             bar at the top. -->
+        <!-- Quanto e' largo il passo del tempo: un giorno o un mese.
+             Questo grafico risponde a "come e' andata nel tempo", quindi
+             le sue barre sono SEMPRE intervalli di tempo; le classifiche
+             per sessione e per progetto stanno nel grafico qui sotto. E'
+             una scelta che riguarda SOLO questo grafico, per questo sta
+             qui e non nella barra dei filtri in alto.
+             [EN] How wide the step of time is: a day or a month. This
+             chart answers "how did it go over time", so its bars are
+             ALWAYS time intervals; the per-session and per-project
+             rankings live in the chart below. It is a choice that
+             concerns ONLY this chart, which is why it sits here and not
+             in the filter bar at the top. -->
         <div class="filter-row chart-control">
           <label>Raggruppa:</label>
           <div class="segmented-control" id="bar-group-filter-custom">
             <div class="indicator"></div>
             <button type="button" data-value="day" class="active">Per giorno</button>
             <button type="button" data-value="month">Per mese</button>
-            <button type="button" data-value="project">Per progetto</button>
           </div>
           <select id="bar-group-filter" style="display:none">
             <option value="day" selected>Per giorno</option>
             <option value="month">Per mese</option>
-            <option value="project">Per progetto</option>
           </select>
         </div>
         <div class="filter-row chart-control">
@@ -1296,15 +1459,15 @@ __SITE_HEADER__
             <button type="button" data-value="eur">Euro</button>
             <button type="button" data-value="tokens">Token</button>
           </div>
-          <!-- Questo controllo vale per ENTRAMBI i grafici della pagina, non
+          <!-- Questo controllo vale per TUTTI i grafici della pagina, non
                solo per quello qui sotto: l'unita' di misura e' una scelta
-               sola (averla ripetuta anche sopra il grafico a linea era una
-               ridondanza). Sta qui, sul primo grafico, perche' e' il primo
-               punto in cui la si incontra scorrendo la pagina.
-               [EN] This control applies to BOTH charts on the page, not
+               sola (ripeterla sopra ogni grafico sarebbe una ridondanza).
+               Sta qui, sul primo grafico, perche' e' il primo punto in cui
+               la si incontra scorrendo la pagina.
+               [EN] This control applies to ALL the charts on the page, not
                just the one below: the unit of measure is a single choice
-               (repeating it above the line chart too was redundant). It
-               sits here, on the first chart, because it is the first point
+               (repeating it above every chart would be redundant). It sits
+               here, on the first chart, because it is the first point
                where you meet it while scrolling the page. -->
           <select id="unit-filter" style="display:none">
             <option value="usd" selected>Dollari</option>
@@ -1318,41 +1481,93 @@ __SITE_HEADER__
     <div id="bar-chart"></div>
   </div>
 
+  <!-- Il secondo grafico a barre: stesso disegno del primo, ma le barre non
+       sono intervalli di tempo -- sono una classifica di CHI ha speso, per
+       sessione o per progetto. Sono due grafici e non un unico controllo a
+       cinque voci perche' rispondono a due domande diverse ("quando?" e
+       "chi?") e si guardano una accanto all'altra, senza dover cambiare
+       raggruppamento per confrontarle.
+       [EN] The second bar chart: same drawing as the first, but the bars
+       are not time intervals -- they are a ranking of WHO spent, by
+       session or by project. Two charts rather than a single five-way
+       control because they answer two different questions ("when?" and
+       "who?") and are meant to be read side by side, without switching
+       grouping to compare them. -->
   <div class="panel" data-reveal>
     <div class="chart-header">
-      <h2 id="line-chart-title">Andamento costo nel tempo</h2>
+      <h2 id="bar2-chart-title">Costo totale per sessione (tutto lo storico)</h2>
       <div class="chart-controls">
         <div class="filter-row chart-control">
-          <label>Modalità:</label>
-          <div class="segmented-control" id="mode-filter-custom">
+          <label>Raggruppa:</label>
+          <div class="segmented-control" id="bar2-group-filter-custom">
             <div class="indicator"></div>
             <button type="button" data-value="session" class="active">Per sessione</button>
-            <button type="button" data-value="aggregate">Aggregato</button>
-            <button type="button" data-value="model">Per modello</button>
             <button type="button" data-value="project">Per progetto</button>
           </div>
-          <select id="mode-filter" style="display:none">
+          <select id="bar2-group-filter" style="display:none">
             <option value="session" selected>Per sessione</option>
-            <option value="aggregate">Aggregato</option>
-            <option value="model">Per modello</option>
             <option value="project">Per progetto</option>
           </select>
         </div>
-        <div class="filter-row chart-control">
-          <label>Periodo:</label>
-          <div class="segmented-control" id="range-filter-custom">
-            <div class="indicator"></div>
-            <button type="button" data-value="6">6 ore</button>
-            <button type="button" data-value="12">12 ore</button>
-            <button type="button" data-value="24" class="active">24 ore</button>
-            <button type="button" data-value="48">48 ore</button>
-          </div>
-          <select id="range-filter" style="display:none">
-            <option value="6">Ultime 6 ore</option>
-            <option value="12">Ultime 12 ore</option>
-            <option value="24" selected>Ultime 24 ore</option>
-            <option value="48">Ultime 48 ore</option>
-          </select>
+      </div>
+    </div>
+    <p class="hint" id="bar2-chart-hint"></p>
+    <div id="bar2-chart"></div>
+  </div>
+
+  <div class="panel" data-reveal>
+    <!-- Titolo da solo sulla sua riga e i due controlli sulla successiva,
+         invece del solito titolo-a-sinistra-controlli-a-destra: qui i
+         controlli sono due e uno e' un cursore, che di larghezza ne vuole.
+         Messi in fila accanto al titolo non ci starebbero, e a capo
+         separatamente si leggerebbero come due cose scollegate -- mentre
+         sono le due meta' della stessa domanda ("cosa raggruppo" e "su
+         quanto tempo").
+         [EN] Title alone on its row and the two controls on the next one,
+         instead of the usual title-left-controls-right: here the controls
+         are two and one is a slider, which wants width. Lined up next to
+         the title they would not fit, and wrapping separately they would
+         read as two disconnected things -- while they are the two halves of
+         the same question ("what do I group by" and "over how much
+         time"). -->
+    <div class="chart-header">
+      <h2 id="line-chart-title">Andamento costo nel tempo</h2>
+    </div>
+    <div class="chart-controls chart-controls-own-row">
+      <div class="filter-row chart-control">
+        <label>Modalità:</label>
+        <div class="segmented-control" id="mode-filter-custom">
+          <div class="indicator"></div>
+          <button type="button" data-value="aggregate">Aggregato</button>
+          <button type="button" data-value="session" class="active">Per sessione</button>
+          <button type="button" data-value="model">Per modello</button>
+          <button type="button" data-value="project">Per progetto</button>
+        </div>
+        <select id="mode-filter" style="display:none">
+          <option value="aggregate">Aggregato</option>
+          <option value="session" selected>Per sessione</option>
+          <option value="model">Per modello</option>
+          <option value="project">Per progetto</option>
+        </select>
+      </div>
+      <div class="filter-row chart-control range-control">
+        <label for="range-filter">Periodo:</label>
+        <input type="range" id="range-filter" min="0" max="0" step="1" value="0"
+               list="range-ticks" aria-label="Ampiezza della finestra di tempo">
+        <datalist id="range-ticks"></datalist>
+        <!-- Gli estremi ai lati e la durata scelta in mezzo, sotto la corsa:
+             la durata sta al centro perche' e' l'unica delle tre che cambia,
+             e in mezzo ai due estremi fissi si legge come il valore che sta
+             tra i due -- che e' esattamente quel che e'.
+             [EN] The ends at the sides and the chosen duration in the
+             middle, under the track: the duration is centered because it is
+             the only one of the three that changes, and between the two
+             fixed ends it reads as the value lying between them -- which is
+             exactly what it is. -->
+        <div class="range-caption">
+          <span id="range-min"></span>
+          <output for="range-filter" id="range-value" class="range-value"></output>
+          <span id="range-max" class="range-end-max"></span>
         </div>
       </div>
     </div>
@@ -2888,13 +3103,13 @@ __SITE_HEADER__
     b.costCr += (t.cr / 1e6) * p.cacheRead;
   }
 
-  // Fonde src dentro dst. Serve alla barra "Altri", che e' la somma dei
-  // progetti oltre il tetto: rifarne l'accumulo dai turni sarebbe una
-  // seconda passata su tutti i dati per un risultato gia' disponibile.
-  // [EN] Merges src into dst. Needed by the "Altri" bar, which is the sum
-  // [EN] of the projects beyond the cap: re-accumulating them from the
-  // [EN] turns would be a second pass over all the data for a result that
-  // [EN] is already available.
+  // Fonde src dentro dst. Serve alla barra di coda, che parte dalla somma
+  // di tutti i gruppi oltre il tetto: rifarne l'accumulo dai turni sarebbe
+  // una seconda passata su tutti i dati per un risultato gia' disponibile.
+  // [EN] Merges src into dst. Needed by the tail bar, which starts from the
+  // [EN] sum of all the groups beyond the cap: re-accumulating them from
+  // [EN] the turns would be a second pass over all the data for a result
+  // [EN] that is already available.
   function mergeBarBuckets(dst, src) {
     dst.tot += src.tot; dst.cost += src.cost; dst.count += src.count;
     dst.i += src.i; dst.o += src.o; dst.cw += src.cw; dst.cr += src.cr;
@@ -2903,6 +3118,23 @@ __SITE_HEADER__
     Object.keys(src.sids).forEach(function (s) {
       if (!dst.sids[s]) { dst.sids[s] = true; dst.nSids += 1; }
     });
+  }
+
+  // Moltiplica per f tutto cio' che nel secchio e' una somma. Serve a
+  // trasformare la coda da somma a MEDIA (f = 1/quanti): dividere solo
+  // .cost e .tot non basterebbe, perche' il tooltip mostra anche il
+  // dettaglio per categoria e resterebbe un totale sotto un'intestazione
+  // che dice "media". count, nSids e sids NON si toccano: sono conteggi,
+  // non grandezze da mediare.
+  // [EN] Multiplies by f everything in the bucket that is a sum. It is what
+  // [EN] turns the tail from a sum into an AVERAGE (f = 1/how many):
+  // [EN] dividing only .cost and .tot would not be enough, because the
+  // [EN] tooltip also shows the per-category breakdown and it would stay a
+  // [EN] total under a heading saying "average". count, nSids and sids are
+  // [EN] NOT touched: they are counts, not quantities to average.
+  function scaleBarBucket(b, f) {
+    ['tot', 'cost', 'i', 'o', 'cw', 'cr', 'costI', 'costO', 'costCw', 'costCr']
+      .forEach(function (k) { b[k] *= f; });
   }
 
   // Nome troppo lungo per starci sotto una barra: si taglia sull'asse. Il
@@ -2914,18 +3146,115 @@ __SITE_HEADER__
   }
 
   var BAR_MAX_PROJECTS = 12;
+  // Stesso tetto dei progetti, e per la stessa ragione: oltre la dozzina le
+  // barre si assottigliano fino a non dire piu' nulla. Le sessioni sono
+  // molte di piu' dei progetti, quindi qui la barra di coda e' la norma e
+  // non l'eccezione: e' il caso da cui nasce la scelta di mostrarla come
+  // media invece che come somma (vedi makeRankArrange).
+  // [EN] Same cap as the projects, and for the same reason: beyond a dozen
+  // [EN] the bars thin out until they say nothing anymore. Sessions are far
+  // [EN] more numerous than projects, so here the tail bar is the norm and
+  // [EN] not the exception: it is the case that motivates showing it as an
+  // [EN] average instead of a sum (see makeRankArrange).
+  var BAR_MAX_SESSIONS = 12;
   // Chiave della barra "Altri". Contiene un NUL, che nessun nome di cartella
   // puo' contenere: non collidera' mai con un progetto vero.
   // [EN] Key of the "Altri" bar. It contains a NUL, which no folder name
   // [EN] can contain: it will never collide with a real project.
   var BAR_ALTRI_KEY = '\u0000altri';
 
-  // I due raggruppamenti del grafico a barre. Cambia solo COSA fa da barra,
-  // come si chiama e in che ordine le barre stanno sull'asse: accumulo,
-  // disegno e tooltip sotto sono gli stessi per entrambi.
-  // [EN] The bar chart's groupings. Only WHAT acts as a bar changes, what
-  // [EN] it is called and in which order the bars sit on the axis:
-  // [EN] accumulation, drawing and tooltips below are the same for all.
+  // Ordinamento "a classifica", condiviso da tutti i raggruppamenti che non
+  // sono intervalli di tempo (progetti, sessioni): ordina per valore
+  // decrescente, taglia al tetto e somma la coda in un'unica barra finale.
+  // truncFn dice come si chiama il taglio nel titolo del grafico -- e'
+  // l'unica cosa che cambia da un raggruppamento all'altro, e cambia solo
+  // perche' l'italiano ha il genere ("primi progetti", "prime sessioni").
+  // [EN] "Ranking" ordering, shared by every grouping that is not a time
+  // [EN] interval (projects, sessions): it sorts by descending value, cuts
+  // [EN] at the cap and sums the tail into a single final bar. truncFn says
+  // [EN] what the cut is called in the chart title -- the only thing that
+  // [EN] differs between groupings, and it differs only because Italian has
+  // [EN] grammatical gender ("primi progetti", "prime sessioni").
+  function makeRankArrange(truncFn) {
+    return function (keys, groups, unit, maxBars) {
+      // Ordinata per il valore dell'unita' ATTIVA: in token la graduatoria
+      // puo' essere diversa che in dollari (un gruppo tutto cache read costa
+      // poco e pesa tanto), e mostrarne una che non corrisponde all'asse
+      // sarebbe una bugia.
+      // [EN] Sorted by the value of the ACTIVE unit: in tokens the ranking
+      // [EN] can differ from dollars (an all-cache-read group costs little
+      // [EN] and weighs a lot), and showing one that does not match the axis
+      // [EN] would be a lie.
+      var sorted = keys.slice().sort(function (a, b) {
+        return unit.valueOf(groups[b]) - unit.valueOf(groups[a]);
+      });
+      if (sorted.length <= maxBars) { return { keys: sorted, truncLabel: null }; }
+      var kept = sorted.slice(0, maxBars);
+      // La coda non sparisce, ma nemmeno si somma: e' la MEDIA di quel che
+      // resta. Sommandola, la coda di una distribuzione lunga (le sessioni
+      // sono centinaia) diventa da sola la barra piu' alta del grafico e
+      // schiaccia contro l'asse proprio le prime, che sono quelle che il
+      // grafico deve far vedere -- e per giunta non direbbe niente di piu'
+      // del totale complessivo, che sta gia' in cima alla pagina. La media
+      // invece sta sulla stessa scala delle altre barre e risponde a una
+      // domanda vera: quanto costa una sessione qualunque, tolte le
+      // eccezionali. Il totale della coda non va perso: viaggia nel secchio
+      // come altriCost/altriTot e il tooltip lo mostra.
+      // [EN] The tail does not disappear, but neither is it summed: it is
+      // [EN] the AVERAGE of what is left. Summed, the tail of a long
+      // [EN] distribution (sessions number in the hundreds) becomes on its
+      // [EN] own the tallest bar of the chart and squashes against the axis
+      // [EN] exactly the top ones, which are what the chart is there to
+      // [EN] show -- and on top of that it would say nothing more than the
+      // [EN] overall total, already at the top of the page. The average,
+      // [EN] instead, sits on the same scale as the other bars and answers
+      // [EN] a real question: how much an ordinary group costs, once the
+      // [EN] exceptional ones are set aside. The tail's total is not lost:
+      // [EN] it travels in the bucket as altriCost/altriTot and the tooltip
+      // [EN] shows it.
+      var altri = newBarBucket();
+      var rest = sorted.slice(maxBars);
+      rest.forEach(function (k) { mergeBarBuckets(altri, groups[k]); });
+      altri.altri = rest.length;
+      altri.altriCost = altri.cost;
+      altri.altriTot = altri.tot;
+      scaleBarBucket(altri, 1 / rest.length);
+      groups[BAR_ALTRI_KEY] = altri;
+      kept.push(BAR_ALTRI_KEY);
+      return { keys: kept, truncLabel: truncFn(maxBars) };
+    };
+  }
+
+  // Il tooltip della barra di coda, uguale per progetti e sessioni. Dice
+  // due volte che quella barra e' una media -- nel titolo e affiancandole
+  // il totale -- perche' e' l'unica barra del grafico a non valere quel che
+  // sembra, e chi la leggesse come le altre sbaglierebbe di un fattore pari
+  // al numero di gruppi finiti nella coda.
+  // [EN] The tail bar's tooltip, the same for projects and sessions. It
+  // [EN] says twice that the bar is an average -- in the title and by
+  // [EN] placing the total next to it -- because it is the only bar in the
+  // [EN] chart that does not mean what it looks like, and whoever read it
+  // [EN] like the others would be off by a factor equal to the number of
+  // [EN] groups that ended up in the tail.
+  function altriTooltipHead(g, nounPlural) {
+    return [
+      segB('Media di ' + g.altri + ' ' + nounPlural), segBr(),
+      seg('In totale: '), segB(fmtUsdEur(g.altriCost)),
+      seg(' \u00b7 ' + fmtInt(g.altriTot) + ' token'), segBr()
+    ];
+  }
+
+  // I raggruppamenti dei grafici a barre, di entrambi: cambia solo COSA fa
+  // da barra, come si chiama e in che ordine le barre stanno sull'asse;
+  // accumulo, disegno e tooltip sotto sono gli stessi per tutti. Quali voci
+  // finiscano nell'uno o nell'altro grafico lo decide BAR_CHARTS, piu'
+  // sotto: qui stanno tutte insieme perche' sono la stessa cosa.
+  // [EN] The groupings of the bar charts, of both: only WHAT acts as a bar
+  // [EN] changes, what it is called and in which order the bars sit on the
+  // [EN] axis; accumulation, drawing and tooltips below are the same for
+  // [EN] all. Which entries end up in which chart is decided by BAR_CHARTS,
+  // [EN] further down: here they all sit together because they are the same
+  // [EN] kind of thing.
   var BAR_GROUPS = {
     day: {
       noun: 'per giorno',
@@ -3000,7 +3329,7 @@ __SITE_HEADER__
       noun: 'per progetto',
       keyFn: projectOf,
       label: function (k, g) {
-        if (g.altri) { return 'Altri (' + g.altri + ')'; }
+        if (g.altri) { return 'Media altri (' + g.altri + ')'; }
         return ellipsize(k, 14);
       },
       // I nomi di progetto sono lunghi e spesso si somigliano
@@ -3017,56 +3346,163 @@ __SITE_HEADER__
       // [EN] on the chosen period, and beyond a dozen the bars thin out
       // [EN] until they say nothing anymore.
       maxBars: function () { return BAR_MAX_PROJECTS; },
-      arrange: function (keys, groups, unit, maxBars) {
-        // Classifica, quindi ordinata per valore -- e per il valore
-        // dell'unita' ATTIVA: in token la graduatoria puo' essere diversa
-        // che in dollari (un progetto tutto cache read costa poco e pesa
-        // tanto), e mostrarne una che non corrisponde all'asse sarebbe una
-        // bugia.
-        // [EN] A ranking, hence sorted by value -- and by the value of the
-        // [EN] ACTIVE unit: in tokens the ranking can differ from dollars
-        // [EN] (an all-cache-read project costs little and weighs a lot),
-        // [EN] and showing one that does not match the axis would be a lie.
-        var sorted = keys.slice().sort(function (a, b) {
-          return unit.valueOf(groups[b]) - unit.valueOf(groups[a]);
-        });
-        if (sorted.length <= maxBars) { return { keys: sorted, truncLabel: null }; }
-        var kept = sorted.slice(0, maxBars);
-        // La coda non sparisce: si somma in una barra sola, sempre in
-        // fondo, cosi' il totale a schermo resta il totale vero.
-        // [EN] The tail does not disappear: it is summed into a single
-        // [EN] bar, always at the end, so the on-screen total remains the
-        // [EN] true total.
-        var altri = newBarBucket();
-        var rest = sorted.slice(maxBars);
-        rest.forEach(function (k) { mergeBarBuckets(altri, groups[k]); });
-        altri.altri = rest.length;
-        groups[BAR_ALTRI_KEY] = altri;
-        kept.push(BAR_ALTRI_KEY);
-        return { keys: kept, truncLabel: 'primi ' + maxBars + ' progetti' };
-      },
+      arrange: makeRankArrange(function (n) { return 'primi ' + n + ' progetti'; }),
       hint: function () {
         return 'Una barra per progetto: il costo di tutte le sue sessioni nel periodo scelto. ' +
-          'Oltre i primi ' + BAR_MAX_PROJECTS + ' il resto si somma nella barra "Altri". ' +
+          'Oltre i primi ' + BAR_MAX_PROJECTS + ' l’ultima barra è la media di quelli rimasti, non la loro somma ' +
+          '(sommati coprirebbero tutte le altre barre); il totale della coda è nel suo tooltip. ' +
           'Con un progetto già scelto nel filtro in alto resta una barra sola.';
       },
       tooltipHead: function (label, g, key) {
-        var name = g.altri ? (g.altri + ' altri progetti') : key;
+        if (g.altri) { return altriTooltipHead(g, 'altri progetti'); }
         return [
-          segB(name), segBr(),
+          segB(key), segBr(),
           seg(g.nSids + (g.nSids === 1 ? ' sessione' : ' sessioni') + ' · ' +
               g.count + (g.count === 1 ? ' interazione' : ' interazioni')), segBr()
         ];
       }
+    },
+    session: {
+      noun: 'per sessione',
+      keyFn: function (t) { return t.sid; },
+      // Il titolo della sessione, non il suo UUID: sull'asse un id grezzo
+      // non direbbe niente. sessionLabel ripiega comunque su "Sessione
+      // <primi 8 caratteri>" quando il titolo non c'e'.
+      // [EN] The session's title, not its UUID: on the axis a raw id would
+      // [EN] say nothing. sessionLabel still falls back to "Sessione <first
+      // [EN] 8 chars>" when there is no title.
+      label: function (k, g) {
+        if (g.altri) { return 'Media altre (' + g.altri + ')'; }
+        return ellipsize(sessionLabel(k), 14);
+      },
+      // Come i progetti: i titoli sono lunghi e dritti si accavallerebbero.
+      // [EN] Like the projects: the titles are long and upright they would
+      // [EN] overlap each other.
+      rotateLabels: true,
+      // Il colore dice a quale progetto appartiene la sessione: sull'asse
+      // c'e' il titolo, che di per se' non lo rivela, e cosi' si vede al
+      // volo se le sessioni piu' care sono tutte dello stesso progetto o
+      // sparse. La coda (media di tante sessioni di progetti diversi) non
+      // ha un progetto: null, e la barra resta grigia.
+      // [EN] The color says which project the session belongs to: on the
+      // [EN] axis there is the title, which by itself does not reveal it,
+      // [EN] and this way you see at a glance whether the priciest sessions
+      // [EN] all belong to one project or are spread out. The tail (the
+      // [EN] average of many sessions from different projects) has no
+      // [EN] project: null, and the bar stays gray.
+      colorKeyFn: function (k, g) {
+        return g.altri ? null : (projectById[k] || SENZA_PROGETTO);
+      },
+      legendOtherLabel: function (n) { return 'altri ' + n + ' progetti'; },
+      maxBars: function () { return BAR_MAX_SESSIONS; },
+      arrange: makeRankArrange(function (n) { return 'prime ' + n + ' sessioni'; }),
+      hint: function () {
+        return 'Una barra per sessione, colorata in base al progetto: il costo di tutte le sue interazioni nel periodo scelto. ' +
+          'Oltre le prime ' + BAR_MAX_SESSIONS + ' l’ultima barra è la media di quelle rimaste, non la loro somma ' +
+          '(le sessioni sono tante: sommate coprirebbero tutte le altre barre); il totale della coda è nel suo tooltip. ' +
+          'Con una sessione già scelta nel filtro in alto resta una barra sola.';
+      },
+      tooltipHead: function (label, g, key) {
+        if (g.altri) { return altriTooltipHead(g, 'altre sessioni'); }
+        // Il progetto sotto il titolo: due sessioni possono chiamarsi allo
+        // stesso modo, ed e' il progetto a dire quale delle due si sta
+        // guardando. nSids qui e' sempre 1, quindi non lo si stampa.
+        // [EN] The project under the title: two sessions can share a name,
+        // [EN] and it is the project that says which of the two you are
+        // [EN] looking at. Here nSids is always 1, so it is not printed.
+        var head = [segB(sessionLabel(key)), segBr()];
+        var proj = projectById[key];
+        if (proj) { head.push(seg(proj), segBr()); }
+        head.push(seg(g.count + (g.count === 1 ? ' interazione' : ' interazioni')), segBr());
+        return head;
+      }
     }
   };
 
-  function currentBarGroup() {
-    var el = document.getElementById('bar-group-filter');
-    return BAR_GROUPS[el && el.value] || BAR_GROUPS.day;
+  // I due grafici a barre della pagina. Non sono due funzioni di disegno
+  // diverse: sono la stessa, chiamata due volte con gli id degli elementi
+  // che le competono e il raggruppamento da usare se il controllo non e'
+  // ancora stato toccato. Aggiungerne un terzo domani vuol dire una riga
+  // qui e il markup, niente altro.
+  // [EN] The page's two bar charts. They are not two different drawing
+  // [EN] functions: they are the same one, called twice with the ids of the
+  // [EN] elements it owns and the grouping to use if the control has not
+  // [EN] been touched yet. Adding a third one tomorrow means one line here
+  // [EN] plus the markup, nothing else.
+  var BAR_CHARTS = [
+    {
+      selectId: 'bar-group-filter', customId: 'bar-group-filter-custom',
+      titleId: 'bar-chart-title', hintId: 'bar-chart-hint', chartId: 'bar-chart',
+      stateKey: 'barGroup', fallback: 'day'
+    },
+    {
+      selectId: 'bar2-group-filter', customId: 'bar2-group-filter-custom',
+      titleId: 'bar2-chart-title', hintId: 'bar2-chart-hint', chartId: 'bar2-chart',
+      stateKey: 'barGroup2', fallback: 'session'
+    }
+  ];
+
+  function currentBarGroup(cfg) {
+    var el = document.getElementById(cfg.selectId);
+    return BAR_GROUPS[el && el.value] || BAR_GROUPS[cfg.fallback];
   }
 
-  function renderBarChart(filteredTurns) {
+  // Colore per barra. Ha senso solo dove barre diverse possono appartenere
+  // alla stessa cosa -- le sessioni di uno stesso progetto -- ed e' li' che
+  // il colore aggiunge una dimensione al grafico invece di decorarlo:
+  // l'altezza dice quanto e' costata la singola sessione, il colore dice di
+  // chi e'. I raggruppamenti senza colorKeyFn restano tutti dello stesso
+  // colore, come prima.
+  // [EN] Per-bar color. It makes sense only where different bars can belong
+  // [EN] to the same thing -- the sessions of one project -- and that is
+  // [EN] where color adds a dimension to the chart instead of decorating
+  // [EN] it: the height says how much the single session cost, the color
+  // [EN] says whose it is. Groupings without colorKeyFn stay all one color,
+  // [EN] as before.
+  function barColorPlan(group, keys, groups) {
+    if (!group.colorKeyFn) { return null; }
+    var colorKeys = keys.map(function (k) { return group.colorKeyFn(k, groups[k]); });
+    // Stessa funzione (e stessa palette validata) del grafico a linea: due
+    // grafici che colorano per lo stesso criterio devono usare gli stessi
+    // colori, o il rosso di qui sarebbe il verde di li'.
+    // [EN] Same function (and same validated palette) as the line chart:
+    // [EN] two charts coloring by the same criterion must use the same
+    // [EN] colors, or the red here would be the green there.
+    var info = assignGroupColors(colorKeys.filter(function (c) { return c !== null; }));
+    return {
+      // null = barra che non appartiene a un gruppo solo (la coda, che e'
+      // la media di tante): grigia come tutto cio' che e' "assortito".
+      // [EN] null = a bar that does not belong to a single group (the tail,
+      // [EN] which is the average of many): gray like everything "mixed".
+      fills: colorKeys.map(function (c) {
+        return (c === null || !info.map[c]) ? OTHER_COLOR : info.map[c].stroke;
+      }),
+      legend: barLegendHtml(info, group)
+    };
+  }
+
+  function barLegendHtml(info, group) {
+    var items = [];
+    var nOther = 0;
+    info.order.forEach(function (gid) {
+      // Oltre l'ottavo, assignGroupColors da' a tutti lo stesso grigio:
+      // elencarli uno per uno produrrebbe otto voci di legenda identiche.
+      // Si contano e si riassumono in una riga sola.
+      // [EN] Beyond the eighth, assignGroupColors gives everyone the same
+      // [EN] gray: listing them one by one would produce eight identical
+      // [EN] legend entries. They are counted and summed up in a single row.
+      if (info.map[gid].stroke === OTHER_COLOR) { nOther += 1; return; }
+      items.push('<span class="legend-item"><span class="legend-swatch" style="background:' +
+        info.map[gid].stroke + '"></span>' + esc(gid) + '</span>');
+    });
+    if (nOther) {
+      items.push('<span class="legend-item"><span class="legend-swatch" style="background:' +
+        OTHER_COLOR + '"></span>' + esc(group.legendOtherLabel(nOther)) + '</span>');
+    }
+    return items.length ? '<div class="chart-legend">' + items.join('') + '</div>' : '';
+  }
+
+  function renderBarChart(filteredTurns, cfg) {
     // Unita', raggruppamento, titolo e hint si aggiornano PRIMA di ogni
     // possibile uscita anticipata (il ramo "nessun dato"): altrimenti,
     // cambiando unita' o raggruppamento su una dashboard vuota, il titolo
@@ -3075,9 +3511,9 @@ __SITE_HEADER__
     // [EN] exit (the "no data" branch): otherwise, changing unit or
     // [EN] grouping on an empty dashboard, the title would stay stale.
     var unit = currentUnit();
-    var group = currentBarGroup();
-    var titleEl = document.getElementById('bar-chart-title');
-    var barHintEl = document.getElementById('bar-chart-hint');
+    var group = currentBarGroup(cfg);
+    var titleEl = document.getElementById(cfg.titleId);
+    var barHintEl = document.getElementById(cfg.hintId);
     if (barHintEl) {
       barHintEl.textContent = group.hint() + ' ' + exchangeNote();
     }
@@ -3103,14 +3539,14 @@ __SITE_HEADER__
       else periodLabel = 'tutto lo storico';
       titleEl.textContent = unit.barNoun + ' ' + group.noun + ' (' + periodLabel + ')';
     }
-    var el = document.getElementById('bar-chart');
+    var el = document.getElementById(cfg.chartId);
     if (!keys.length) { el.innerHTML = '<p class="empty">Nessun dato ancora.</p>'; return; }
 
     // Le etichette inclinate scendono in diagonale sotto l'asse e vogliono
     // piu' spazio in basso. Cresce il riquadro, non si comprime il disegno:
-    // l'area di tracciamento resta alta 160 in entrambi i raggruppamenti,
-    // cosi' passando da un raggruppamento all'altro le barre non cambiano
-    // scala visiva.
+    // l'area di tracciamento resta alta 160 in ogni raggruppamento, cosi'
+    // passando da un raggruppamento all'altro -- e da un grafico a barre
+    // all'altro -- le barre non cambiano scala visiva.
     // [EN] Tilted labels descend diagonally below the axis and want more
     // [EN] room at the bottom. The box grows, the drawing is not squeezed:
     // [EN] the plotting area stays 160 tall in both groupings, so
@@ -3123,6 +3559,8 @@ __SITE_HEADER__
     var slotW = plotW / keys.length;
     var barW = Math.min(slotW * 0.6, 40);
     var baseY = padT + plotH;
+
+    var colorPlan = barColorPlan(group, keys, groups);
 
     var svg = '<svg viewBox="0 0 ' + width + ' ' + height + '" class="chart" role="img" aria-label="' +
       esc(unit.aria) + ' ' + esc(group.noun) + '">';
@@ -3157,9 +3595,16 @@ __SITE_HEADER__
         seg('Cache write: '), segB(fmtInt(g.cw)), seg(' (' + fmtUsd(g.costCw) + ')'), segBr(),
         seg('Cache read: '), segB(fmtInt(g.cr)), seg(' (' + fmtUsd(g.costCr) + ')')
       ]));
+      // Il fill va in stile inline, non in una classe: i colori arrivano
+      // dalla palette a run time, una classe per tonalita' vorrebbe dire
+      // otto regole CSS scritte a mano che duplicano SESSION_COLORS.
+      // [EN] The fill goes in an inline style, not in a class: the colors
+      // [EN] come from the palette at run time, one class per hue would
+      // [EN] mean eight hand-written CSS rules duplicating SESSION_COLORS.
+      var fillStyle = colorPlan ? ('; fill: ' + colorPlan.fills[idx]) : '';
       svg += '<rect x="' + x.toFixed(1) + '" y="' + y.toFixed(1) + '" width="' + barW.toFixed(1) +
         '" height="' + barH.toFixed(1) + '" rx="4" class="bar" style="animation-delay: ' + (idx * 0.04).toFixed(2) +
-        's" data-tooltip="' + tooltipAttr(tooltipData) + '"></rect>';
+        's' + fillStyle + '" data-tooltip="' + tooltipAttr(tooltipData) + '"></rect>';
       var cx = x + barW / 2;
       if (group.rotateLabels) {
         // rotate(-30) attorno al punto d'ancoraggio manda il testo in giu'
@@ -3179,7 +3624,7 @@ __SITE_HEADER__
       }
     });
     svg += '</svg>';
-    el.innerHTML = svg;
+    el.innerHTML = svg + (colorPlan ? colorPlan.legend : '');
   }
 
   // Palette categoriale validata (8 tonalita', ordine fisso -- skill dataviz:
@@ -3228,13 +3673,8 @@ __SITE_HEADER__
     return isNaN(t) ? 0 : t;
   }
 
-  function fmtTimeShort(ms) {
-    var d = new Date(ms);
-    return pad2(d.getHours()) + ':' + pad2(d.getMinutes());
-  }
-
-  // Il grafico mostra una finestra di tempo fissa (6/12/24/48 ore), non un
-  // numero fisso di turni: con turni molto ravvicinati (tanti in poco tempo)
+  // Il grafico mostra una finestra di tempo (quella scelta col cursore del
+  // periodo, da poche ore a tutto lo storico), non un numero fisso di turni: con turni molto ravvicinati (tanti in poco tempo)
   // un punto per turno sarebbe illeggibile. Campioniamo quindi in ~24
   // intervalli di ampiezza uguale che coprono l'intera finestra (es. 15 min
   // a testa su 6 ore, 1h su 24 ore), sommando token/costo/conteggio dei
@@ -3242,8 +3682,9 @@ __SITE_HEADER__
   // Raggruppato per "keyFn(turno)" (sessione, modello, o un unico gruppo
   // costante per l'aggregato), cosi' ogni gruppo mantiene la propria
   // polilinea.
-  // [EN] The chart shows a fixed time window (6/12/24/48 hours), not a
-  // [EN] fixed number of turns: with tightly packed turns (many in little
+  // [EN] The chart shows a time window (the one chosen with the period
+  // [EN] slider, from a few hours to all of history), not a fixed number
+  // [EN] of turns: with tightly packed turns (many in little
   // [EN] time) one dot per turn would be unreadable. So we sample into ~24
   // [EN] equal-width intervals covering the whole window (e.g. 15 min each
   // [EN] over 6 hours, 1h over 24 hours), summing tokens/cost/count of the
@@ -3251,6 +3692,140 @@ __SITE_HEADER__
   // [EN] Grouped by "keyFn(turn)" (session, model, or a single constant
   // [EN] group for the aggregate), so each group keeps its own polyline.
   var LINE_CHART_BUCKETS = 24;
+
+  // Le tacche del cursore del periodo. Non e' una corsa continua in ore: da
+  // "3 ore" a "tutto lo storico" ci sono tre ordini di grandezza, e su una
+  // scala lineare le durate che si usano davvero (24 ore, 7 giorni)
+  // starebbero tutte schiacciate nel primo centimetro. A scatti crescenti,
+  // invece, ogni posizione e' una durata rotonda e ci si arriva senza mirare.
+  // [EN] The period slider's stops. Not a continuous run in hours: from "3
+  // hours" to "all of history" there are three orders of magnitude, and on
+  // a linear scale the durations actually used (24 hours, 7 days) would all
+  // be crammed into the first centimeter. With growing steps, instead,
+  // every position is a round duration and you reach it without aiming.
+  var RANGE_LADDER = [
+    { hours: 3, label: 'Ultime 3 ore', short: '3 ore' },
+    { hours: 6, label: 'Ultime 6 ore', short: '6 ore' },
+    { hours: 12, label: 'Ultime 12 ore', short: '12 ore' },
+    { hours: 24, label: 'Ultime 24 ore', short: '24 ore' },
+    { hours: 48, label: 'Ultimi 2 giorni', short: '2 gg' },
+    { hours: 72, label: 'Ultimi 3 giorni', short: '3 gg' },
+    { hours: 168, label: 'Ultimi 7 giorni', short: '7 gg' },
+    { hours: 336, label: 'Ultimi 14 giorni', short: '14 gg' },
+    { hours: 720, label: 'Ultimi 30 giorni', short: '30 gg' },
+    { hours: 2160, label: 'Ultimi 3 mesi', short: '3 mesi' },
+    { hours: 4320, label: 'Ultimi 6 mesi', short: '6 mesi' },
+    { hours: 8760, label: 'Ultimo anno', short: '1 anno' }
+  ];
+  var RANGE_DEFAULT_HOURS = 24;
+  var RANGE_STEPS = [];
+
+  // Le tacche buone per QUESTI dati: quelle della scala piu' corte di
+  // quanto sia lungo lo storico, e in fondo sempre lo storico intero. Le
+  // altre non ci sono: su due settimane di dati, "ultimo anno" e "ultimi 6
+  // mesi" sarebbero tre tacche che mostrano tutte lo stesso disegno.
+  // L'ultima tacca e' calcolata sui turni TUTTI, non su quelli filtrati:
+  // altrimenti la corsa del cursore si accorcerebbe e allungherebbe ad ogni
+  // cambio di filtro, e il pomello si sposterebbe da solo sotto il dito.
+  // [EN] The stops that make sense for THIS data: those on the ladder
+  // shorter than the history is long, and at the end always the whole
+  // history. The others are absent: on two weeks of data, "last year" and
+  // "last 6 months" would be three stops all showing the same drawing.
+  // The last stop is computed on ALL turns, not the filtered ones:
+  // otherwise the slider's travel would shrink and grow at every filter
+  // change, and the thumb would move on its own under your finger.
+  function buildRangeSteps() {
+    var oldest = 0;
+    turns.forEach(function (t) {
+      var ms = parseTs(t.ts);
+      if (ms && (!oldest || ms < oldest)) { oldest = ms; }
+    });
+    var spanHours = oldest ? Math.ceil((Date.now() - oldest) / 3600000) : RANGE_DEFAULT_HOURS;
+    var steps = RANGE_LADDER.filter(function (st) { return st.hours < spanHours; });
+    steps.push({ hours: Math.max(spanHours, 1), label: 'Tutto lo storico', short: 'tutto' });
+    return steps;
+  }
+
+  function defaultRangeIdx() {
+    for (var i = 0; i < RANGE_STEPS.length; i++) {
+      if (RANGE_STEPS[i].hours === RANGE_DEFAULT_HOURS) { return i; }
+    }
+    // Storico piu' corto di un giorno: non esiste la tacca "24 ore" e
+    // l'unica sensata e' tutto quel che c'e'.
+    // [EN] History shorter than a day: there is no "24 hours" stop and the
+    // only sensible one is everything there is.
+    return RANGE_STEPS.length - 1;
+  }
+
+  function currentRangeStep() {
+    var el = document.getElementById('range-filter');
+    var idx = parseInt(el && el.value, 10);
+    if (isNaN(idx) || idx < 0 || idx >= RANGE_STEPS.length) { idx = defaultRangeIdx(); }
+    return RANGE_STEPS[idx];
+  }
+
+  function populateRangeSlider() {
+    RANGE_STEPS = buildRangeSteps();
+    var el = document.getElementById('range-filter');
+    el.max = String(RANGE_STEPS.length - 1);
+    el.value = String(defaultRangeIdx());
+    // Una tacca per posizione: il browser le disegna da solo sotto la
+    // corsa, senza che serva posizionarle a mano.
+    // [EN] One notch per position: the browser draws them under the track
+    // on its own, with no need to place them by hand.
+    document.getElementById('range-ticks').innerHTML = RANGE_STEPS.map(function (st, i) {
+      return '<option value="' + i + '"></option>';
+    }).join('');
+    document.getElementById('range-min').textContent = RANGE_STEPS[0].short;
+    document.getElementById('range-max').textContent = RANGE_STEPS[RANGE_STEPS.length - 1].short;
+    updateRangeValueLabel();
+  }
+
+  function updateRangeValueLabel() {
+    var out = document.getElementById('range-value');
+    if (out) { out.textContent = currentRangeStep().label; }
+  }
+
+  // Con che precisione si scrive un istante, sull'asse X e nei tooltip.
+  // Dipende dalla finestra: su sei ore l'ora basta e avanza, su sei mesi
+  // cinque etichette tutte "14:00" non direbbero nulla, e su un anno anche
+  // il giorno e' rumore.
+  // [EN] With what precision an instant is written, on the X axis and in
+  // the tooltips. It depends on the window: over six hours the time is
+  // plenty, over six months five labels all reading "14:00" would say
+  // nothing, and over a year even the day is noise.
+  function fmtWindowTs(ms, windowHours) {
+    var d = new Date(ms);
+    if (isNaN(d.getTime())) { return ''; }
+    if (windowHours <= 48) { return pad2(d.getHours()) + ':' + pad2(d.getMinutes()); }
+    if (windowHours <= 168) {
+      return fmtDayNice(d.getDate(), d.getMonth() + 1) + ' ' + pad2(d.getHours()) + ':' + pad2(d.getMinutes());
+    }
+    // Giorno e mese fin quasi all'anno: col solo mese, su una finestra di
+    // pochi mesi due delle cinque tacche cadono spesso nello stesso mese e
+    // si legge "lug 26" due volte di fila. "9 lug" non si ripete mai ed e'
+    // lungo uguale.
+    // [EN] Day and month up to nearly a year: with the month alone, on a
+    // window of a few months two of the five ticks often fall in the same
+    // month and you read "lug 26" twice in a row. "9 lug" never repeats and
+    // is just as long.
+    if (windowHours <= 24 * 365) { return fmtDayNice(d.getDate(), d.getMonth() + 1); }
+    return fmtMonthShort(d.getFullYear() + '-' + pad2(d.getMonth() + 1));
+  }
+
+  // I singoli turni dentro un tooltip stanno tutti nello stesso intervallo,
+  // quindi tra loro cambia l'ora, non il mese: qui la data serve solo a
+  // capire di che giorno si parla quando la finestra ne copre piu' d'uno.
+  // [EN] The individual turns inside a tooltip all belong to the same
+  // interval, so what changes between them is the time, not the month: here
+  // the date only serves to tell which day is meant when the window spans
+  // more than one.
+  function fmtTurnTs(ms, windowHours) {
+    var d = new Date(ms);
+    if (isNaN(d.getTime())) { return ''; }
+    var hhmm = pad2(d.getHours()) + ':' + pad2(d.getMinutes());
+    return windowHours <= 48 ? hhmm : (fmtDayNice(d.getDate(), d.getMonth() + 1) + ' ' + hhmm);
+  }
 
   function bucketTurns(turnsList, windowHours, endMs, keyFn) {
     var windowMs = windowHours * 3600 * 1000;
@@ -3304,11 +3879,11 @@ __SITE_HEADER__
   // [EN] crowding the compact default view. The title (session name,
   // [EN] model, or aggregate session count) is decided by the active mode,
   // [EN] not fixed.
-  function bucketTooltipData(b, titleText) {
+  function bucketTooltipData(b, titleText, windowHours) {
     return {
       type: 'bucket',
       session: titleText,
-      start: fmtTimeShort(b.start), end: fmtTimeShort(b.end),
+      start: fmtWindowTs(b.start, windowHours), end: fmtWindowTs(b.end, windowHours),
       count: b.count, tot: fmtInt(b.tot), cost: fmtUsd(b.cost), costEur: fmtEur(b.cost),
       breakdown: [
         { label: 'Input', val: fmtInt(b.i), cost: fmtUsd(b.costI) },
@@ -3318,7 +3893,7 @@ __SITE_HEADER__
       ],
       turns: b.turns.map(function (t) {
         return {
-          ts: fmtTimeShort(parseTs(t.ts)),
+          ts: fmtTurnTs(parseTs(t.ts), windowHours),
           req: t.sum || '(nessuna richiesta registrata)',
           cost: fmtUsd(turnCostUsd(t))
         };
@@ -3429,7 +4004,7 @@ __SITE_HEADER__
     return acc;
   }
 
-  function groupTooltipData(totals, title, scopeLabel, windowCost, windowCount, windowHours) {
+  function groupTooltipData(totals, title, scopeLabel, windowCost, windowCount, windowLabel) {
     // La nota sulla finestra compare solo se il totale del gruppo e'
     // davvero piu' ampio di quello disegnato (tolleranza di mezzo
     // centesimo: sotto quella soglia i due numeri si stampano identici e la
@@ -3440,7 +4015,7 @@ __SITE_HEADER__
     // [EN] say the same thing twice).
     var windowNote = null;
     if (totals.cost - windowCost > 0.005 || totals.count !== windowCount) {
-      windowNote = 'Nel periodo mostrato (' + windowHours + ' ore): ' + fmtUsd(windowCost) +
+      windowNote = 'Nel periodo mostrato (' + windowLabel.toLowerCase() + '): ' + fmtUsd(windowCost) +
         ' su ' + windowCount + (windowCount === 1 ? ' interazione' : ' interazioni') + '.';
     }
     return {
@@ -3471,7 +4046,8 @@ __SITE_HEADER__
 
   function renderLineChart(filteredTurns) {
     var el = document.getElementById('line-chart');
-    var windowHours = parseInt(document.getElementById('range-filter').value, 10) || 24;
+    var rangeStep = currentRangeStep();
+    var windowHours = rangeStep.hours;
     var modeKey = document.getElementById('mode-filter').value || 'session';
     var mode = CHART_MODES[modeKey] || CHART_MODES.session;
     var unit = currentUnit();
@@ -3495,7 +4071,17 @@ __SITE_HEADER__
     // [EN] round the window end up to the next bucket edge (e.g. the full
     // [EN] hour for 1h buckets), so intervals stay stable and the labels
     // [EN] show round times.
-    var endMs = Math.ceil(nowMs / bucketMs) * bucketMs;
+    // ...ma non si arrotonda mai a piu' di un'ora: su "tutto lo storico" un
+    // secchio dura settimane, e arrotondare a settimane spingerebbe la fine
+    // finestra settimane nel futuro, lasciando vuoto un pezzo di grafico
+    // grande quanto quel salto. L'ora basta e avanza per la stabilita' tra
+    // un refresh e l'altro.
+    // [EN] ...but never rounded to more than an hour: on "all of history" a
+    // bucket lasts weeks, and rounding to weeks would push the window end
+    // weeks into the future, leaving empty a slice of chart as wide as that
+    // jump. An hour is more than enough for stability between refreshes.
+    var roundMs = Math.min(bucketMs, 3600 * 1000);
+    var endMs = Math.ceil(nowMs / roundMs) * roundMs;
     var startMs = endMs - windowMs;
     var buckets = bucketTurns(filteredTurns, windowHours, endMs, mode.keyFn);
     // L'SVG che referenzia questi indici viene ricostruito da zero qui
@@ -3506,7 +4092,8 @@ __SITE_HEADER__
     // [EN] groups from a previous drawing.
     groupTooltips = [];
     if (buckets.length < 2) {
-      el.innerHTML = '<p class="empty">Nessuna interazione a sufficienza nelle ultime ' + windowHours + ' ore per il grafico.</p>';
+      el.innerHTML = '<p class="empty">Nessuna interazione a sufficienza per il grafico (' +
+        esc(rangeStep.label.toLowerCase()) + ').</p>';
       return;
     }
 
@@ -3543,19 +4130,21 @@ __SITE_HEADER__
       svg += '<text x="' + (padL - 6) + '" y="' + (y + 3).toFixed(1) + '" class="axis-label" text-anchor="end">' + esc(unit.axis(val, maxVal)) + '</text>';
     }
 
-    // Etichette orarie sull'asse X: mancavano del tutto (la finestra di
-    // tempo scelta non aveva alcun riferimento visivo su dove si trovasse
-    // "ora" o l'inizio della finestra).
-    // [EN] Time labels on the X axis: they were entirely missing (the
-    // [EN] chosen time window had no visual reference for where "now" or
-    // [EN] the window start was).
+    // Etichette sull'asse X: senza, la finestra di tempo scelta non avrebbe
+    // alcun riferimento visivo su dove si trovi "ora" o l'inizio della
+    // finestra. Il formato segue l'ampiezza della finestra (vedi
+    // fmtWindowTs): ore sulle finestre corte, date su quelle lunghe.
+    // [EN] Labels on the X axis: without them the chosen time window would
+    // [EN] have no visual reference for where "now" or the window start is.
+    // [EN] The format follows the window's width (see fmtWindowTs): times
+    // [EN] on short windows, dates on long ones.
     var N_X_TICKS = 5;
     for (var xi = 0; xi < N_X_TICKS; xi++) {
       var xFrac = xi / (N_X_TICKS - 1);
       var xPos = padL + xFrac * plotW;
       var tickMs = startMs + xFrac * windowMs;
       var anchor = xi === 0 ? 'start' : (xi === N_X_TICKS - 1 ? 'end' : 'middle');
-      svg += '<text x="' + xPos.toFixed(1) + '" y="' + (height - 5) + '" class="axis-label" text-anchor="' + anchor + '">' + esc(fmtTimeShort(tickMs)) + '</text>';
+      svg += '<text x="' + xPos.toFixed(1) + '" y="' + (height - 5) + '" class="axis-label" text-anchor="' + anchor + '">' + esc(fmtWindowTs(tickMs, windowHours)) + '</text>';
     }
 
     // Registra il totale dell'INTERO gruppo (non solo degli intervalli
@@ -3571,7 +4160,7 @@ __SITE_HEADER__
       var windowCost = 0, windowCount = 0;
       pts.forEach(function (b) { windowCost += b.cost; windowCount += b.count; });
       var title = mode.titleFn({ groupId: gid, turns: totals.turns });
-      groupTooltips.push(groupTooltipData(totals, title, mode.scopeLabel, windowCost, windowCount, windowHours));
+      groupTooltips.push(groupTooltipData(totals, title, mode.scopeLabel, windowCost, windowCount, rangeStep.label));
       return groupTooltips.length - 1;
     }
 
@@ -3628,7 +4217,7 @@ __SITE_HEADER__
         // [EN] on the drawn dot, so they do not depend on the entrance
         // [EN] animation.
         svgHits += '<circle cx="' + xOf(b).toFixed(1) + '" cy="' + yOf(b).toFixed(1) + '" r="6" class="dot-hit" data-tooltip="' +
-          tooltipAttr(bucketTooltipData(b, mode.titleFn(b))) + '" data-group-tooltip="' + gi + '"></circle>';
+          tooltipAttr(bucketTooltipData(b, mode.titleFn(b), windowHours)) + '" data-group-tooltip="' + gi + '"></circle>';
       });
     }
 
@@ -4020,7 +4609,7 @@ __SITE_HEADER__
     currentFilteredTurns = ft;
     currentFilteredOps = fo;
     renderStatCards(ft);
-    renderBarChart(ft);
+    BAR_CHARTS.forEach(function (cfg) { renderBarChart(ft, cfg); });
     renderLineChart(ft);
     renderTurnsTable(ft, fo);
   }
@@ -4030,9 +4619,24 @@ __SITE_HEADER__
   addMonthPeriods();
   populatePeriodSelect();
   populateModelSelect();
-  wireSegmentedControl('range-filter-custom', 'range-filter');
+  populateRangeSlider();
+  // Il periodo tocca SOLO il grafico a linea: ridisegnare tutta la pagina ad
+  // ogni scatto del cursore rifiltrerebbe l'intero storico per aggiornare
+  // due grafici a barre che non c'entrano nulla. Qui si ridisegna quello
+  // che cambia, e basta -- ed e' il motivo per cui il trascinamento resta
+  // fluido anche su finestre lunghe.
+  // [EN] The range touches ONLY the line chart: redrawing the whole page at
+  // every slider notch would refilter the entire history to update two bar
+  // charts that have nothing to do with it. Here only what changes is
+  // redrawn -- and that is why dragging stays smooth even on long windows.
+  document.getElementById('range-filter').addEventListener('input', function () {
+    hideTooltip();
+    updateRangeValueLabel();
+    renderLineChart(currentFilteredTurns);
+  });
   wireSegmentedControl('mode-filter-custom', 'mode-filter');
   wireSegmentedControl('bar-group-filter-custom', 'bar-group-filter');
+  wireSegmentedControl('bar2-group-filter-custom', 'bar2-group-filter');
   wireSegmentedControl('bar-unit-filter-custom', 'unit-filter');
   updateSortHeaderUI();
 
@@ -4043,9 +4647,9 @@ __SITE_HEADER__
   // [EN] on a single line), but we reposition anyway to be safe --
   // [EN] negligible cost, two layout reads on a small control.
   window.addEventListener('resize', function () {
-    positionSegmentedIndicator(document.getElementById('range-filter-custom'));
     positionSegmentedIndicator(document.getElementById('mode-filter-custom'));
     positionSegmentedIndicator(document.getElementById('bar-group-filter-custom'));
+    positionSegmentedIndicator(document.getElementById('bar2-group-filter-custom'));
     positionSegmentedIndicator(document.getElementById('bar-unit-filter-custom'));
   });
 
@@ -4068,18 +4672,31 @@ __SITE_HEADER__
       updateDropdownTrigger(document.getElementById('project-filter-custom'), restoredFilters.proj);
       initialProj = restoredFilters.proj;
     }
-    if (restoredFilters.range) {
-      document.getElementById('range-filter').value = restoredFilters.range;
-      setSegmentedControl('range-filter-custom', restoredFilters.range);
+    // rangeIdx e' una POSIZIONE sulla scala, non un numero di ore: la
+    // scala dipende da quanto e' lungo lo storico, che tra un caricamento e
+    // l'altro puo' essere cresciuto. Si controlla che l'indice esista
+    // ancora, altrimenti si torna alla tacca di partenza.
+    // [EN] rangeIdx is a POSITION on the ladder, not a number of hours: the
+    // ladder depends on how long the history is, which may have grown
+    // between one load and the next. We check the index still exists,
+    // otherwise we fall back to the starting stop.
+    if (restoredFilters.rangeIdx != null) {
+      var ri = parseInt(restoredFilters.rangeIdx, 10);
+      if (!isNaN(ri) && ri >= 0 && ri < RANGE_STEPS.length) {
+        document.getElementById('range-filter').value = String(ri);
+        updateRangeValueLabel();
+      }
     }
     if (restoredFilters.mode) {
       document.getElementById('mode-filter').value = restoredFilters.mode;
       setSegmentedControl('mode-filter-custom', restoredFilters.mode);
     }
-    if (restoredFilters.barGroup) {
-      document.getElementById('bar-group-filter').value = restoredFilters.barGroup;
-      setSegmentedControl('bar-group-filter-custom', restoredFilters.barGroup);
-    }
+    BAR_CHARTS.forEach(function (cfg) {
+      var v = restoredFilters[cfg.stateKey];
+      if (!v) return;
+      document.getElementById(cfg.selectId).value = v;
+      setSegmentedControl(cfg.customId, v);
+    });
     if (restoredFilters.unit) {
       document.getElementById('unit-filter').value = restoredFilters.unit;
       setSegmentedControl('bar-unit-filter-custom', restoredFilters.unit);
@@ -4437,9 +5054,10 @@ __SITE_HEADER__
         sid: document.getElementById('session-filter').value,
         acc: document.getElementById('account-filter').value,
         proj: document.getElementById('project-filter').value,
-        range: document.getElementById('range-filter').value,
+        rangeIdx: document.getElementById('range-filter').value,
         mode: document.getElementById('mode-filter').value,
         barGroup: document.getElementById('bar-group-filter').value,
+        barGroup2: document.getElementById('bar2-group-filter').value,
         unit: document.getElementById('unit-filter').value,
         period: document.getElementById('period-filter').value,
         model: document.getElementById('model-filter').value,
