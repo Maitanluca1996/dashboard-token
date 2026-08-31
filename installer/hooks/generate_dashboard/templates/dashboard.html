@@ -277,6 +277,7 @@ __HEADER_CSS__
      ONLY that chart on the right. Used by both the bar chart (unit
      selector) and the line chart (mode) -- which is why the classes are
      not specific to a single chart. */
+  #bar-chart, #bar2-chart, #line-chart { margin-top: 10px; }
   .chart-header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; margin-bottom: 4px; }
   .chart-header h2 { margin: 0; }
   .chart-controls { display: flex; align-items: center; flex-wrap: wrap; gap: 10px 20px; }
@@ -509,6 +510,14 @@ __HEADER_CSS__
   }
   .segmented-control button:hover { color: var(--text-primary); }
   .segmented-control button.active { color: #fff; }
+  /* Spento: sbiadito e senza la mano del cursore. Il :hover si annulla di
+     seguito, o passandoci sopra si accenderebbe come se si potesse.
+     [EN] Switched off: faded and without the cursor's hand. The :hover is
+     cancelled right after, or hovering it would light up as if it could
+     be used. */
+  .segmented-control button:disabled { opacity: 0.42; cursor: default; }
+  .segmented-control button:disabled:hover { color: var(--text-muted); }
+  .segmented-control button:disabled.active:hover { color: #fff; }
   /* Anello di focus visibile per la navigazione da tastiera -- mancava del
      tutto sugli elementi nativamente selezionabili con Tab.
      [EN] Visible focus ring for keyboard navigation -- it was entirely
@@ -580,6 +589,172 @@ __HEADER_CSS__
     border-color: var(--series-1);
     box-shadow: inset 3px 0 0 -1px var(--series-1);
   }
+  /* La lista dei progetti sta nella colonna com'e', senza riquadro: fondo e
+     bordo servono a un controllo che si apre a un clic (una tendina), non a
+     un elenco che e' gia' tutto sotto gli occhi -- li' sarebbero una
+     scatola dentro la scatola. Il margine negativo riporta le righe a filo
+     con gli altri filtri, che il bordo ce l'hanno: senza, la lista
+     sembrerebbe rientrata di qualche pixel rispetto a tutto il resto.
+     Nessun tetto in altezza e nessuno scorrimento: i progetti si vedono
+     tutti insieme, che e' il punto -- e una lista che scorre nasconde
+     proprio quelli in fondo, cioe' gli esclusi.
+     [EN] The projects list sits in the column as it is, with no box:
+     background and border are for a control that opens on a click (a
+     dropdown), not for a list that is already all in sight -- there they
+     would be a box inside the box. The negative margin brings the rows
+     flush with the other filters, which do have a border: without it the
+     list would look indented by a few pixels from everything else.
+     No height cap and no scrolling: the projects are all seen together,
+     which is the point -- and a scrolling list hides exactly the ones at
+     the bottom, that is, the excluded ones. */
+  .check-list { margin: 0 -8px; }
+  .check-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    width: 100%;
+    padding: 5px 8px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+    color: var(--text-primary);
+    transition: background 0.15s ease;
+  }
+  .check-row:hover { background: var(--surface-1); }
+  /* Casella, nome e numero stanno in una <label>: cliccare il nome o il
+     numero vale come cliccare la casella. Il comando "escludi" resta FUORI
+     dalla label, altrimenti cliccarlo spunterebbe anche la casella --
+     un clic solo, due effetti opposti.
+     [EN] Box, name and number sit inside a <label>: clicking the name or
+     the number counts as clicking the box. The "exclude" command stays
+     OUTSIDE the label, otherwise clicking it would tick the box as well --
+     one click, two opposite effects. */
+  .check-main { display: flex; align-items: center; gap: 8px; flex: 1 1 auto; min-width: 0; cursor: pointer; }
+  .check-row input {
+    flex: none;
+    width: 14px;
+    height: 14px;
+    margin: 0;
+    cursor: pointer;
+    accent-color: var(--series-1);
+  }
+  .check-name { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .check-count { flex: none; font-size: 11px; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+  /* Il comando per escludere compare passando sulla riga: e' un'azione
+     rara e definitiva, e tenerla sempre accesa accanto a ogni progetto
+     darebbe a una colonna di filtri l'aria di una lista di cose da
+     cancellare. Con la tastiera si accende da sola quando prende il fuoco.
+     [EN] The exclude command shows up on hovering the row: it is a rare and
+     lasting action, and keeping it always lit next to every project would
+     give a filters column the air of a list of things to delete. With the
+     keyboard it lights up on its own when focused. */
+  .check-ban {
+    flex: none;
+    appearance: none;
+    border: none;
+    background: transparent;
+    color: var(--text-muted);
+    font-size: 13px;
+    line-height: 1;
+    padding: 3px 5px;
+    border-radius: 6px;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.15s ease, color 0.15s ease, background 0.15s ease;
+  }
+  .check-row:hover .check-ban { opacity: 1; }
+  .check-ban:focus-visible { opacity: 1; outline: 2px solid var(--series-1); outline-offset: -2px; }
+  .check-ban:hover { color: var(--text-primary); background: var(--gridline); }
+  /* Gli esclusi restano in elenco, in fondo e barrati: sparire del tutto
+     vorrebbe dire non poterli piu' rimettere, e non ricordare nemmeno di
+     averli tolti. La casella resta disabilitata al suo posto -- un progetto
+     escluso non e' selezionabile, e lasciare il posto vuoto disallineerebbe
+     i nomi rispetto alle righe di sopra.
+     [EN] The excluded ones stay on the list, at the bottom and struck
+     through: disappearing altogether would mean not being able to put them
+     back, nor even remembering they were taken out. The box stays disabled
+     in its place -- an excluded project is not selectable, and leaving the
+     spot empty would misalign the names against the rows above. */
+  .check-excluded { color: var(--text-muted); cursor: default; }
+  .check-excluded .check-main { cursor: default; }
+  .check-excluded .check-name { text-decoration: line-through; }
+  .check-excluded .check-ban { opacity: 1; }
+  /* L'intestazione degli esclusi e' un comando, non un'etichetta: apre e
+     chiude l'elenco. Nasce chiusa perche' gli esclusi sono la roba di cui
+     si e' gia' deciso -- il numero accanto basta a ricordare che ci sono, e
+     il posto in cima alla colonna va a quello che si sceglie ogni giorno.
+     [EN] The excluded heading is a command, not a label: it opens and
+     closes the list. It is born closed because the excluded ones are the
+     stuff already decided on -- the number next to it is enough to remember
+     they are there, and the room at the top of the column belongs to what
+     one picks every day. */
+  .check-divider {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    width: calc(100% - 16px);
+    margin: 10px 8px 2px;
+    padding: 2px 0;
+    appearance: none;
+    border: none;
+    background: transparent;
+    font-family: inherit;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    cursor: pointer;
+    text-align: left;
+  }
+  .check-divider:hover { color: var(--text-secondary); }
+  .check-divider:focus-visible { outline: 2px solid var(--series-1); outline-offset: 2px; border-radius: 4px; }
+  .check-toggle-label { flex: 1 1 auto; }
+  .check-toggle-count { flex: none; font-variant-numeric: tabular-nums; }
+  .check-toggle-icon { flex: none; font-size: 9px; transition: transform 0.2s ease; }
+  /* Lo stato aperto sta nell'aria-expanded e non in una classe a parte: e'
+     gia' li' per chi legge la pagina con uno screen reader, e due sorgenti
+     per lo stesso stato prima o poi divergono.
+     [EN] The open state lives in aria-expanded and not in a class of its
+     own: it is already there for whoever reads the page with a screen
+     reader, and two sources for the same state drift apart sooner or
+     later. */
+  .check-divider[aria-expanded="true"] .check-toggle-icon { transform: rotate(90deg); }
+  /* Apertura morbida: la riga da 0fr a 1fr anima l'altezza vera del
+     contenuto, senza doverla sapere in anticipo. Da chiusa la visibilita'
+     si spegne -- con il solo overflow le righe nascoste resterebbero
+     raggiungibili col tabulatore -- ma solo a fine animazione, o
+     sparirebbero prima di essersi chiuse.
+     [EN] Soft opening: the row going from 0fr to 1fr animates the content's
+     real height, without having to know it in advance. When closed
+     visibility goes off -- with overflow alone the hidden rows would stay
+     reachable by tabbing -- but only at the end of the animation, or they
+     would vanish before having closed. */
+  .check-excluded-group {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .check-excluded-group.open { grid-template-rows: 1fr; }
+  .check-excluded-group > div { overflow: hidden; visibility: hidden; transition: visibility 0s linear 0.25s; }
+  .check-excluded-group.open > div { visibility: visible; transition-delay: 0s; }
+  /* "Tutti i progetti" non e' una casella ma il modo di svuotare la
+     selezione, ed e' acceso proprio quando non c'e' nessuna casella
+     spuntata: una casella che non si puo' togliere sarebbe un comando
+     travestito da scelta. Stessa veste della voce "tutti" delle tendine,
+     perche' fa la stessa cosa.
+     [EN] "Tutti i progetti" is not a box but the way to empty the
+     selection, and it is lit exactly when no box is ticked: a box that
+     cannot be unticked would be a command dressed up as a choice. Same look
+     as the "all" entry of the dropdowns, because it does the same thing. */
+  .check-all { appearance: none; border: none; background: transparent; font: inherit; font-size: 13px; text-align: left; color: var(--text-secondary); }
+  .check-all.active {
+    background: linear-gradient(135deg, var(--series-1-fill) 0%, rgba(42, 120, 214, 0.08) 100%);
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+  .check-all:focus-visible { outline: 2px solid var(--series-1); outline-offset: -2px; }
+  .check-empty { padding: 8px; font-size: 12px; color: var(--text-muted); }
   /* Un titolo lungo (es. un nome sessione) deve troncarsi con ellissi
      invece di traboccare dal riquadro -- prima non c'era nessuna regola di
      overflow qui, quindi un testo lungo spingeva la freccia fuori dal
@@ -698,7 +873,6 @@ __HEADER_CSS__
   }
   .stat-hero .stat-value { font-size: 38px; font-weight: 700; }
   .stat-hero .stat-label { font-size: 13px; margin-top: 4px; }
-  .stat-hero .stat-note { font-size: 11.5px; }
   .stat-breakdown {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
@@ -761,7 +935,6 @@ __HEADER_CSS__
   .has-reveal .stat-card { animation: card-in 0.45s cubic-bezier(0.22, 1, 0.36, 1) backwards; }
   @keyframes card-in { from { opacity: 0; transform: translateY(12px); } }
   .stat-label { font-size: 11px; color: var(--text-secondary); margin-top: 2px; }
-  .stat-note { font-size: 10.5px; color: var(--text-muted); margin-top: 3px; }
   .panel {
     background: var(--surface-1);
     border: 1px solid var(--border);
@@ -824,6 +997,117 @@ __HEADER_CSS__
     border-radius: 6px;
   }
   .legend-item.muted { opacity: 0.4; }
+  /* I filtri attivi, dentro il pannello del grafico che stanno
+     restringendo. Cliccando una barra il filtro nasce nel grafico, ed e'
+     nel grafico che deve poter morire: risalire alla colonna dei filtri,
+     riaprire la tendina giusta e cercarci dentro la voce "tutti" e' la via
+     lunga per disfare una cosa fatta con un clic solo.
+     Ci stanno tutti e sei, non solo quelli accesi da un clic: un riquadro
+     che ne elencasse solo una parte direbbe una mezza verita' su cosa il
+     disegno sta mostrando.
+     [EN] The active filters, inside the panel of the chart they are
+     narrowing. Clicking a bar the filter is born in the chart, and it is in
+     the chart that it must be able to die: going back up to the filters
+     column, reopening the right dropdown and finding the "all" entry in it
+     is the long way to undo something done with a single click.
+     All six are there, not only the ones lit by a click: a box listing just
+     a few of them would tell a half-truth about what the drawing shows. */
+  .filter-chips { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 0 0 8px; }
+  /* Senza questa riga il display:flex qui sopra vincerebbe sull'attributo
+     "hidden", e la striscia resterebbe in pagina anche vuota.
+     [EN] Without this line the display:flex above would beat the "hidden"
+     attribute, and the strip would stay on the page even when empty. */
+  .filter-chips[hidden] { display: none; }
+  /* Ogni filtro ha la sua tinta, sempre la stessa: con tre o quattro chip
+     accesi il colore dice QUALE filtro si sta per spegnere prima ancora di
+     leggerne il nome, e a colpo d'occhio si ritrova quello giusto. Le tinte
+     escono dalla palette gia' validata dei grafici (--series-N), non da
+     colori nuovi: sono le uniche che si distinguono fra loro sia sul tema
+     chiaro che su quello scuro.
+     Arrivano dal JS come due variabili inline (--chip-tint e --chip-wash)
+     invece che da sei classi scritte a mano: sei regole CSS che
+     ricopiassero la palette sarebbero sei posti da ritoccare il giorno in
+     cui un filtro cambia colore. I valori di riposo qui sotto tengono in
+     piedi anche i chip senza tinta -- oggi "Azzera tutto", che non e' un
+     filtro e resta volutamente neutro.
+     [EN] Every filter has its own hue, always the same one: with three or
+     four chips lit the color says WHICH filter is about to be turned off
+     before its name is even read, and the right one is found at a glance.
+     The hues come from the charts' already validated palette (--series-N),
+     not from new colors: they are the only ones telling apart on both the
+     light and the dark theme.
+     They arrive from the JS as two inline variables (--chip-tint and
+     --chip-wash) instead of from six hand-written classes: six CSS rules
+     copying the palette would be six places to touch the day a filter
+     changes color. The fallbacks below also hold up the chips with no hue
+     -- today "Azzera tutto", which is not a filter and stays deliberately
+     neutral. */
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+    max-width: 100%;
+    padding: 3px 3px 3px 10px;
+    border: 1px solid var(--chip-tint, var(--border));
+    border-radius: 999px;
+    background: var(--chip-wash, var(--control-bg));
+    font-size: 11.5px;
+    line-height: 1.5;
+    animation: chip-in 0.3s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+  }
+  @keyframes chip-in { from { opacity: 0; transform: translateY(-4px); } }
+  /* Il nome del filtro prende la tinta, il suo valore resta nel colore del
+     testo: sono due informazioni di peso diverso -- quale filtro (che il
+     colore ripete gia') e cosa ci sta dentro (che si legge e basta), e
+     colorare anche il secondo toglierebbe contrasto proprio alla parte che
+     conta di piu'.
+     [EN] The filter's name takes the hue, its value stays in the text
+     color: they are two pieces of information of different weight -- which
+     filter (which the color already repeats) and what is inside it (which
+     is simply read), and coloring the second one too would take contrast
+     away from the very part that matters most. */
+  .chip-key {
+    /* La tinta pura e' fatta per le linee e le barre dei grafici, non per
+       dodici pixel di testo: su fondo chiaro l'ambra e il rosa della
+       palette si leggono male. Mescolandola col colore del testo la tinta
+       resta riconoscibile (e' la stessa del bordo, che invece pura ci sta
+       benissimo) ma il contrasto sale abbastanza da poterla leggere. La
+       riga sopra resta come ripiego per i browser senza color-mix: li' si
+       torna alla tinta pura, che e' esattamente com'era prima.
+       [EN] The pure hue is made for the charts' lines and bars, not for
+       twelve pixels of text: on a light background the palette's amber and
+       pink read poorly. Mixing it with the text color keeps the hue
+       recognizable (the same as the border, where pure works fine) while
+       raising the contrast enough to read it. The line above stays as the
+       fallback for browsers without color-mix: there it goes back to the
+       pure hue, exactly as it was before. */
+    color: var(--chip-tint, var(--text-muted));
+    color: color-mix(in srgb, var(--chip-tint, var(--text-muted)) 60%, var(--text-primary));
+    white-space: nowrap;
+  }
+  .chip-val { color: var(--text-primary); font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .chip-x {
+    appearance: none;
+    border: none;
+    background: transparent;
+    color: var(--text-muted);
+    font-size: 15px;
+    line-height: 1;
+    padding: 3px 7px 5px;
+    border-radius: 999px;
+    cursor: pointer;
+  }
+  .chip-x:hover { color: var(--text-primary); background: var(--gridline); }
+  .chip-x:focus-visible { outline: 2px solid var(--chip-tint, var(--series-1)); outline-offset: 1px; }
+  /* La scorciatoia compare solo con due o piu' filtri accesi: con uno solo
+     sarebbe un secondo bottone che fa quel che fa la x accanto.
+     [EN] The shortcut shows up only with two or more filters on: with a
+     single one it would be a second button doing what the x next to it
+     already does. */
+  .chip-all { font: inherit; font-size: 11.5px; color: var(--text-secondary); padding: 3px 11px; cursor: pointer; }
+  .chip-all:hover { color: var(--text-primary); }
+  .chip-all:focus-visible { outline: 2px solid var(--series-1); outline-offset: 1px; }
   /* Isolare una serie: tutto il resto sbiadisce invece di sparire, cosi' si
      continua a vedere dove la serie scelta stia rispetto alle altre --
      nasconderle toglierebbe proprio il confronto per cui si isola.
@@ -1150,20 +1434,6 @@ __HEADER_CSS__
   .cost-na { color: var(--text-muted); font-style: italic; cursor: help; }
   td.mono { font-family: ui-monospace, "Cascadia Code", monospace; color: var(--text-secondary); }
   td.ts { font-variant-numeric: tabular-nums; white-space: nowrap; }
-  .hint { font-size: 12px; color: var(--text-muted); margin: -4px 0 10px; }
-  /* L'hint sotto Modalita'/Periodo cambia testo (e quindi lunghezza) ad ogni
-     cambio di modalita' -- una riga in alcuni casi, due in altri (vedi
-     LINE_CHART_HINTS lato JS). Altezza minima fissa a due righe cosi' il
-     grafico sotto non si sposta su/giu' ad ogni click; margine positivo
-     invece del -4px ereditato da .hint, che lo schiacciava contro i
-     controlli sopra.
-     [EN] The hint under Modalita'/Periodo changes text (and thus length)
-     on every mode change -- one line in some cases, two in others (see
-     LINE_CHART_HINTS on the JS side). Fixed min-height of two lines so the
-     chart below does not jump up/down on every click; positive margin
-     instead of the -4px inherited from .hint, which squeezed it against
-     the controls above. */
-  #line-chart-hint { margin: 10px 0 12px; line-height: 1.5; min-height: 54px; }
   th.expand-col { width: 22px; }
   tr.turn-row { cursor: pointer; }
   /* Le interazioni caricate a scorrimento infinito entrano a cascata: la
@@ -1305,6 +1575,11 @@ __HEADER_CSS__
   .help-block code { font-family: ui-monospace, "Cascadia Code", monospace; font-size: 11.5px; }
   [data-tooltip] { cursor: help; }
   .dot, .bar { cursor: pointer; }
+  /* La barra di coda ("media di N sessioni") non e' un gruppo solo: non c'e'
+     un filtro su cui puntarla, e il puntatore non deve prometterlo.
+     [EN] The tail bar ("average of N sessions") is not a single group: there
+     is no filter to point it at, and the cursor must not promise one. */
+  .bar:not([data-chart-filter]) { cursor: help; }
   .custom-tooltip {
     position: fixed;
     z-index: 1000;
@@ -1353,11 +1628,22 @@ __HEADER_CSS__
   .custom-tooltip .tt-breakdown div { margin-top: 2px; }
   .custom-tooltip .tt-toggle { margin-top: 7px; padding-top: 7px; border-top: 1px solid var(--border); color: var(--series-1); cursor: pointer; font-size: 11.5px; user-select: none; }
   .custom-tooltip .tt-toggle:hover { text-decoration: underline; }
-  /* Le uniche due isole cliccabili del tooltip: il resto del riquadro
+  /* Riga di comando in fondo al tooltip di gruppo: imposta i filtri della
+     pagina sulla serie che si sta guardando. Ha l'aspetto di .tt-toggle
+     (stesso colore, stesso separatore) perche' per chi legge e' la stessa
+     cosa: una riga su cui si clicca.
+     [EN] Command row at the bottom of the group tooltip: it sets the page
+     filters to the series being looked at. It looks like .tt-toggle (same
+     color, same separator) because to the reader it is the same thing: a
+     row you click on. */
+  .custom-tooltip .tt-action { margin-top: 7px; padding-top: 7px; border-top: 1px solid var(--border); color: var(--series-1); cursor: pointer; font-size: 11.5px; user-select: none; }
+  .custom-tooltip .tt-action:hover { text-decoration: underline; }
+  /* Le uniche tre isole cliccabili del tooltip: il resto del riquadro
      lascia passare il puntatore ai punti del grafico che ha sotto.
-     [EN] The tooltip's only two clickable islands: the rest of the box
+     [EN] The tooltip's only three clickable islands: the rest of the box
      lets the pointer through to the chart dots underneath. */
   .custom-tooltip .tt-toggle,
+  .custom-tooltip .tt-action,
   .custom-tooltip .tt-details { pointer-events: auto; }
   .custom-tooltip .tt-details { margin-top: 6px; max-height: 160px; overflow-y: auto; }
   .custom-tooltip .tt-turn { display: flex; gap: 6px; font-size: 11px; padding: 3px 0; border-bottom: 1px solid var(--gridline); }
@@ -1395,9 +1681,21 @@ __SITE_HEADER__
       <div class="side-title">Filtri</div>
       <div class="filter-row" id="filters-bar" data-reveal>
     <div class="filter-item" id="fi-project">
-      <label>Progetto:</label>
-      <div id="project-filter-custom" class="custom-dropdown"></div>
-      <select id="project-filter" style="display:none"></select>
+      <label>Progetti:</label>
+      <!-- Una lista di caselle e non una tendina: i progetti si scelgono
+           anche a piu' d'uno per volta, e una tendina a scelta multipla
+           nasconde dietro un clic proprio cio' che serve sapere sempre --
+           quali sono accesi in questo momento. Il <select multiple> resta
+           nascosto sotto come deposito della selezione: e' li' che il resto
+           della pagina la legge, come per tutti gli altri filtri.
+           [EN] A list of boxes and not a dropdown: projects are chosen more
+           than one at a time too, and a multiple-choice dropdown hides
+           behind a click the very thing one needs to know at all times --
+           which ones are on right now. The <select multiple> stays hidden
+           underneath as the selection's store: that is where the rest of
+           the page reads it from, as for every other filter. -->
+      <div id="project-filter-list" class="check-list"></div>
+      <select id="project-filter" multiple style="display:none"></select>
     </div>
     <div class="filter-item" id="fi-session">
       <label>Sessione:</label>
@@ -1489,7 +1787,7 @@ __SITE_HEADER__
         </div>
       </div>
     </div>
-    <p class="hint" id="bar-chart-hint"></p>
+    <div class="filter-chips" id="bar-chart-chips" hidden></div>
     <div id="bar-chart"></div>
   </div>
 
@@ -1523,7 +1821,7 @@ __SITE_HEADER__
         </div>
       </div>
     </div>
-    <p class="hint" id="bar2-chart-hint"></p>
+    <div class="filter-chips" id="bar2-chart-chips" hidden></div>
     <div id="bar2-chart"></div>
   </div>
 
@@ -1613,7 +1911,7 @@ __SITE_HEADER__
         </div>
       </div>
     </div>
-    <p class="hint" id="line-chart-hint">Campionato in ~24 intervalli di tempo uguali (es. 15 min a testa su 6 ore, 1h su 24 ore); una linea per ciascuna delle sessioni più costose del periodo, tutte le altre sommate in un’unica linea grigia; passa il mouse su un punto per il dettaglio.</p>
+    <div class="filter-chips" id="line-chart-chips" hidden></div>
     <div id="line-chart"></div>
   </div>
 
@@ -1873,6 +2171,76 @@ __SITE_HEADER__
   var projectById = {};
   sessions.forEach(function (s) { titleById[s.id] = s.title; projectById[s.id] = s.project || null; });
 
+  /* --- I progetti esclusi -------------------------------------------------
+     Escludere non e' filtrare: un filtro dice "adesso guardo questo",
+     un'esclusione dice "questo non lo guardo mai". Per questo sta in
+     localStorage e non nel sessionStorage dei filtri -- sopravvive alla
+     ricarica, alla chiusura della scheda e al riavvio del browser, che e'
+     quel che si intende con "sempre" -- e per questo toglie i suoi turni da
+     TUTTO (schede, grafici, tabella, e le liste degli altri filtri) invece
+     di essere un'altra casella da ricordarsi di spuntare.
+     [EN] Excluding is not filtering: a filter says "right now I am looking
+     at this", an exclusion says "I never look at this". That is why it
+     lives in localStorage and not in the filters' sessionStorage -- it
+     survives a reload, closing the tab and restarting the browser, which is
+     what "always" means -- and why it takes its turns out of EVERYTHING
+     (cards, charts, table, and the other filters' lists) instead of being
+     one more box to remember to tick. */
+  var EXCLUDED_PROJECTS_KEY = 'dashboardExcludedProjects';
+  var excludedProjects = {};
+  try {
+    var savedExcluded = JSON.parse(localStorage.getItem(EXCLUDED_PROJECTS_KEY) || '[]');
+    if (Array.isArray(savedExcluded)) {
+      savedExcluded.forEach(function (p) { excludedProjects[p] = true; });
+    }
+  } catch (e) {}
+
+  // Aperta o chiusa: vive quanto la pagina e non oltre. Ad ogni
+  // caricamento si riparte da chiusa, che e' il senso di "esclusi" -- roba
+  // decisa, non roba da rivedere ogni volta che si apre la dashboard.
+  // [EN] Open or closed: it lives as long as the page and no longer. Every
+  // load starts closed, which is what "excluded" means -- settled stuff,
+  // not stuff to review every time the dashboard is opened.
+  var excludedSectionOpen = false;
+
+  function syncExcludedSection() {
+    var list = document.getElementById('project-filter-list');
+    if (!list) { return; }
+    var group = list.querySelector('.check-excluded-group');
+    var toggle = list.querySelector('.check-toggle');
+    if (!group || !toggle) { return; }
+    group.classList.toggle('open', excludedSectionOpen);
+    toggle.setAttribute('aria-expanded', excludedSectionOpen ? 'true' : 'false');
+  }
+
+  function saveExcludedProjects() {
+    try {
+      localStorage.setItem(EXCLUDED_PROJECTS_KEY, JSON.stringify(Object.keys(excludedProjects)));
+    } catch (e) {}
+  }
+
+  /* I dati al netto degli esclusi, calcolati una volta per esclusione e non
+     ad ogni ridisegno: sono tre scansioni dell'intero storico, e i filtri
+     veri girano gia' sopra a queste liste ad ogni tocco.
+     [EN] The data net of the excluded ones, computed once per exclusion and
+     not on every redraw: it is three scans of the whole history, and the
+     real filters already run on top of these lists at every touch. */
+  var includedTurns = turns;
+  var includedOps = ops;
+  var includedSessions = sessions;
+
+  function applyProjectExclusions() {
+    if (!Object.keys(excludedProjects).length) {
+      includedTurns = turns;
+      includedOps = ops;
+      includedSessions = sessions;
+      return;
+    }
+    includedTurns = turns.filter(function (t) { return !excludedProjects[projectOf(t)]; });
+    includedOps = ops.filter(function (o) { return !excludedProjects[projectById[o.sid] || SENZA_PROGETTO]; });
+    includedSessions = sessions.filter(function (s) { return !excludedProjects[s.project || SENZA_PROGETTO]; });
+  }
+
   // Il progetto di un turno e' un dato della SESSIONE, non del turno: si
   // legge sempre passando per projectById. I due grafici lo usano come
   // chiave di raggruppamento, e una chiave di gruppo non puo' essere null
@@ -2008,6 +2376,30 @@ __SITE_HEADER__
       win.className = 'tt-window';
       win.textContent = data.windowNote;
       container.appendChild(win);
+    }
+
+    // Ultima riga: imposta i filtri della pagina su questa serie. Il testo
+    // dice cosa fara' il clic e diventa "Togli il filtro" quando il filtro e'
+    // gia' li': la stessa riga fa e disfa, come il clic sulle barre.
+    // [EN] Last row: sets the page filters to this series. The text says what
+    // [EN] the click will do and turns into "Togli il filtro" when the filter
+    // [EN] is already there: the same row does and undoes, like the click on
+    // [EN] the bars.
+    if (data.filter && CHART_FILTER_SELECTS[data.filter.kind]) {
+      var already = data.filter.kind === 'project'
+        ? selectedProjects().indexOf(data.filter.value) >= 0
+        : document.getElementById(CHART_FILTER_SELECTS[data.filter.kind]).value === data.filter.value;
+      var action = document.createElement('div');
+      action.className = 'tt-action';
+      action.textContent = (already ? '\u25b8 Togli il filtro su ' : '\u25b8 Filtra su ') + data.filter.label;
+      // Lo spec viaggia sull'elemento e non in un attributo: il tooltip e'
+      // ricostruito ad ogni disegno, quindi non sopravvive a nessun
+      // ridisegno e non ha bisogno di essere leggibile dal markup.
+      // [EN] The spec travels on the element and not in an attribute: the
+      // [EN] tooltip is rebuilt on every paint, so it outlives no redraw and
+      // [EN] does not need to be readable from the markup.
+      action.filterSpec = data.filter;
+      container.appendChild(action);
     }
 
     var dismiss = document.createElement('div');
@@ -2251,6 +2643,41 @@ __SITE_HEADER__
   document.addEventListener('keydown', function (e) {
     if (e.key === 'Escape' && tooltipPinned) hideTooltip();
   });
+  // Token in forma corta ("1,2M", "84k"): accanto al nome di un progetto
+  // c'e' spazio per cinque caratteri, non per un numero a sette cifre, e li'
+  // il numero serve a spiegare l'ordine della lista, non a essere sommato.
+  // [EN] Tokens in short form ("1,2M", "84k"): next to a project's name
+  // there is room for five characters, not for a seven-digit number, and
+  // there the number is there to explain the list's order, not to be summed.
+  function fmtCompactTokens(n) {
+    var v = Math.round(n || 0);
+    // "Md" e non "B": in italiano un bilione e' mille miliardi, e un numero
+    // che vale mille volte meno di quel che sembra e' peggio di un numero
+    // lungo. Il decimale cade oltre le tre cifre intere ("561M" e non
+    // "560,5M"): li' la frazione non aggiunge niente e ruba spazio al nome
+    // del progetto.
+    // [EN] "Md" (miliardi) and not "B": in Italian a "bilione" is a
+    // thousand billions, and a number worth a thousand times less than it
+    // looks is worse than a long number. The decimal drops past three
+    // integer digits ("561M" and not "560,5M"): there the fraction adds
+    // nothing and steals room from the project's name.
+    if (v >= 1e9) { return oneDecimal(v / 1e9) + 'Md'; }
+    if (v >= 1e8) { return Math.round(v / 1e6) + 'M'; }
+    if (v >= 1e6) { return oneDecimal(v / 1e6) + 'M'; }
+    if (v >= 1e4) { return Math.round(v / 1e3) + 'k'; }
+    if (v >= 1e3) { return oneDecimal(v / 1e3) + 'k'; }
+    return String(v);
+  }
+
+  // Un decimale, ma non se e' zero: "9M" e non "9,0M" -- la virgola zero
+  // non dice niente e in una colonna stretta occupa due caratteri.
+  // [EN] One decimal, but not when it is zero: "9M" and not "9,0M" -- the
+  // comma zero says nothing and takes two characters in a narrow column.
+  function oneDecimal(v) {
+    var s = v.toFixed(1);
+    return (s.slice(-2) === '.0' ? s.slice(0, -2) : s).replace('.', ',');
+  }
+
   function fmtInt(n) {
     var v = Math.round(n);
     var sign = v < 0 ? '-' : '';
@@ -2367,11 +2794,523 @@ __SITE_HEADER__
     return {
       sid: document.getElementById('session-filter').value,
       acc: document.getElementById('account-filter').value,
-      proj: document.getElementById('project-filter').value,
+      proj: selectedProjects(),
       period: document.getElementById('period-filter').value,
       model: document.getElementById('model-filter').value,
       search: document.getElementById('search-filter').value
     };
+  }
+
+  /* --- Filtri pilotati dai grafici ---------------------------------------
+     Cliccare una barra (o una serie del grafico a linea) imposta il filtro
+     corrispondente: e' la strada piu' corta fra "questa cosa costa tanto" e
+     "fammi vedere solo questa cosa", che altrimenti obbliga a ritrovare a
+     mano nella tendina il nome appena letto sull'asse.
+     Un solo posto scrive nei filtri per conto dei grafici, perche' un filtro
+     non e' solo il <select> nascosto: c'e' il trigger visibile da
+     riallineare e, per il Progetto, la cascata che ricostruisce la tendina
+     Sessione. Scriverlo a mano in ogni punto di chiamata vorrebbe dire
+     dimenticarsene in uno.
+     [EN] --- Chart-driven filters ---
+     Clicking a bar (or a line chart series) sets the matching filter: it is
+     the shortest path between "this thing costs a lot" and "show me only
+     this thing", which otherwise forces you to hunt down by hand, in the
+     dropdown, the name you just read on the axis.
+     A single place writes into the filters on behalf of the charts, because
+     a filter is not just the hidden <select>: there is the visible trigger
+     to realign and, for Progetto, the cascade rebuilding the Sessione
+     dropdown. Writing it by hand at every call site would mean forgetting it
+     in one of them. */
+  /* --- La selezione dei progetti ------------------------------------------
+     I progetti sono l'unico filtro a scelta multipla, e sono anche quello
+     che comanda gli altri: scegliendone uno o due, Sessione, Account,
+     Modello e i mesi del Periodo non devono piu' offrire voci che in quei
+     progetti non compaiono -- una tendina che elenca cose che darebbero
+     zero righe non e' un filtro, e' un inventario.
+     La selezione vive nel <select multiple> nascosto e non in una variabile
+     a parte: cosi' resta l'unica fonte, come per gli altri cinque filtri, e
+     tutto quello che gia' legge "il valore del filtro" continua a
+     funzionare -- su un <select multiple> .value e' il primo selezionato, o
+     stringa vuota se non c'e' nessuno, che e' esattamente il "e' acceso?"
+     che serve.
+     [EN] --- The projects selection ---
+     Projects are the only multiple-choice filter, and also the one
+     commanding the others: choosing one or two, Sessione, Account, Modello
+     and the Periodo months must no longer offer entries that do not appear
+     in those projects -- a dropdown listing things that would give zero
+     rows is not a filter, it is an inventory.
+     The selection lives in the hidden <select multiple> and not in a
+     variable of its own: this keeps a single source, as for the other five
+     filters, and everything already reading "the filter's value" keeps
+     working -- on a <select multiple> .value is the first selected one, or
+     the empty string when there is none, which is exactly the "is it on?"
+     that is needed. */
+  function selectedProjects() {
+    var select = document.getElementById('project-filter');
+    if (!select) { return []; }
+    return [].filter.call(select.options, function (o) { return o.selected; })
+      .map(function (o) { return o.value; });
+  }
+
+  // Scrive nel deposito e basta: la usano sia setProjectSelection (che poi
+  // rifa' anche le liste dipendenti) sia la ricostruzione della lista, che
+  // ricrea le <option> e deve rimetterci la selezione di prima senza
+  // scatenare un secondo giro di ricostruzioni.
+  // [EN] It writes into the store and nothing else: it is used both by
+  // setProjectSelection (which then also rebuilds the dependent lists) and
+  // by the list's rebuild, which recreates the <option>s and has to put the
+  // previous selection back without setting off a second round of rebuilds.
+  function markSelectedOptions(projs) {
+    var select = document.getElementById('project-filter');
+    if (!select) { return; }
+    var wanted = {};
+    (projs || []).forEach(function (p) { if (!excludedProjects[p]) { wanted[p] = true; } });
+    [].forEach.call(select.options, function (o) { o.selected = !!wanted[o.value]; });
+  }
+
+  function setProjectSelection(projs) {
+    var select = document.getElementById('project-filter');
+    if (!select) { return; }
+    markSelectedOptions(projs);
+    syncProjectChecks();
+    refreshDependentFilters();
+    // Il bordo acceso della lista si aggiorna qui e non solo al clic
+    // (syncFilterChrome sta su un ascoltatore del document): la selezione
+    // cambia anche da una barra del grafico e dalla x di un chip.
+    // [EN] The list's lit border updates here and not only on click
+    // (syncFilterChrome sits on a document listener): the selection also
+    // changes from a chart bar and from a chip's x.
+    syncFilterChrome();
+  }
+
+  // Le caselle seguono la selezione, non il contrario: la si cambia anche
+  // cliccando una barra del grafico o la x di un chip, e in quei due casi
+  // nessuno ha toccato una casella.
+  // [EN] The boxes follow the selection, not the other way around: it also
+  // changes by clicking a chart bar or a chip's x, and in those two cases
+  // nobody touched a box.
+  function syncProjectChecks() {
+    var list = document.getElementById('project-filter-list');
+    if (!list) { return; }
+    var chosen = {};
+    var projs = selectedProjects();
+    projs.forEach(function (p) { chosen[p] = true; });
+    list.querySelectorAll('input[type="checkbox"]').forEach(function (box) {
+      box.checked = !!chosen[box.value];
+    });
+    var all = list.querySelector('.check-all');
+    if (all) { all.classList.toggle('active', projs.length === 0); }
+  }
+
+  /* Rifare una tendina la riporta sulla prima voce ("tutti"): se il valore
+     di prima e' ancora in elenco lo si rimette, altrimenti il filtro resta
+     spento. Spegnerlo e' voluto: se quella sessione, quell'account o quel
+     mese non esistono piu' dentro i progetti scelti, tenerli accesi
+     lascerebbe la pagina vuota e senza un motivo visibile -- mentre il chip
+     che sparisce dice che il filtro se n'e' andato.
+     [EN] Rebuilding a dropdown sends it back to its first entry ("all"): if
+     the previous value is still on the list it is put back, otherwise the
+     filter stays off. Turning it off is deliberate: if that session,
+     account or month no longer exists inside the chosen projects, keeping
+     them on would leave the page empty with no visible reason -- whereas
+     the chip going away says the filter has gone. */
+  function restoreSelectValue(selectId, value) {
+    var select = document.getElementById(selectId);
+    if (!select) { return; }
+    var found = value && [].some.call(select.options, function (o) { return o.value === value; });
+    select.value = found ? value : '';
+    updateDropdownTrigger(document.getElementById(selectId + '-custom'), select.value);
+  }
+
+  // I mesi (e i giorni) della tendina Periodo sono dati, non calendario:
+  // esistono se in quel mese c'e' stato del consumo. Cambiando i progetti
+  // cambia anche quali mesi hanno qualcosa dentro, quindi si buttano quelli
+  // rimasti vuoti e si aggiungono quelli nuovi. "Oggi", "Questa settimana",
+  // "Questo mese" e "Quest'anno" non si toccano: quelli ci sono sempre,
+  // anche quando non contengono niente.
+  // [EN] The Periodo dropdown's months (and days) are data, not calendar:
+  // they exist if there was usage in that month. Changing projects also
+  // changes which months hold something, so the ones left empty are thrown
+  // away and the new ones are added. "Oggi", "Questa settimana", "Questo
+  // mese" and "Quest'anno" are left alone: those are always there, even
+  // when they hold nothing.
+  function refreshDataPeriods(scopedTurns) {
+    var months = {};
+    var days = {};
+    scopedTurns.forEach(function (t) {
+      months[monthKey(t.ts)] = true;
+      days[dayKey(t.ts)] = true;
+    });
+    Object.keys(PERIODS).forEach(function (k) {
+      var kind = PERIODS[k].kind;
+      if (!kind) { return; }
+      var present = kind === 'month' ? months[k.slice(1)] : days[k.slice(1)];
+      if (!present) { delete PERIODS[k]; }
+    });
+    addMonthPeriods(scopedTurns);
+    populatePeriodSelect();
+  }
+
+  /* Le quattro liste che dipendono dai progetti scelti, rifatte insieme.
+     E' anche il posto da cui nascono la prima volta: un solo punto che sa
+     come sono fatte, invece di una costruzione all'avvio e una
+     ricostruzione altrove che col tempo divergono.
+     [EN] The four lists depending on the chosen projects, rebuilt together.
+     It is also where they are born the first time: a single place knowing
+     how they are made, instead of a build at startup and a rebuild
+     elsewhere that drift apart over time. */
+  function refreshDependentFilters() {
+    var projs = selectedProjects();
+    var scoped = filterByProject(includedTurns, projs);
+    var prevSid = document.getElementById('session-filter').value;
+    var prevAcc = document.getElementById('account-filter').value;
+    var prevModel = document.getElementById('model-filter').value;
+    var prevPeriod = document.getElementById('period-filter').value;
+
+    populateSelect(projs);
+    populateAccountSelect(scoped);
+    populateModelSelect(scoped);
+    refreshDataPeriods(scoped);
+
+    restoreSelectValue('session-filter', prevSid);
+    restoreSelectValue('account-filter', prevAcc);
+    restoreSelectValue('model-filter', prevModel);
+    restoreSelectValue('period-filter', prevPeriod);
+  }
+
+  var CHART_FILTER_SELECTS = {
+    session: 'session-filter',
+    project: 'project-filter',
+    period: 'period-filter',
+    model: 'model-filter'
+  };
+
+  function setChartFilter(kind, value) {
+    if (kind === 'session') {
+      // La tendina Sessione contiene solo le sessioni del progetto scelto
+      // (vedi populateSelect): se la sessione che arriva dal grafico e' di
+      // un altro progetto il <select> rifiuterebbe il valore e il filtro
+      // resterebbe scoperto, quindi si allinea prima il progetto.
+      // [EN] The Sessione dropdown holds only the chosen project's sessions
+      // [EN] (see populateSelect): if the session coming from the chart
+      // [EN] belongs to another project the <select> would refuse the value
+      // [EN] and the filter would silently stay off, so the project is
+      // [EN] aligned first.
+      var proj = projectById[value] || '';
+      var chosen = selectedProjects();
+      if (value && proj && chosen.length && chosen.indexOf(proj) < 0) {
+        // Si AGGIUNGE il progetto della sessione invece di sostituire la
+        // selezione: la sessione dev'essere in elenco perche' il filtro
+        // possa puntarci, ma gli altri progetti scelti non c'entrano niente
+        // e non e' il caso di buttarli via.
+        // [EN] The session's project is ADDED instead of replacing the
+        // selection: the session must be on the list for the filter to
+        // point at it, but the other chosen projects have nothing to do
+        // with it and there is no reason to throw them away.
+        setProjectSelection(chosen.concat([proj]));
+      }
+      document.getElementById('session-filter').value = value;
+      updateDropdownTrigger(document.getElementById('session-filter-custom'), value);
+      return;
+    }
+    if (kind === 'project') {
+      // La cascata sulla sessione non si scrive piu' qui: rifacendo la
+      // tendina Sessione ristretta ai progetti scelti, una sessione che non
+      // c'entra piu' non e' piu' in elenco e si spegne da se'
+      // (refreshDependentFilters). Una che invece c'entra ancora resta,
+      // dove prima spariva comunque.
+      // [EN] The cascade on the session is no longer written here: by
+      // rebuilding the Sessione dropdown narrowed to the chosen projects, a
+      // session that no longer belongs is no longer on the list and turns
+      // itself off (refreshDependentFilters). One that still belongs stays,
+      // where before it went away anyway.
+      setProjectSelection(value ? [value] : []);
+      return;
+    }
+    // Periodo e Modello: due tendine semplici, nessuna cascata.
+    // [EN] Periodo and Modello: two plain dropdowns, no cascade.
+    var id = CHART_FILTER_SELECTS[kind];
+    document.getElementById(id).value = value;
+    updateDropdownTrigger(document.getElementById(id + '-custom'), value);
+  }
+
+  /* I periodi-giorno non stanno nella tendina fin dall'inizio: uno storico
+     lungo ne avrebbe centinaia, e una tendina Periodo di centinaia di voci
+     non e' un filtro ma un elenco. Nascono uno alla volta, cliccando la
+     barra di quel giorno, e restano per il resto della visita.
+     [EN] Day periods are not in the dropdown from the start: a long history
+     would have hundreds of them, and a Periodo dropdown of hundreds of
+     entries is not a filter but a list. They are born one at a time, by
+     clicking that day's bar, and stay for the rest of the visit. */
+  function ensureDayPeriod(dayK) {
+    // Oggi ha gia' la sua voce: due nomi per la stessa selezione
+    // confonderebbero e basta, come per il mese in corso (addMonthPeriods).
+    // [EN] Today already has its own entry: two names for the same selection
+    // [EN] would only confuse, as for the current month (addMonthPeriods).
+    if (dayK === dayKey(new Date())) { return 'today'; }
+    var key = 'd' + dayK;
+    if (PERIODS[key]) { return key; }
+    var y = parseInt(dayK.slice(0, 4), 10);
+    var m = parseInt(dayK.slice(5, 7), 10);
+    var d = parseInt(dayK.slice(8, 10), 10);
+    if (isNaN(y) || isNaN(m) || isNaN(d)) { return null; }
+    PERIODS[key] = {
+      kind: 'day',
+      label: fmtDayNice(d, m) + ' ' + y,
+      short: pad2(d) + '/' + pad2(m),
+      // Mezzanotte locale del giorno, fino a mezzanotte del giorno dopo
+      // (esclusa): lo stesso fuso con cui dayKey ha deciso a quale giorno
+      // appartiene un turno. Il giorno+1 che sfora il mese lo sistema Date
+      // da se'.
+      // [EN] Local midnight of the day, up to the next day's local midnight
+      // [EN] (excluded): the same timezone with which dayKey decided which
+      // [EN] day a turn belongs to. A day+1 overflowing the month is Date's
+      // [EN] own business.
+      from: function () { return new Date(y, m - 1, d); },
+      to: function () { return new Date(y, m - 1, d + 1); }
+    };
+    // La tendina va ricostruita per contenere la voce nuova; ricostruendola
+    // il <select> torna sulla prima voce, ed e' chi chiama a riscrivere il
+    // valore subito dopo (vedi applyChartFilter).
+    // [EN] The dropdown must be rebuilt to hold the new entry; rebuilding it
+    // [EN] sends the <select> back to its first entry, and it is the caller
+    // [EN] that rewrites the value right after (see applyChartFilter).
+    populatePeriodSelect();
+    return key;
+  }
+
+  function monthPeriodKey(monthK) {
+    if (PERIODS['m' + monthK]) { return 'm' + monthK; }
+    // Il mese in corso non ha una voce "m...": si chiama "Questo mese".
+    // [EN] The current month has no "m..." entry: it is called "Questo mese".
+    return monthK === monthKey(new Date()) ? 'month' : null;
+  }
+
+  // Un periodo-giorno salvato prima di una ricarica non esiste piu' nella
+  // tendina appena ricostruita, e il <select> rifiuterebbe il valore: lo si
+  // ricrea dalla chiave prima di riassegnarlo.
+  // [EN] A day period saved before a reload no longer exists in the
+  // freshly rebuilt dropdown, and the <select> would refuse the value: it is
+  // recreated from the key before being assigned again.
+  function ensureSavedPeriod(key) {
+    if (!key || PERIODS[key]) { return; }
+    if (key.charAt(0) === 'd') { ensureDayPeriod(key.slice(1)); }
+  }
+
+  // Le barre del tempo non portano una chiave di periodo bell'e' pronta ma
+  // il giorno o il mese che rappresentano: la chiave dipende da cosa esiste
+  // gia' nella tendina, e per i giorni va addirittura creata -- roba da
+  // fare al clic, non ad ogni disegno di ogni barra.
+  // [EN] Time bars do not carry a ready-made period key but the day or month
+  // they stand for: the key depends on what already exists in the dropdown
+  // and for days must even be created -- something to do on click, not on
+  // every draw of every bar.
+  function resolveChartFilterValue(spec) {
+    if (spec.kind !== 'period') { return spec.value; }
+    return spec.day ? ensureDayPeriod(spec.day) : monthPeriodKey(spec.month);
+  }
+
+  /* Il clic si comporta da interruttore: se il filtro punta gia' li',
+     ricliccare la stessa barra lo toglie. Senza, per tornare a vedere tutto
+     bisognerebbe riaprire la tendina -- e la barra appena cliccata sarebbe
+     rimasta l'unica a grafico, quindi il modo per disfare non sarebbe
+     nemmeno sotto gli occhi.
+     [EN] The click behaves like a switch: if the filter already points
+     there, clicking the same bar again removes it. Without that, going back
+     to seeing everything would mean reopening the dropdown -- and the bar
+     just clicked would be the only one left on the chart, so the way to undo
+     would not even be in sight. */
+  /* I filtri attivi come "chip" sopra al disegno, uno per filtro acceso,
+     ciascuno con la sua x. La striscia e' la stessa in tutti e tre i
+     pannelli: da qualunque grafico si sia acceso un filtro, lo si spegne
+     senza cambiare zona della pagina.
+     L'etichetta di ogni chip la si prende dal <select> nascosto, non dai
+     dati: e' gia' il testo che l'utente ha visto scegliendo (titolo di
+     sessione, nome del mese, nome leggibile del modello), quindi non c'e'
+     una seconda formattazione da tenere allineata alla prima.
+     [EN] The active filters as "chips" above the drawing, one per lit
+     filter, each with its own x. The strip is the same in all three
+     panels: from whichever chart a filter was lit, it can be turned off
+     without changing area of the page.
+     Each chip's label comes from the hidden <select>, not from the data: it
+     is already the text the user saw while choosing (session title, month
+     name, readable model name), so there is no second formatting to keep in
+     step with the first. */
+  /* "tint" e' il nome della variabile di palette, non un colore scritto a
+     mano: il CSS ne ricava anche il fondo aggiungendo "-fill", che e' come
+     la palette si chiama da sempre (--series-3 / --series-3-fill). Le
+     tinte sono scelte distanti fra loro nell'ordine della palette, che e'
+     ordinata proprio perche' due vicine si somigliano; il rosso resta
+     fuori: qui dentro un chip rosso sembrerebbe un errore, non un filtro.
+     [EN] "tint" is the name of the palette variable, not a hand-written
+     color: the CSS derives the background from it by appending "-fill",
+     which is how the palette has always been named (--series-3 /
+     --series-3-fill). The hues are picked far apart in the palette order,
+     which is ordered precisely because two adjacent ones look alike; red
+     stays out: in here a red chip would look like an error, not a
+     filter. */
+  var FILTER_CHIP_DEFS = [
+    { kind: 'project', label: 'Progetto', selectId: 'project-filter', tint: '--series-3' },
+    { kind: 'session', label: 'Sessione', selectId: 'session-filter', tint: '--series-1' },
+    { kind: 'account', label: 'Account', selectId: 'account-filter', tint: '--series-7' },
+    { kind: 'period', label: 'Periodo', selectId: 'period-filter', tint: '--series-4' },
+    { kind: 'model', label: 'Modello', selectId: 'model-filter', tint: '--series-5' }
+  ];
+
+  var FILTER_CHIP_HOSTS = ['bar-chart-chips', 'bar2-chart-chips', 'line-chart-chips'];
+
+  // Quanti progetti si possono spuntare in questo momento (gli esclusi
+  // non contano: non sono in lista e non si accendono).
+  // [EN] How many projects can be ticked right now (the excluded ones do
+  // not count: they are not in the list and cannot be turned on).
+  function allProjectsChosen(chosen) {
+    var select = document.getElementById('project-filter');
+    if (!select) { return false; }
+    var n = 0;
+    for (var i = 0; i < select.options.length; i++) {
+      if (!excludedProjects[select.options[i].value]) { n++; }
+    }
+    return n > 0 && chosen.length >= n;
+  }
+
+  function activeFilterChips() {
+    var out = [];
+    FILTER_CHIP_DEFS.forEach(function (def) {
+      var select = document.getElementById(def.selectId);
+      if (!select || !select.value) { return; }
+      // selectedIndex a -1 vuol dire un valore che nel <select> non c'e'
+      // (non dovrebbe capitare, ma un chip senza testo sarebbe un chip che
+      // non si sa cosa spenga): in quel caso si mostra il valore grezzo.
+      // [EN] A -1 selectedIndex means a value the <select> does not hold
+      // (it should not happen, but a chip with no text would be a chip you
+      // cannot tell what it turns off): the raw value is shown instead.
+      // Un chip per progetto e non uno solo che li conta: con tre progetti
+      // accesi si vuole poterne togliere uno senza rifare la selezione da
+      // capo, e la x del chip e' il posto dove uno se lo aspetta.
+      // [EN] One chip per project and not a single one counting them: with
+      // three projects on you want to be able to drop one without redoing
+      // the selection from scratch, and the chip's x is where one expects
+      // to find that.
+      if (def.kind === 'project') {
+        var chosen = selectedProjects();
+        // Spuntati tutti = spuntato nessuno: la pagina mostra le stesse
+        // cose, e una fila di chip che non toglie niente sarebbe un
+        // filtro annunciato e mai applicato -- oltre a coprire i grafici
+        // proprio quando non c'e' niente da restringere.
+        // [EN] All ticked = none ticked: the page shows the same things,
+        // and a row of chips taking nothing away would be a filter
+        // announced and never applied -- besides covering the charts
+        // exactly when there is nothing to narrow down.
+        if (allProjectsChosen(chosen)) { return; }
+        chosen.forEach(function (p) {
+          out.push({ kind: def.kind, label: def.label, tint: def.tint, value: p, text: ellipsize(p, 28) });
+        });
+        return;
+      }
+      var opt = select.options[select.selectedIndex];
+      out.push({
+        kind: def.kind,
+        label: def.label,
+        tint: def.tint,
+        text: ellipsize(opt ? opt.textContent : select.value, 28)
+      });
+    });
+    var query = document.getElementById('search-filter').value;
+    if (query) { out.push({ kind: 'search', label: 'Ricerca', tint: '--series-2', text: ellipsize(query, 28) }); }
+    return out;
+  }
+
+  function renderFilterChips() {
+    var chips = activeFilterChips();
+    var html = chips.map(function (chip) {
+      return '<span class="chip" style="--chip-tint: var(' + chip.tint + '); --chip-wash: var(' + chip.tint + '-fill)">' +
+        '<span class="chip-key">' + esc(chip.label) + '</span>' +
+        '<span class="chip-val" title="' + esc(chip.text) + '">' + esc(chip.text) + '</span>' +
+        '<button type="button" class="chip-x" data-clear-filter="' + esc(chip.kind) + '"' +
+        // Solo i progetti hanno un valore da spegnere uno per uno: gli altri
+        // filtri di chip ne hanno al massimo uno, e la x li spegne tutti.
+        // [EN] Only projects have a value to switch off one at a time: the
+        // other filters have at most one chip each, and the x turns it off.
+        (chip.value ? (' data-clear-value="' + esc(chip.value) + '"') : '') +
+        ' title="Togli questo filtro" aria-label="Togli il filtro ' + esc(chip.label) + '">&times;</button>' +
+        '</span>';
+    }).join('');
+    if (chips.length > 1) {
+      html += '<button type="button" class="chip chip-all" data-clear-filter="all">Azzera tutto</button>';
+    }
+    FILTER_CHIP_HOSTS.forEach(function (id) {
+      var host = document.getElementById(id);
+      if (!host) { return; }
+      host.innerHTML = html;
+      // "hidden" e non un contenitore vuoto: senza, il margine sotto la
+      // striscia resterebbe a separare due cose che si toccano.
+      // [EN] "hidden" and not an empty container: without it the margin
+      // under the strip would stay there separating two things that touch.
+      host.hidden = !chips.length;
+    });
+  }
+
+  function clearFilter(kind, value) {
+    if (kind === 'all') {
+      FILTER_CHIP_DEFS.forEach(function (def) { clearFilter(def.kind); });
+      clearFilter('search');
+      return;
+    }
+    if (kind === 'search') {
+      document.getElementById('search-filter').value = '';
+      document.getElementById('search-clear').hidden = true;
+      return;
+    }
+    if (kind === 'account') {
+      document.getElementById('account-filter').value = '';
+      updateDropdownTrigger(document.getElementById('account-filter-custom'), '');
+      return;
+    }
+    if (kind === 'project') {
+      // Con un valore si toglie QUEL progetto (la x di un chip); senza, si
+      // svuota la selezione (il comando "Azzera tutto"). In entrambi i casi
+      // la vista si allarga, e cio' che resta acceso negli altri filtri
+      // resta valido -- se lo era prima, lo e' anche in una selezione piu'
+      // larga.
+      // [EN] With a value THAT project is removed (a chip's x); without
+      // one, the selection is emptied (the "Azzera tutto" command). Either
+      // way the view widens, and whatever stays on in the other filters
+      // stays valid -- if it was before, it is in a wider selection too.
+      setProjectSelection(value
+        ? selectedProjects().filter(function (p) { return p !== value; })
+        : []);
+      return;
+    }
+    setChartFilter(kind, '');
+  }
+
+  function applyChartFilter(spec) {
+    if (!spec || !CHART_FILTER_SELECTS[spec.kind]) { return; }
+    // Prima si legge il valore corrente, poi si risolve: risolvere un giorno
+    // puo' ricostruire la tendina Periodo, e con essa azzerare proprio il
+    // valore che serve al confronto.
+    // [EN] The current value is read first and resolved after: resolving a
+    // [EN] day can rebuild the Periodo dropdown, and with it clear the very
+    // [EN] value the comparison needs.
+    // I progetti sono a scelta multipla: il clic su una barra ne accende o
+    // spegne UNO, senza toccare gli altri gia' accesi -- che e' quel che fa
+    // anche la casella corrispondente nella colonna dei filtri.
+    // [EN] Projects are multiple choice: a click on a bar switches ONE of
+    // them on or off, without touching the others already on -- which is
+    // what the matching box in the filters column does too.
+    if (spec.kind === 'project') {
+      var chosen = selectedProjects();
+      setProjectSelection(chosen.indexOf(spec.value) >= 0
+        ? chosen.filter(function (p) { return p !== spec.value; })
+        : chosen.concat([spec.value]));
+      applyFilters();
+      return;
+    }
+    var current = document.getElementById(CHART_FILTER_SELECTS[spec.kind]).value;
+    var value = resolveChartFilterValue(spec);
+    if (value === null || value === undefined) { return; }
+    setChartFilter(spec.kind, current === value ? '' : value);
+    applyFilters();
   }
 
   // Sposta la pillola colorata (.indicator) sotto il bottone attivo del
@@ -2418,7 +3357,13 @@ __SITE_HEADER__
 
     container.querySelectorAll('button').forEach(function (btn) {
       btn.addEventListener('click', function () {
-        if (btn.classList.contains('active')) return;
+        // Un segmento spento non risponde: il click non arriverebbe
+        // comunque su un <button disabled>, ma il controllo non deve
+        // dipendere da questo per non cambiare stato.
+        // [EN] A switched-off segment does not respond: the click would not
+        // reach a disabled <button> anyway, but the control must not depend
+        // on that to keep its state.
+        if (btn.disabled || btn.classList.contains('active')) return;
         container.querySelectorAll('button').forEach(function (b) { b.classList.remove('active'); });
         btn.classList.add('active');
         positionSegmentedIndicator(container);
@@ -2477,20 +3422,23 @@ __SITE_HEADER__
     trigger.appendChild(icon);
   }
 
-  function populateSelect(proj) {
+  function populateSelect(projs) {
     var container = document.getElementById('session-filter-custom');
     var select = document.getElementById('session-filter');
     if (!container || !select) return;
 
-    // Se e' selezionato un progetto, la tendina Sessione mostra solo le
-    // sessioni di quel progetto: e' una dipendenza a cascata, non un filtro
-    // AND indipendente come Account (che infatti non ristringe le altre
-    // tendine).
-    // [EN] With a project selected, the Sessione dropdown shows only that
-    // [EN] project's sessions: it is a cascading dependency, not an
-    // [EN] independent AND filter like Account (which indeed does not
-    // [EN] narrow the other dropdowns).
-    var visibleSessions = proj ? sessions.filter(function (s) { return s.project === proj; }) : sessions;
+    // Con dei progetti spuntati la tendina Sessione mostra solo le loro
+    // sessioni: e' una dipendenza a cascata, non un filtro AND indipendente
+    // -- e da qui passa anche lo spegnimento automatico della sessione
+    // scelta prima, che semplicemente non si ritrova piu' in elenco.
+    // [EN] With some projects ticked the Sessione dropdown shows only their
+    // sessions: a cascading dependency, not an independent AND filter --
+    // and this is also where the automatic switch-off of a
+    // previously-chosen session goes through, as it simply no longer finds
+    // itself on the list.
+    var visibleSessions = (projs && projs.length)
+      ? includedSessions.filter(function (s) { return projs.indexOf(s.project) >= 0; })
+      : includedSessions;
 
     var html = '<div class="dropdown-trigger" title="Tutte le sessioni"><span class="dropdown-trigger-label" data-short="Sessioni">Tutte le sessioni</span><span class="dropdown-icon">▼</span></div>';
     html += '<div class="dropdown-menu">';
@@ -2519,11 +3467,11 @@ __SITE_HEADER__
       // esc() sia sull'attributo che sul testo: i titoli sessione vengono da
       // custom-title/ai-title nel transcript, testo libero che puo'
       // contenere "&", "<" o virgolette e altrimenti romperebbe questo
-      // markup (stesso bug gia' evitato in populateProjectSelect).
+      // markup (stesso bug gia' evitato in populateProjectList).
       // [EN] esc() on both the attribute and the text: session titles come
       // [EN] from custom-title/ai-title in the transcript, free text that
       // [EN] can contain "&", "<" or quotes and would otherwise break this
-      // [EN] markup (same bug already avoided in populateProjectSelect).
+      // [EN] markup (same bug already avoided in populateProjectList).
       html += '<div class="dropdown-item" data-value="' + esc(s.id) + '">';
       html += '<div class="item-title" title="' + esc(s.title) + '">' + esc(s.title) + '</div>';
       html += '<div class="item-meta">' + s.count + ' interazioni • ' + timeStr + '</div>';
@@ -2558,14 +3506,6 @@ __SITE_HEADER__
         menu.classList.remove('active');
         applyFilters();
       });
-    });
-
-    // Chiudi menu al click fuori
-    // [EN] Close the menu on an outside click
-    document.addEventListener('click', function (e) {
-      if (!container.contains(e.target)) {
-        menu.classList.remove('active');
-      }
     });
   }
 
@@ -2634,9 +3574,6 @@ __SITE_HEADER__
         applyFilters();
       });
     });
-    document.addEventListener('click', function (e) {
-      if (!container.contains(e.target)) menu.classList.remove('active');
-    });
     // Allinea il trigger al valore iniziale (la prima voce, "tutti").
     // [EN] Aligns the trigger to the initial value (the first entry, "all").
     updateDropdownTrigger(container, select.value);
@@ -2698,10 +3635,10 @@ __SITE_HEADER__
      July" -- there was no way to narrow the view.
      They are the only periods with an UPPER bound: all the others run up
      to now, a past month does not. */
-  function addMonthPeriods() {
+  function addMonthPeriods(scopedTurns) {
     var seen = {};
     var keys = [];
-    turns.forEach(function (t) {
+    (scopedTurns || turns).forEach(function (t) {
       var k = monthKey(t.ts);
       if (!seen[k]) { seen[k] = true; keys.push(k); }
     });
@@ -2719,6 +3656,11 @@ __SITE_HEADER__
       var y = parseInt(k.slice(0, 4), 10);
       var m = parseInt(k.slice(5, 7), 10);
       PERIODS['m' + k] = {
+        // A quale famiglia appartiene la voce: decide l'ordine nella
+        // tendina (vedi periodKeysOrdered), non il filtraggio.
+        // [EN] Which family the entry belongs to: it decides the order in
+        // [EN] the dropdown (see periodKeysOrdered), not the filtering.
+        kind: 'month',
         label: fmtMonthLong(k),
         short: fmtMonthShort(k),
         // Mezzanotte locale del primo giorno del mese, fino a mezzanotte
@@ -2734,6 +3676,29 @@ __SITE_HEADER__
     });
   }
 
+  /* L'ordine della tendina Periodo: prima i periodi a calendario, poi i
+     mesi passati, in fondo i giorni. I giorni non ci sono mai tutti --
+     compaiono uno alla volta, cliccando una barra del grafico per giorno --
+     quindi stanno in coda invece di spezzare l'elenco a meta'; dal piu'
+     recente, come i mesi.
+     [EN] The Periodo dropdown's order: calendar periods first, then past
+     months, days at the bottom. The days are never all there -- they show up
+     one at a time, by clicking a bar of the per-day chart -- so they sit at
+     the end instead of breaking the list in half; most recent first, like
+     the months. */
+  function periodKeysOrdered() {
+    var base = [], months = [], days = [];
+    Object.keys(PERIODS).forEach(function (k) {
+      var kind = PERIODS[k].kind;
+      if (kind === 'month') { months.push(k); }
+      else if (kind === 'day') { days.push(k); }
+      else { base.push(k); }
+    });
+    months.sort().reverse();
+    days.sort().reverse();
+    return base.concat(months, days);
+  }
+
   function populatePeriodSelect() {
     // "Tutti i periodi" e non "Sempre": tutti e sei i filtri nominano cosi'
     // cio' che filtrano quando non e' stato scelto niente (Tutti i
@@ -2746,16 +3711,16 @@ __SITE_HEADER__
     // [EN] with the same scheme -- Periodi, Sessioni, Modelli, Progetti,
     // [EN] Account. "Sempre" was the only entry out of tune.
     var items = [{ value: '', label: 'Tutti i periodi', short: 'Periodi' }];
-    Object.keys(PERIODS).forEach(function (k) {
+    periodKeysOrdered().forEach(function (k) {
       items.push({ value: k, label: PERIODS[k].label, short: PERIODS[k].short });
     });
     buildSimpleDropdown('period-filter-custom', 'period-filter', items);
   }
 
-  function populateModelSelect() {
+  function populateModelSelect(scopedTurns) {
     var seen = {};
     var models = [];
-    turns.forEach(function (t) {
+    (scopedTurns || turns).forEach(function (t) {
       var m = t.model || DEFAULT_MODEL_KEY;
       if (!seen[m]) { seen[m] = true; models.push(m); }
     });
@@ -2769,14 +3734,20 @@ __SITE_HEADER__
     buildSimpleDropdown('model-filter-custom', 'model-filter', items);
   }
 
-  function populateAccountSelect() {
+  // "scopedTurns" sono i turni dei progetti spuntati (tutti, se non ce n'e'
+  // nessuno): l'elenco degli account e' quello che si incontra li' dentro,
+  // non quello di sempre.
+  // [EN] "scopedTurns" are the turns of the ticked projects (all of them,
+  // if none is ticked): the accounts list is what is met in there, not the
+  // all-time one.
+  function populateAccountSelect(scopedTurns) {
     var container = document.getElementById('account-filter-custom');
     var select = document.getElementById('account-filter');
     if (!container || !select) return;
 
     var seen = {};
     var accounts = [];
-    turns.forEach(function (t) {
+    (scopedTurns || turns).forEach(function (t) {
       if (t.acc && !seen[t.acc]) { seen[t.acc] = true; accounts.push(t.acc); }
     });
     accounts.sort();
@@ -2833,99 +3804,190 @@ __SITE_HEADER__
         applyFilters();
       });
     });
-
-    // Chiudi menu al click fuori
-    // [EN] Close the menu on an outside click
-    document.addEventListener('click', function (e) {
-      if (!container.contains(e.target)) {
-        menu.classList.remove('active');
-      }
-    });
   }
 
-  function populateProjectSelect() {
-    var container = document.getElementById('project-filter-custom');
+  /* La lista dei progetti, ordinata per token spesi: in cima quelli che
+     pesano, in fondo quelli di passaggio. In ordine alfabetico verrebbe
+     prima chi comincia per "a", che non e' un criterio ma un caso; e il
+     numero accanto a ciascuno e' proprio quello che decide l'ordine,
+     altrimenti la sequenza sembrerebbe casuale.
+     Gli esclusi scendono sotto tutti, dopo la loro intestazione: restano
+     leggibili e rimettibili -- sparire del tutto vorrebbe dire non poterli
+     piu' recuperare -- ma fuori dal gruppo di quelli fra cui si sceglie.
+     [EN] The projects list, ordered by tokens spent: at the top the ones
+     that weigh, at the bottom the passing ones. Alphabetically the one
+     starting with "a" would come first, which is not a criterion but an
+     accident; and the number next to each one is exactly what decides the
+     order, otherwise the sequence would look random.
+     The excluded ones drop below everyone, after their own heading: they
+     stay readable and restorable -- disappearing altogether would mean not
+     being able to get them back -- but out of the group one chooses
+     from. */
+  function populateProjectList() {
+    var list = document.getElementById('project-filter-list');
     var select = document.getElementById('project-filter');
-    if (!container || !select) return;
+    if (!list || !select) return;
+
+    // Il peso di un progetto si conta su TUTTO lo storico, esclusioni
+    // comprese: e' il numero che dice quanto pesa, e serve anche a decidere
+    // se escluderlo -- toglierlo dal conto lo azzererebbe proprio mentre lo
+    // si guarda per quello.
+    // [EN] A project's weight is counted over the WHOLE history, excluded
+    // ones included: it is the number saying how much it weighs, and it
+    // also serves to decide whether to exclude it -- taking it out of the
+    // count would zero it exactly while one looks at it for that.
+    var tokens = {};
+    turns.forEach(function (t) {
+      var p = projectOf(t);
+      tokens[p] = (tokens[p] || 0) + t.tot;
+    });
 
     var seen = {};
     var projects = [];
     sessions.forEach(function (s) {
-      if (s.project && !seen[s.project]) { seen[s.project] = true; projects.push(s.project); }
+      if (!s.project || seen[s.project]) return;
+      seen[s.project] = true;
+      projects.push(s.project);
     });
-    projects.sort();
+    projects.sort(function (a, b) {
+      // A pari peso (di solito zero) l'ordine alfabetico: e' l'unico che
+      // non cambia da un caricamento all'altro.
+      // [EN] At equal weight (usually zero) alphabetical order: it is the
+      // only one not changing from one load to the next.
+      return ((tokens[b] || 0) - (tokens[a] || 0)) || a.localeCompare(b);
+    });
+    var choosable = projects.filter(function (p) { return !excludedProjects[p]; });
+    var banned = projects.filter(function (p) { return !!excludedProjects[p]; });
 
-    var html = '<div class="dropdown-trigger" title="Tutti i progetti"><span class="dropdown-trigger-label" data-short="Progetti">Tutti i progetti</span><span class="dropdown-icon">▼</span></div>';
-    html += '<div class="dropdown-menu">';
-
-    // Opzione "Tutti i progetti"
-    // [EN] "Tutti i progetti" option
-    html += '<div class="dropdown-item all-sessions" data-value="" data-short="Progetti">';
-    html += '<div class="item-title">Tutti i progetti</div>';
-    html += '</div>';
-
-    // Popola il select nascosto
-    // [EN] Populate the hidden select
+    // Il <select multiple> nascosto tiene TUTTI i progetti, sempre: e' il
+    // deposito della selezione, non l'elenco di cio' che si vede.
+    // [EN] The hidden <select multiple> holds ALL the projects, always: it
+    // is the selection's store, not the list of what is on screen.
+    var previous = selectedProjects();
     select.options.length = 0;
-    var opt = document.createElement('option');
-    opt.value = '';
-    opt.textContent = 'Tutti i progetti';
-    select.appendChild(opt);
-
-    projects.forEach(function (proj) {
-      html += '<div class="dropdown-item" data-value="' + esc(proj) + '">';
-      html += '<div class="item-title" title="' + esc(proj) + '">' + esc(proj) + '</div>';
-      html += '</div>';
-
-      // Aggiungi anche al select nascosto
-      // [EN] Also add to the hidden select
+    projects.forEach(function (p) {
       var o = document.createElement('option');
-      o.value = proj;
-      o.textContent = proj;
+      o.value = p;
+      o.textContent = p;
       select.appendChild(o);
     });
 
-    html += '</div>';
-    container.innerHTML = html;
+    if (!projects.length) {
+      list.innerHTML = '<div class="check-empty">Nessun progetto</div>';
+      return;
+    }
 
-    // Toggle del menu
-    // [EN] Menu toggle
-    var trigger = container.querySelector('.dropdown-trigger');
-    var menu = container.querySelector('.dropdown-menu');
-    trigger.addEventListener('click', function () {
-      menu.classList.toggle('active');
-    });
+    function rowHtml(p, isBanned) {
+      return '<div class="check-row' + (isBanned ? ' check-excluded' : '') + '">' +
+        '<label class="check-main">' +
+        '<input type="checkbox" value="' + esc(p) + '"' + (isBanned ? ' disabled' : '') + '>' +
+        '<span class="check-name" title="' + esc(p) + '">' + esc(p) + '</span>' +
+        '<span class="check-count">' + esc(fmtCompactTokens(tokens[p] || 0)) + '</span>' +
+        '</label>' +
+        '<button type="button" class="check-ban" data-exclude="' + esc(p) + '" title="' +
+        (isBanned ? 'Rimetti questo progetto fra quelli visibili' : 'Escludi sempre questo progetto') +
+        '" aria-label="' + (isBanned ? 'Rimetti ' : 'Escludi sempre ') + esc(p) + '">' +
+        (isBanned ? '&#8634;' : '&#8856;') + '</button>' +
+        '</div>';
+    }
 
-    // Click su item
-    // [EN] Click on an item
-    container.querySelectorAll('.dropdown-item').forEach(function (item) {
-      item.addEventListener('click', function () {
-        var val = item.getAttribute('data-value');
-        document.getElementById('project-filter').value = val;
-        updateDropdownTrigger(container, val);
-        menu.classList.remove('active');
+    var html = '<button type="button" class="check-row check-all active">' +
+      '<span class="check-name">Tutti i progetti</span>' +
+      '<span class="check-count">' + choosable.length + '</span></button>';
+    choosable.forEach(function (p) { html += rowHtml(p, false); });
+    if (banned.length) {
+      html += '<button type="button" class="check-divider check-toggle" aria-expanded="false">' +
+        '<span class="check-toggle-icon">&#9656;</span>' +
+        '<span class="check-toggle-label">Esclusi sempre</span>' +
+        '<span class="check-toggle-count">' + banned.length + '</span></button>';
+      // Il doppio <div> non e' di troppo: quello fuori anima l'altezza
+      // (grid-template-rows), quello dentro e' cio' che viene ritagliato
+      // mentre si chiude.
+      // [EN] The double <div> is not one too many: the outer one animates
+      // the height (grid-template-rows), the inner one is what gets clipped
+      // while closing.
+      html += '<div class="check-excluded-group"><div>';
+      banned.forEach(function (p) { html += rowHtml(p, true); });
+      html += '</div></div>';
+    }
+    list.innerHTML = html;
+    // La sezione si rifa' ad ogni esclusione: se era aperta resta aperta,
+    // altrimenti riaprirla ad ogni clic sarebbe un lavoro di Sisifo.
+    // [EN] The section is rebuilt on every exclusion: if it was open it
+    // stays open, otherwise reopening it at every click would be a
+    // Sisyphean chore.
+    syncExcludedSection();
 
-        // Cambiare progetto puo' invalidare la sessione scelta prima (non
-        // appartiene piu' al progetto selezionato): azzera la selezione e
-        // ricostruisci la tendina Sessione ristretta al nuovo progetto.
-        // [EN] Changing project can invalidate the previously chosen
-        // [EN] session (it no longer belongs to the selected project):
-        // [EN] clear the selection and rebuild the Sessione dropdown
-        // [EN] narrowed to the new project.
-        document.getElementById('session-filter').value = '';
-        populateSelect(val);
+    // La selezione sopravvive alla ricostruzione (che avviene ad ogni
+    // esclusione): markSelectedOptions rimette le stesse voci, tolte quelle
+    // appena escluse, senza far ripartire il giro delle liste dipendenti --
+    // ci pensa chi ha chiamato.
+    // [EN] The selection survives the rebuild (which happens on every
+    // exclusion): markSelectedOptions puts the same entries back, minus the
+    // just-excluded ones, without setting off the dependent lists round --
+    // the caller takes care of that.
+    markSelectedOptions(previous);
+    syncProjectChecks();
 
-        applyFilters();
+    // Gli ascoltatori stanno sul contenitore, che non cambia mai, e si
+    // registrano una volta sola: le righe dentro invece si rifanno ad ogni
+    // esclusione, e agganciarne una per riga vorrebbe dire riattaccarli
+    // tutti ogni volta.
+    // [EN] The listeners sit on the container, which never changes, and
+    // register once: the rows inside instead are rebuilt on every
+    // exclusion, and hooking one per row would mean reattaching them all
+    // every time.
+    if (list.getAttribute('data-wired')) { return; }
+    list.setAttribute('data-wired', '1');
+    list.addEventListener('change', function (e) {
+      if (!e.target || !e.target.matches || !e.target.matches('input[type="checkbox"]')) { return; }
+      var chosen = [];
+      list.querySelectorAll('input[type="checkbox"]').forEach(function (b) {
+        if (b.checked) { chosen.push(b.value); }
       });
+      setProjectSelection(chosen);
+      applyFilters();
     });
-
-    // Chiudi menu al click fuori
-    // [EN] Close the menu on an outside click
-    document.addEventListener('click', function (e) {
-      if (!container.contains(e.target)) {
-        menu.classList.remove('active');
+    list.addEventListener('click', function (e) {
+      var ban = e.target && e.target.closest ? e.target.closest('.check-ban') : null;
+      if (ban) {
+        toggleProjectExclusion(ban.getAttribute('data-exclude'));
+        return;
+      }
+      if (e.target && e.target.closest && e.target.closest('.check-toggle')) {
+        excludedSectionOpen = !excludedSectionOpen;
+        syncExcludedSection();
+        return;
+      }
+      if (e.target && e.target.closest && e.target.closest('.check-all')) {
+        setProjectSelection([]);
+        applyFilters();
       }
     });
+  }
+
+  /* Escludere o rimettere un progetto. Tocca piu' cose di un filtro, ed e'
+     giusto cosi': i dati da cui parte tutta la pagina cambiano, quindi si
+     rifanno la lista (dove il progetto cambia posto e veste), le liste che
+     dipendono dai progetti (un progetto in meno vuol dire meno sessioni,
+     account, modelli e mesi -- o di piu', se lo si e' appena rimesso) e il
+     disegno.
+     [EN] Excluding or restoring a project. It touches more things than a
+     filter does, and rightly so: the data the whole page starts from
+     changes, so the list is rebuilt (where the project changes place and
+     looks), so are the lists depending on projects (one project less means
+     fewer sessions, accounts, models and months -- or more, if it has just
+     been put back) and the drawing. */
+  function toggleProjectExclusion(name) {
+    if (!name) { return; }
+    if (excludedProjects[name]) { delete excludedProjects[name]; }
+    else { excludedProjects[name] = true; }
+    saveExcludedProjects();
+    applyProjectExclusions();
+    populateProjectList();
+    refreshDependentFilters();
+    syncFilterChrome();
+    applyFilters();
   }
 
   function filterBySession(list, sid) {
@@ -2938,9 +4000,16 @@ __SITE_HEADER__
     return list.filter(function (r) { return r.acc === acc; });
   }
 
-  function filterByProject(list, proj) {
-    if (!proj) return list;
-    return list.filter(function (r) { return projectById[r.sid] === proj; });
+  // Nessun progetto spuntato = tutti, come per gli altri filtri;
+  // spuntarne piu' d'uno li mette in OR, che e' quel che si intende
+  // spuntando due caselle.
+  // [EN] No project ticked = all of them, as for the other filters; ticking
+  // more than one puts them in OR, which is what ticking two boxes means.
+  function filterByProject(list, projs) {
+    if (!projs || !projs.length) return list;
+    var wanted = {};
+    projs.forEach(function (p) { wanted[p] = true; });
+    return list.filter(function (r) { return !!wanted[projectById[r.sid]]; });
   }
 
   function filterByPeriod(list, periodKey) {
@@ -3037,16 +4106,16 @@ __SITE_HEADER__
       { label: 'Cache read', val: fmtInt(totCr), pct: fmtPct(totCr, totalAll) }
     ];
     var heroCards = [
-      ['Costo stimato', fmtUsd(costAll), 'Prezzo ufficiale per modello, vedi tariffario', costBreakdown],
-      ['Token nuovi (input+output)', fmtInt(freshAll), 'Componente che incide maggiormente sul costo totale', tokenBreakdown]
+      ['Costo stimato', fmtUsd(costAll), costBreakdown],
+      ['Token nuovi (input+output)', fmtInt(freshAll), tokenBreakdown]
     ];
     var miniCards = [
-      ['Costo oggi', fmtUsd(todayCost), null],
-      ['Token oggi', fmtInt(todayTotal), null],
-      ['Interazioni registrate', fmtInt(nTurns), null],
-      ['Sessioni', fmtInt(nSessions), null],
-      ['Media nuovi/interazione', fmtInt(avgFresh), null],
-      ['Token totali (con cache)', fmtInt(totalAll), 'Di cui ' + fmtInt(cacheAll) + ' da cache (write 1,25x a 5 min o 2x a 1 ora, read 0,1x di un token nuovo)']
+      ['Costo oggi', fmtUsd(todayCost)],
+      ['Token oggi', fmtInt(todayTotal)],
+      ['Interazioni registrate', fmtInt(nTurns)],
+      ['Sessioni', fmtInt(nSessions)],
+      ['Media nuovi/interazione', fmtInt(avgFresh)],
+      ['Token totali (con cache)', fmtInt(totalAll)]
     ];
 
     // baseDelay: ritardo di partenza dell'intero gruppo, in secondi. Serve
@@ -3058,10 +4127,9 @@ __SITE_HEADER__
     function renderCards(containerId, list, cardClass, baseDelay) {
       var el = document.getElementById(containerId);
       el.innerHTML = list.map(function (c, idx) {
-        var note = c[2] ? '<div class="stat-note">' + esc(c[2]) + '</div>' : '';
         var breakdown = '';
-        if (c[3] && c[3].length) {
-          breakdown = '<div class="stat-breakdown">' + c[3].map(function (b) {
+        if (c[2] && c[2].length) {
+          breakdown = '<div class="stat-breakdown">' + c[2].map(function (b) {
             return '<div><span class="stat-breakdown-label">' + esc(b.label) + '</span>' +
               '<span class="stat-breakdown-val">' + b.val + '</span>' +
               '<span class="stat-breakdown-pct">' + b.pct + '</span></div>';
@@ -3070,7 +4138,7 @@ __SITE_HEADER__
         var delay = (baseDelay + idx * 0.06).toFixed(2);
         return '<div class="' + cardClass + '" style="animation-delay:' + delay + 's">' +
           '<div class="stat-value">' + c[1] +
-          '</div><div class="stat-label">' + esc(c[0]) + '</div>' + note + breakdown + '</div>';
+          '</div><div class="stat-label">' + esc(c[0]) + '</div>' + breakdown + '</div>';
       }).join('');
     }
     renderCards('stat-hero', heroCards, 'stat-hero', 0);
@@ -3132,22 +4200,6 @@ __SITE_HEADER__
   function currentUnit() {
     var el = document.getElementById('unit-filter');
     return UNIT_MODES[el && el.value] || UNIT_MODES.usd;
-  }
-
-  // Gli euro mostrati in pagina sono una conversione a tasso FISSO, non una
-  // quotazione del giorno: dichiararlo sotto i grafici evita di farli
-  // passare per un dato di mercato. Il tasso e' stampato cosi' com'e'
-  // configurato in pricing.py (nessun arrotondamento: se un giorno diventa
-  // 0,8725 si legge 0,8725, non 0,87).
-  // [EN] The euros shown on the page are a FIXED-rate conversion, not a
-  // [EN] daily quote: declaring it under the charts keeps them from passing
-  // [EN] as market data. The rate is printed exactly as configured in
-  // [EN] pricing.py (no rounding: if one day it becomes 0,8725 it reads
-  // [EN] 0,8725, not 0,87).
-  function exchangeNote() {
-    return 'Valori in euro convertiti al cambio fisso 1 $ = ' +
-      String(USD_TO_EUR).replace('.', ',') + ' €' +
-      (USD_TO_EUR_DATE ? ' (aggiornato al ' + USD_TO_EUR_DATE + ')' : '') + '.';
   }
 
   // Un "secchio" del grafico a barre: l'aggregato di tutti i turni che
@@ -3378,9 +4430,11 @@ __SITE_HEADER__
           truncLabel: sorted.length > maxBars ? ('ultimi ' + maxBars + ' giorni') : null
         };
       },
-      hint: function () {
-        return 'Passa il mouse su una barra per il dettaglio di token e costo per categoria.';
-      },
+      // Il giorno non e' una voce fissa della tendina Periodo: la chiave
+      // nasce al clic (vedi ensureDayPeriod), qui viaggia il giorno.
+      // [EN] The day is not a fixed entry of the Periodo dropdown: the key is
+      // [EN] born on click (see ensureDayPeriod), here the day travels.
+      filterFor: function (k) { return { kind: 'period', day: k }; },
       tooltipHead: function (label) { return [segB(label), segBr()]; }
     },
     month: {
@@ -3404,9 +4458,7 @@ __SITE_HEADER__
           truncLabel: sorted.length > maxBars ? ('ultimi ' + maxBars + ' mesi') : null
         };
       },
-      hint: function () {
-        return 'Passa il mouse su una barra per il dettaglio di token e costo per categoria.';
-      },
+      filterFor: function (k) { return { kind: 'period', month: k }; },
       tooltipHead: function (label, g) {
         return [
           segB(label), segBr(),
@@ -3437,11 +4489,15 @@ __SITE_HEADER__
       // [EN] until they say nothing anymore.
       maxBars: function () { return BAR_MAX_PROJECTS; },
       arrange: makeRankArrange(function (n) { return 'primi ' + n + ' progetti'; }),
-      hint: function () {
-        return 'Una barra per progetto: il costo di tutte le sue sessioni nel periodo scelto. ' +
-          'Oltre i primi ' + BAR_MAX_PROJECTS + ' l’ultima barra è la media di quelli rimasti, non la loro somma ' +
-          '(sommati coprirebbero tutte le altre barre); il totale della coda è nel suo tooltip. ' +
-          'Con un progetto già scelto nel filtro in alto resta una barra sola.';
+      // La coda e' la media di piu' progetti e "(senza progetto)" non e' un
+      // progetto: nessuno dei due ha una voce nella tendina Progetto, e una
+      // barra che non sa dove portare non si clicca.
+      // [EN] The tail is the average of several projects and "(senza
+      // [EN] progetto)" is not a project: neither has an entry in the
+      // [EN] Progetto dropdown, and a bar with nowhere to lead is not
+      // [EN] clickable.
+      filterFor: function (k, g) {
+        return (g.altri || k === SENZA_PROGETTO) ? null : { kind: 'project', value: k };
       },
       tooltipHead: function (label, g, key) {
         if (g.altri) { return altriTooltipHead(g, 'altri progetti'); }
@@ -3486,12 +4542,10 @@ __SITE_HEADER__
       legendOtherLabel: function (n) { return 'altri ' + n + ' progetti'; },
       maxBars: function () { return BAR_MAX_SESSIONS; },
       arrange: makeRankArrange(function (n) { return 'prime ' + n + ' sessioni'; }),
-      hint: function () {
-        return 'Una barra per sessione, colorata in base al progetto: il costo di tutte le sue interazioni nel periodo scelto. ' +
-          'Oltre le prime ' + BAR_MAX_SESSIONS + ' l’ultima barra è la media di quelle rimaste, non la loro somma ' +
-          '(le sessioni sono tante: sommate coprirebbero tutte le altre barre); il totale della coda è nel suo tooltip. ' +
-          'Con una sessione già scelta nel filtro in alto resta una barra sola.';
-      },
+      // Come per i progetti: la coda e' la media di tante sessioni, non una.
+      // [EN] As for projects: the tail is the average of many sessions, not
+      // [EN] one of them.
+      filterFor: function (k, g) { return g.altri ? null : { kind: 'session', value: k }; },
       tooltipHead: function (label, g, key) {
         if (g.altri) { return altriTooltipHead(g, 'altre sessioni'); }
         // Il progetto sotto il titolo: due sessioni possono chiamarsi allo
@@ -3522,15 +4576,61 @@ __SITE_HEADER__
   var BAR_CHARTS = [
     {
       selectId: 'bar-group-filter', customId: 'bar-group-filter-custom',
-      titleId: 'bar-chart-title', hintId: 'bar-chart-hint', chartId: 'bar-chart',
+      titleId: 'bar-chart-title', chartId: 'bar-chart',
       stateKey: 'barGroup', fallback: 'day'
     },
     {
       selectId: 'bar2-group-filter', customId: 'bar2-group-filter-custom',
-      titleId: 'bar2-chart-title', hintId: 'bar2-chart-hint', chartId: 'bar2-chart',
+      titleId: 'bar2-chart-title', chartId: 'bar2-chart',
       stateKey: 'barGroup2', fallback: 'session'
     }
   ];
+
+  /* Un raggruppamento che darebbe UNA barra sola non e' un grafico: e' il
+     totale gia' scritto nelle schede in cima, disegnato piu' in grande.
+     Succede nel secondo grafico quando il filtro tiene un progetto solo
+     ("per progetto") o una sessione sola ("per sessione").
+     Il segmento resta dov'e' e si spegne, invece di sparire: un controllo
+     che perde e riacquista voci ad ogni cambio di filtro cambia larghezza
+     sotto il dito, e chi ha imparato dove sta "Per progetto" non lo
+     ritrova piu'. Spento dice la stessa cosa -- di li' non si passa --
+     restando al suo posto.
+     [EN] A grouping that would give ONE single bar is not a chart: it is
+     the total already written in the cards at the top, drawn larger. It
+     happens in the second chart when the filter holds a single project
+     ("per progetto") or a single session ("per sessione").
+     The segment stays where it is and switches off, instead of
+     disappearing: a control losing and regaining entries at every filter
+     change shifts width under one's finger, and whoever learned where
+     "Per progetto" sits no longer finds it. Switched off says the same
+     thing -- there is no way through -- while staying put. */
+  function syncBar2Groups() {
+    var container = document.getElementById('bar2-group-filter-custom');
+    var select = document.getElementById('bar2-group-filter');
+    if (!container || !select) { return; }
+    var off = {
+      project: selectedProjects().length === 1,
+      session: !!document.getElementById('session-filter').value
+    };
+    var stillOn = '';
+    container.querySelectorAll('button').forEach(function (btn) {
+      var v = btn.getAttribute('data-value');
+      btn.disabled = !!off[v];
+      if (!off[v] && !stillOn) { stillOn = v; }
+    });
+    // Se ad essere spento e' proprio il raggruppamento attivo, il grafico
+    // passa all'altro. Se sono spenti entrambi (un progetto solo E una
+    // sessione sola) non c'e' dove andare: resta dov'e', con la sua unica
+    // barra, che e' comunque meglio di un pannello vuoto.
+    // [EN] If the one switched off is the active grouping, the chart moves
+    // to the other. If both are off (a single project AND a single
+    // session) there is nowhere to go: it stays where it is, with its
+    // single bar, which is still better than an empty panel.
+    if (off[select.value] && stillOn) {
+      select.value = stillOn;
+      setSegmentedControl('bar2-group-filter-custom', stillOn);
+    }
+  }
 
   function currentBarGroup(cfg) {
     var el = document.getElementById(cfg.selectId);
@@ -3636,20 +4736,16 @@ __SITE_HEADER__
   }
 
   function renderBarChart(filteredTurns, cfg) {
-    // Unita', raggruppamento, titolo e hint si aggiornano PRIMA di ogni
-    // possibile uscita anticipata (il ramo "nessun dato"): altrimenti,
-    // cambiando unita' o raggruppamento su una dashboard vuota, il titolo
-    // resterebbe quello di prima.
-    // [EN] Unit, grouping, title and hint update BEFORE any possible early
-    // [EN] exit (the "no data" branch): otherwise, changing unit or
-    // [EN] grouping on an empty dashboard, the title would stay stale.
+    // Unita', raggruppamento e titolo si aggiornano PRIMA di ogni possibile
+    // uscita anticipata (il ramo "nessun dato"): altrimenti, cambiando
+    // unita' o raggruppamento su una dashboard vuota, il titolo resterebbe
+    // quello di prima.
+    // [EN] Unit, grouping and title update BEFORE any possible early exit
+    // [EN] (the "no data" branch): otherwise, changing unit or grouping on
+    // [EN] an empty dashboard, the title would stay stale.
     var unit = currentUnit();
     var group = currentBarGroup(cfg);
     var titleEl = document.getElementById(cfg.titleId);
-    var barHintEl = document.getElementById(cfg.hintId);
-    if (barHintEl) {
-      barHintEl.textContent = group.hint() + ' ' + exchangeNote();
-    }
 
     var groups = {};
     filteredTurns.forEach(function (t) {
@@ -3735,9 +4831,22 @@ __SITE_HEADER__
       // [EN] come from the palette at run time, one class per hue would
       // [EN] mean eight hand-written CSS rules duplicating SESSION_COLORS.
       var fillStyle = colorPlan ? ('; fill: ' + colorPlan.fills[idx]) : '';
+      // Il filtro che la barra imposta se cliccata, sulla barra stessa:
+      // l'ascoltatore e' uno solo e delegato (le barre si rifanno ad ogni
+      // ridisegno), quindi al clic deve poter leggere dal bersaglio su cosa
+      // filtrare. Le barre senza (la coda) semplicemente non ce l'hanno, e
+      // il CSS ci si appoggia per non promettere un clic che non c'e'.
+      // [EN] The filter the bar sets when clicked, on the bar itself: the
+      // [EN] listener is a single delegated one (bars are rebuilt on every
+      // [EN] redraw), so on click it must be able to read from the target
+      // [EN] what to filter on. Bars without one (the tail) simply do not
+      // [EN] carry it, and the CSS leans on that not to promise a click that
+      // [EN] is not there.
+      var filterSpec = group.filterFor ? group.filterFor(k, g) : null;
+      var filterAttr = filterSpec ? (' data-chart-filter="' + tooltipAttr(filterSpec) + '"') : '';
       svg += '<rect x="' + x.toFixed(1) + '" y="' + y.toFixed(1) + '" width="' + barW.toFixed(1) +
         '" height="' + barH.toFixed(1) + '" rx="4" class="bar" style="animation-delay: ' + (idx * 0.04).toFixed(2) +
-        's' + fillStyle + '" data-tooltip="' + tooltipAttr(tooltipData) + '"></rect>';
+        's' + fillStyle + '" data-tooltip="' + tooltipAttr(tooltipData) + '"' + filterAttr + '></rect>';
       var cx = x + barW / 2;
       if (group.rotateLabels) {
         // rotate(-30) attorno al punto d'ancoraggio manda il testo in giu'
@@ -4329,6 +5438,29 @@ __SITE_HEADER__
   // [EN] single total line no matter how many sessions/models/projects
   // [EN] make up the data -- no special case in the rendering, it is a
   // [EN] direct consequence of how the keyFn is defined.
+  /* Dall'etichetta leggibile del modello alla chiave con cui filtra la
+     pagina: il grafico a linea raggruppa per etichetta (piu' chiavi grezze
+     possono valere lo stesso modello, vedi la keyFn), mentre il filtro
+     Modello seleziona una chiave sola. Quando l'etichetta ne copre piu'
+     d'una non esiste la risposta giusta, e si preferisce non offrire il
+     filtro piuttosto che nasconderne meta' della linea appena cliccata.
+     [EN] From the model's readable label to the key the page filters by: the
+     line chart groups by label (several raw keys can mean the same model,
+     see its keyFn), while the Modello filter selects a single key. When the
+     label covers more than one there is no right answer, and not offering
+     the filter beats hiding half of the very line just clicked. */
+  function modelKeyForLabel(label) {
+    var seen = {};
+    var keys = [];
+    includedTurns.forEach(function (t) {
+      var k = t.model || DEFAULT_MODEL_KEY;
+      if (seen[k]) { return; }
+      seen[k] = true;
+      if (modelShortLabel(k) === label) { keys.push(k); }
+    });
+    return keys.length === 1 ? keys[0] : null;
+  }
+
   var CHART_MODES = {
     session: {
       keyFn: function (t) { return t.sid; },
@@ -4344,6 +5476,7 @@ __SITE_HEADER__
       // [EN] to itself; the full name stays in the native "title".
       legendLabel: function (gid) { return ellipsize(sessionLabel(gid), 28); },
       legendOtherLabel: function (n) { return 'altre ' + n + ' sessioni'; },
+      filterFor: function (gid) { return { kind: 'session', value: gid, label: 'questa sessione' }; },
       // Solo qui: su finestre larghe le sessioni non hanno abbastanza
       // intervalli per essere linee (vedi seriesAreDegenerate). Modelli e
       // progetti sono pochi valori distinti che coprono tutta la finestra, e
@@ -4374,7 +5507,11 @@ __SITE_HEADER__
       titleFn: function (b) { return b.groupId; },
       scopeLabel: 'Totale per questo modello',
       legendLabel: function (gid) { return ellipsize(gid, 28); },
-      legendOtherLabel: function (n) { return 'altri ' + n + ' modelli'; }
+      legendOtherLabel: function (n) { return 'altri ' + n + ' modelli'; },
+      filterFor: function (gid) {
+        var key = modelKeyForLabel(gid);
+        return key ? { kind: 'model', value: key, label: 'questo modello' } : null;
+      }
     },
     project: {
       // Il progetto sta un gradino sopra la sessione: piu' sessioni dello
@@ -4389,28 +5526,16 @@ __SITE_HEADER__
       titleFn: function (b) { return b.groupId; },
       scopeLabel: 'Totale dell’intero progetto',
       legendLabel: function (gid) { return ellipsize(gid, 28); },
-      legendOtherLabel: function (n) { return 'altri ' + n + ' progetti'; }
+      legendOtherLabel: function (n) { return 'altri ' + n + ' progetti'; },
+      // "(senza progetto)" non e' un progetto e non ha una voce nella
+      // tendina: come per il grafico a barre, li' non si filtra.
+      // [EN] "(senza progetto)" is not a project and has no entry in the
+      // [EN] dropdown: as for the bar chart, there is nothing to filter on.
+      filterFor: function (gid) {
+        return gid === SENZA_PROGETTO ? null : { kind: 'project', value: gid, label: 'questo progetto' };
+      }
     }
   };
-
-  var LINE_CHART_HINTS = {
-    session: 'Campionato in ~24 intervalli di tempo uguali (es. 15 min a testa su 6 ore, 1h su 24 ore); una linea per ciascuna delle sessioni più costose del periodo, tutte le altre sommate in un’unica linea grigia; passa il mouse su un punto per il dettaglio.',
-    aggregate: 'Campionato in ~24 intervalli di tempo uguali (es. 15 min a testa su 6 ore, 1h su 24 ore); tutte le sessioni sommate in un’unica linea, passa il mouse su un punto per il dettaglio.',
-    model: 'Campionato in ~24 intervalli di tempo uguali (es. 15 min a testa su 6 ore, 1h su 24 ore); una linea per modello, passa il mouse su un punto per il dettaglio.',
-    project: 'Campionato in ~24 intervalli di tempo uguali (es. 15 min a testa su 6 ore, 1h su 24 ore); una linea per progetto, passa il mouse su un punto per il dettaglio.'
-  };
-
-  // Su finestre larghe il disegno non e' piu' fatto di linee, e l'hint non
-  // puo' continuare a parlare di intervalli campionati: qui un marcatore e'
-  // una sessione intera, non una fetta di tempo.
-  // [EN] On wide windows the drawing is no longer made of lines, and the
-  // [EN] hint cannot keep talking about sampled intervals: here one marker
-  // [EN] is a whole session, not a slice of time.
-  var LINE_SCATTER_HINT = 'Finestra troppo ampia perché una sessione occupi più di un intervallo: ogni sessione è un marcatore, piantato sul suo primo turno e alto quanto è costata. Il colore dice il progetto; hanno un’asta le sessioni più costose del periodo.';
-
-  var LEGEND_HINT = 'Clicca su una voce della legenda per isolarla nel disegno (le altre sbiadiscono e i loro tooltip tacciono, così nelle zone fitte si punta senza sbagliare).';
-
-  var LOG_SCALE_HINT = 'Asse verticale logaritmico: distanze uguali sono rapporti uguali; i valori a zero stanno sulla linea di base.';
 
   // Somma di TUTTI i turni di un gruppo (una sessione, un modello, o
   // l'insieme completo), presi dai turni gia' filtrati per
@@ -4491,7 +5616,7 @@ __SITE_HEADER__
     return acc;
   }
 
-  function groupTooltipData(totals, title, scopeLabel, windowCost, windowCount, windowLabel) {
+  function groupTooltipData(totals, title, scopeLabel, windowCost, windowCount, windowLabel, filterSpec) {
     // La nota sulla finestra compare solo se il totale del gruppo e'
     // davvero piu' ampio di quello disegnato (tolleranza di mezzo
     // centesimo: sotto quella soglia i due numeri si stampano identici e la
@@ -4520,24 +5645,16 @@ __SITE_HEADER__
         { label: 'Cache write', val: fmtInt(totals.cw), cost: fmtUsd(totals.costCw) },
         { label: 'Cache read', val: fmtInt(totals.cr), cost: fmtUsd(totals.costCr) }
       ],
-      windowNote: windowNote
+      windowNote: windowNote,
+      // Su cosa filtrare la pagina se si sceglie l'azione in fondo al
+      // riquadro; null per i gruppi che non corrispondono a un filtro
+      // (l'aggregato, la coda).
+      // [EN] What to filter the page on if the action at the bottom of the
+      // [EN] box is chosen; null for groups matching no filter (the
+      // [EN] aggregate, the tail).
+      filter: filterSpec || null
     };
   }
-
-  // Il nome vecchio (AREA_CLICK_HINTS) parlava di un'area che con piu' serie
-  // non esiste piu': il riempimento resta solo dove la serie e' una sola.
-  // Solo l'aggregato continua quindi a nominarla.
-  // [EN] The old name (AREA_CLICK_HINTS) spoke of an area that with several
-  // [EN] series no longer exists: the fill only survives where the series is
-  // [EN] a single one. So only the aggregate keeps naming it.
-  var GROUP_CLICK_HINTS = {
-    session: 'Clicca sulla linea (o su un punto) di una sessione per il costo totale dell’intera sessione.',
-    aggregate: 'Clicca sull’area colorata (o su un punto) per il costo totale complessivo.',
-    model: 'Clicca sulla linea (o su un punto) di un modello per il suo costo totale.',
-    project: 'Clicca sulla linea (o su un punto) di un progetto per il costo totale dell’intero progetto.'
-  };
-
-  var SCATTER_CLICK_HINT = 'Clicca su un marcatore per il costo totale della sessione.';
 
   // L'asse verticale come oggetto invece che come due formule sparse: chi
   // disegna chiede dove sta un valore (y) e quali tacche stampare (ticks),
@@ -4618,29 +5735,6 @@ __SITE_HEADER__
     var titleEl = document.getElementById('line-chart-title');
     if (titleEl) { titleEl.textContent = unit.lineTitle; }
     var logScale = currentScale() === 'log';
-    var hintEl = document.getElementById('line-chart-hint');
-    // L'hint si scrive due volte di proposito: la prima qui, prima di
-    // qualunque uscita anticipata (il ramo "dati insufficienti"), o
-    // cambiando modalita' su una finestra vuota resterebbe quello di prima;
-    // la seconda piu' sotto, quando si sa davvero cosa si sta per disegnare
-    // -- se le serie siano linee o marcatori, se ci sia una coda, se l'asse
-    // sia logaritmico -- cose che dipendono dai dati e non solo dai
-    // controlli.
-    // [EN] The hint is written twice on purpose: the first time here, before
-    // [EN] any early exit (the "not enough data" branch), or switching mode
-    // [EN] on an empty window would leave the previous one; the second
-    // [EN] further down, when it is actually known what is about to be drawn
-    // [EN] -- whether the series are lines or markers, whether there is a
-    // [EN] tail, whether the axis is logarithmic -- things depending on the
-    // [EN] data and not only on the controls.
-    function writeHint(parts) {
-      if (!hintEl) { return; }
-      hintEl.textContent = parts.concat([exchangeNote()]).filter(Boolean).join(' ');
-    }
-    writeHint([
-      LINE_CHART_HINTS[modeKey] || LINE_CHART_HINTS.session,
-      GROUP_CLICK_HINTS[modeKey] || GROUP_CLICK_HINTS.session
-    ]);
     var nowMs = Date.now();
     var windowMs = windowHours * 3600 * 1000;
     var bucketMs = windowMs / LINE_CHART_BUCKETS;
@@ -4868,13 +5962,6 @@ __SITE_HEADER__
       return m.legendOtherLabel ? m.legendOtherLabel(nTail) : ('altri ' + nTail);
     }
 
-    writeHint([
-      scatter ? LINE_SCATTER_HINT : (LINE_CHART_HINTS[modeKey] || LINE_CHART_HINTS.session),
-      scatter ? SCATTER_CLICK_HINT : (GROUP_CLICK_HINTS[modeKey] || GROUP_CLICK_HINTS.session),
-      multiSeries ? LEGEND_HINT : '',
-      logScale ? LOG_SCALE_HINT : ''
-    ]);
-
     var svg = '<svg viewBox="0 0 ' + width + ' ' + height + '" class="chart" role="img" aria-label="' + esc(unit.aria) + ' nel tempo">';
     // Le tacche le decide l'asse: quattro equispaziate in lineare, una per
     // decade in logaritmica. Come nel grafico a barre, niente Math.round,
@@ -4935,7 +6022,12 @@ __SITE_HEADER__
       var scope = isTail ? 'Totale nel periodo mostrato' : mode.scopeLabel;
       groupTooltips.push(groupTooltipData(totals, title, scope,
         isTail ? totals.cost : windowCost,
-        isTail ? totals.count : windowCount, rangeStep.label));
+        isTail ? totals.count : windowCount, rangeStep.label,
+        // La coda non e' un gruppo solo: "le altre N sessioni" non e' una
+        // voce di nessuna tendina, quindi niente filtro da offrire.
+        // [EN] The tail is not a single group: "the other N sessions" is no
+        // [EN] dropdown entry, so there is no filter to offer.
+        (!isTail && mode.filterFor) ? mode.filterFor(gid) : null));
       return groupTooltips.length - 1;
     }
 
@@ -5512,7 +6604,7 @@ __SITE_HEADER__
     // il ridisegno rimuove gli elementi sotto al mouse: evita un tooltip "fantasma"
     // [EN] the redraw removes the elements under the mouse: avoids a "ghost" tooltip
     hideTooltip();
-    var ft = filterByProject(filterByAccount(filterBySession(turns, c.sid), c.acc), c.proj);
+    var ft = filterByProject(filterByAccount(filterBySession(includedTurns, c.sid), c.acc), c.proj);
     ft = filterBySearch(filterByModel(filterByPeriod(ft, c.period), c.model), c.search);
     // operations.csv non traccia l'account. Ne' modello ne' ricerca vengono
     // applicati qui: le operazioni sono il DETTAGLIO di un turno gia'
@@ -5522,20 +6614,41 @@ __SITE_HEADER__
     // [EN] search are applied here: operations are the DETAIL of an
     // [EN] already-selected turn, and filtering them too would hide part
     // [EN] of them under a row that stays visible.
-    var fo = filterByPeriod(filterByProject(filterBySession(ops, c.sid), c.proj), c.period);
+    var fo = filterByPeriod(filterByProject(filterBySession(includedOps, c.sid), c.proj), c.period);
     currentFilteredTurns = ft;
     currentFilteredOps = fo;
+    renderFilterChips();
     renderStatCards(ft);
+    // Prima di disegnare, non dopo: il raggruppamento puo' cambiare qui, e
+    // il grafico deve nascere gia' su quello nuovo invece di essere
+    // ridisegnato subito dopo.
+    // [EN] Before drawing, not after: the grouping can change here, and the
+    // chart must be born already on the new one instead of being redrawn
+    // right afterwards.
+    syncBar2Groups();
     BAR_CHARTS.forEach(function (cfg) { renderBarChart(ft, cfg); });
     renderLineChart(ft);
     renderTurnsTable(ft, fo);
   }
 
-  populateAccountSelect();
-  populateProjectSelect();
-  addMonthPeriods();
-  populatePeriodSelect();
-  populateModelSelect();
+  // Prima di tutto il resto: gli esclusi tolgono i loro turni dai dati da
+  // cui la pagina parte, e ogni elenco costruito qui sotto ne discende.
+  // [EN] Before everything else: the excluded ones take their turns out of
+  // the data the page starts from, and every list built below descends
+  // from it.
+  applyProjectExclusions();
+  populateProjectList();
+  // Sessione, Account, Modello e i mesi del Periodo dipendono dai progetti
+  // spuntati: la stessa funzione che li rifa' ad ogni cambio di selezione li
+  // costruisce anche adesso, con la selezione vuota -- cosi' c'e' un solo
+  // posto che sa come sono fatte quelle liste, invece di una costruzione
+  // all'avvio e una ricostruzione altrove che col tempo divergono.
+  // [EN] Sessione, Account, Modello and the Periodo months depend on the
+  // ticked projects: the same function rebuilding them on every selection
+  // change also builds them now, with an empty selection -- so a single
+  // place knows how those lists are made, instead of a build at startup and
+  // a rebuild elsewhere that drift apart over time.
+  refreshDependentFilters();
   populateRangeSlider();
   // Il periodo tocca SOLO il grafico a linea: ridisegnare tutta la pagina ad
   // ogni scatto del cursore rifiltrerebbe l'intero storico per aggiornare
@@ -5593,6 +6706,75 @@ __SITE_HEADER__
     toggleSeriesIsolation(item);
   });
 
+  /* Clic su una barra: il filtro che quella barra rappresenta. Un solo
+     ascoltatore delegato sul body invece di uno per barra -- le barre si
+     rifanno ad ogni ridisegno, e riattaccarne decine ogni volta e' lavoro
+     che cosi' non si fa.
+     [EN] Click on a bar: the filter that bar stands for. A single delegated
+     listener on the body instead of one per bar -- the bars are rebuilt on
+     every redraw, and reattaching dozens of them every time is work that
+     this way does not happen. */
+  document.body.addEventListener('click', function (e) {
+    var el = e.target && e.target.closest ? e.target.closest('[data-chart-filter]') : null;
+    if (!el) { return; }
+    var spec = null;
+    try { spec = JSON.parse(el.getAttribute('data-chart-filter')); } catch (err) { return; }
+    hideTooltip();
+    applyChartFilter(spec);
+  });
+
+  /* La x di un chip (e "Azzera tutto"): spegne il filtro e ridisegna. Come
+     per le barre l'ascoltatore e' uno solo e delegato, perche' i chip si
+     rifanno ad ogni ridisegno.
+     [EN] A chip's x (and "Azzera tutto"): turns the filter off and redraws.
+     As for the bars the listener is a single delegated one, because the
+     chips are rebuilt on every redraw. */
+  document.body.addEventListener('click', function (e) {
+    var btn = e.target && e.target.closest ? e.target.closest('[data-clear-filter]') : null;
+    if (!btn) { return; }
+    hideTooltip();
+    clearFilter(btn.getAttribute('data-clear-filter'), btn.getAttribute('data-clear-value'));
+    applyFilters();
+  });
+
+  /* Doppio clic su una serie del grafico a linea: stessa cosa. Il clic
+     singolo li' e' gia' preso -- apre il totale del gruppo -- e portarglielo
+     via toglierebbe l'unico modo di vedere quel totale; l'azione in fondo a
+     quel riquadro fa comunque la stessa cosa, per chi il doppio clic non lo
+     prova.
+     [EN] Double click on a line chart series: the same thing. The single
+     click there is already taken -- it opens the group total -- and taking
+     it away would remove the only way to see that total; the action at the
+     bottom of that box does the same thing anyway, for whoever does not try
+     a double click. */
+  document.getElementById('line-chart').addEventListener('dblclick', function (e) {
+    var el = e.target && e.target.closest ? e.target.closest('[data-group-tooltip]') : null;
+    if (!el) { return; }
+    var data = groupTooltips[parseInt(el.getAttribute('data-group-tooltip'), 10)];
+    if (!data || !data.filter) { return; }
+    // Un doppio clic su un disegno selezionerebbe il testo li' intorno.
+    // [EN] A double click on a drawing would select the text around it.
+    e.preventDefault();
+    hideTooltip();
+    applyChartFilter(data.filter);
+  });
+
+  /* L'ultima riga del tooltip fissato ("Filtra su questa sessione"): il
+     riquadro lascia passare il puntatore ovunque tranne che sulle sue isole
+     cliccabili (vedi il CSS di .tt-action), quindi l'ascoltatore sta sul
+     tooltip e non sul body.
+     [EN] The last row of the pinned tooltip ("Filtra su questa sessione"):
+     the box lets the pointer through everywhere except on its clickable
+     islands (see the .tt-action CSS), so the listener sits on the tooltip
+     and not on the body. */
+  tooltipEl.addEventListener('click', function (e) {
+    var action = e.target && e.target.closest ? e.target.closest('.tt-action') : null;
+    if (!action || !action.filterSpec) { return; }
+    var spec = action.filterSpec;
+    hideTooltip();
+    applyChartFilter(spec);
+  });
+
   document.getElementById('range-filter').addEventListener('input', function () {
     hideTooltip();
     updateRangeValueLabel();
@@ -5636,18 +6818,37 @@ __SITE_HEADER__
   // [EN] already-populated <select> elements.
   var restoredFilters = null;
   try { restoredFilters = JSON.parse(sessionStorage.getItem('dashboardFilters') || 'null'); } catch (e) {}
-  var initialSid = '', initialAcc = '', initialProj = '';
   if (restoredFilters) {
-    if (restoredFilters.acc) {
-      document.getElementById('account-filter').value = restoredFilters.acc;
-      updateDropdownTrigger(document.getElementById('account-filter-custom'), restoredFilters.acc);
-      initialAcc = restoredFilters.acc;
-    }
-    if (restoredFilters.proj) {
-      document.getElementById('project-filter').value = restoredFilters.proj;
-      updateDropdownTrigger(document.getElementById('project-filter-custom'), restoredFilters.proj);
-      initialProj = restoredFilters.proj;
-    }
+    /* I progetti per primi: sono loro a decidere quali voci esistono nelle
+       altre tendine (vedi refreshDependentFilters), quindi rimetterli dopo
+       vorrebbe dire riporre gli altri filtri dentro liste che stanno per
+       essere rifatte da capo.
+       Il valore salvato puo' essere un elenco oppure -- da una pagina
+       lasciata aperta prima che questo filtro diventasse multiplo -- una
+       stringa sola. E un progetto salvato puo' non esistere piu' (log
+       ripuliti, cartella rinominata): si tiene solo quel che c'e' ancora,
+       altrimenti la pagina si riaprirebbe filtrata su un nulla.
+       [EN] Projects first: they decide which entries the other dropdowns
+       hold (see refreshDependentFilters), so restoring them later would
+       mean putting the other filters back inside lists that are about to be
+       rebuilt from scratch.
+       The saved value can be a list or -- from a page left open before this
+       filter became multiple -- a single string. And a saved project may no
+       longer exist (logs cleaned up, folder renamed): only what is still
+       there is kept, otherwise the page would reopen filtered on nothing. */
+    var savedProjects = Array.isArray(restoredFilters.proj)
+      ? restoredFilters.proj
+      : (restoredFilters.proj ? [restoredFilters.proj] : []);
+    var knownProjects = {};
+    sessions.forEach(function (s) {
+      // Un progetto escluso non torna spuntato da un ripristino: l'esclusione
+      // vale "sempre", e i filtri salvati sono di ieri.
+      // [EN] An excluded project does not come back ticked from a restore:
+      // the exclusion holds "always", and the saved filters are yesterday's.
+      if (s.project && !excludedProjects[s.project]) { knownProjects[s.project] = true; }
+    });
+    setProjectSelection(savedProjects.filter(function (p) { return knownProjects[p]; }));
+    restoreSelectValue('account-filter', restoredFilters.acc);
     // rangeIdx e' una POSIZIONE sulla scala, non un numero di ore: la
     // scala dipende da quanto e' lungo lo storico, che tra un caricamento e
     // l'altro puo' essere cresciuto. Si controlla che l'indice esista
@@ -5686,14 +6887,9 @@ __SITE_HEADER__
       document.getElementById('unit-filter').value = restoredFilters.unit;
       setSegmentedControl('unit-filter-custom', restoredFilters.unit);
     }
-    if (restoredFilters.period) {
-      document.getElementById('period-filter').value = restoredFilters.period;
-      updateDropdownTrigger(document.getElementById('period-filter-custom'), restoredFilters.period);
-    }
-    if (restoredFilters.model) {
-      document.getElementById('model-filter').value = restoredFilters.model;
-      updateDropdownTrigger(document.getElementById('model-filter-custom'), restoredFilters.model);
-    }
+    if (restoredFilters.period) { ensureSavedPeriod(restoredFilters.period); }
+    restoreSelectValue('period-filter', restoredFilters.period);
+    restoreSelectValue('model-filter', restoredFilters.model);
     if (restoredFilters.search) {
       document.getElementById('search-filter').value = restoredFilters.search;
       document.getElementById('search-clear').hidden = false;
@@ -5704,20 +6900,17 @@ __SITE_HEADER__
     }
   }
 
-  // La tendina Sessione dipende dal progetto ripristinato -- va popolata
-  // dopo aver saputo initialProj, non prima (altrimenti mostrerebbe per un
-  // istante tutte le sessioni anche con un progetto gia' selezionato).
-  // [EN] The Sessione dropdown depends on the restored project -- it must
-  // [EN] be populated after knowing initialProj, not before (otherwise it
-  // [EN] would briefly show all sessions even with a project already
-  // [EN] selected).
-  populateSelect(initialProj);
-  if (restoredFilters && restoredFilters.sid &&
-      (!initialProj || projectById[restoredFilters.sid] === initialProj)) {
-    document.getElementById('session-filter').value = restoredFilters.sid;
-    updateDropdownTrigger(document.getElementById('session-filter-custom'), restoredFilters.sid);
-    initialSid = restoredFilters.sid;
-  }
+  // La sessione per ultima: la sua tendina e' gia' stata rifatta ristretta
+  // ai progetti ripristinati, quindi il valore salvato ci rientra solo se
+  // quella sessione e' ancora in elenco. Se il progetto a cui apparteneva
+  // non e' fra quelli spuntati il filtro resta spento, invece di puntare a
+  // una sessione che la pagina non sta guardando.
+  // [EN] The session last: its dropdown has already been rebuilt narrowed
+  // to the restored projects, so the saved value goes back in only if that
+  // session is still on the list. If the project it belonged to is not
+  // among the ticked ones the filter stays off, instead of pointing at a
+  // session the page is not looking at.
+  if (restoredFilters) { restoreSelectValue('session-filter', restoredFilters.sid); }
 
   renderAll(currentCriteria());
 
@@ -5775,6 +6968,22 @@ __SITE_HEADER__
     var box = document.querySelector('.search-box');
     if (box) box.classList.toggle('set', !!document.getElementById('search-filter').value);
   }
+
+  /* Un clic fuori da una tendina la chiude. Un solo ascoltatore per tutte
+     invece di uno per tendina: le tendine si rifanno ad ogni cambio di
+     progetto, e una registrazione per ricostruzione lascerebbe sul document
+     una fila di ascoltatori agganciati a menu che non esistono piu'.
+     [EN] A click outside a dropdown closes it. A single listener for all of
+     them instead of one per dropdown: the dropdowns are rebuilt on every
+     project change, and one registration per rebuild would leave on the
+     document a queue of listeners bound to menus that no longer exist. */
+  document.addEventListener('click', function (e) {
+    document.querySelectorAll('#filters-bar .custom-dropdown').forEach(function (dd) {
+      if (dd.contains(e.target)) { return; }
+      var menu = dd.querySelector('.dropdown-menu');
+      if (menu) { menu.classList.remove('active'); }
+    });
+  });
 
   // Le tendine cambiano stato al click (aprendosi, scegliendo una voce o
   // chiudendosi cliccando fuori): un solo ascoltatore in fondo alla catena
@@ -5998,7 +7207,7 @@ __SITE_HEADER__
       sessionStorage.setItem('dashboardFilters', JSON.stringify({
         sid: document.getElementById('session-filter').value,
         acc: document.getElementById('account-filter').value,
-        proj: document.getElementById('project-filter').value,
+        proj: selectedProjects(),
         rangeIdx: document.getElementById('range-filter').value,
         mode: document.getElementById('mode-filter').value,
         scale: document.getElementById('scale-filter').value,
