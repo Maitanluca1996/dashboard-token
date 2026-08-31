@@ -417,10 +417,12 @@ def _recupera_storico(app_exe, log):
     dell'installazione, mostrando una barra di avanzamento.
 
     Lo fa lanciando l'APPLICAZIONE appena installata come sottoprocesso,
-    invece di importare il codice qui: l'installer e' volutamente magro e non
-    si porta dentro il package generate_dashboard (vedi installer.spec), che
-    invece nell'applicazione c'e'. Il sottoprocesso eredita la console, cosi'
-    la barra si disegna nella stessa finestra.
+    invece di importare il codice qui. L'installer un pezzo di
+    generate_dashboard ce l'ha (i messaggi tradotti, vedi installer.spec), ma
+    non il modulo backfill ne' i template: il recupero dello storico e' lavoro
+    dell'applicazione, ed e' giusto che giri col codice appena installato e
+    non con la copia dentro l'installer. Il sottoprocesso eredita la console,
+    cosi' la barra si disegna nella stessa finestra.
 
     Un fallimento qui non e' un fallimento dell'installazione: gli hook sono
     gia' registrati e il monitoraggio da qui in avanti funziona comunque.
@@ -429,10 +431,13 @@ def _recupera_storico(app_exe, log):
     installation, showing a progress bar.
 
     It does so by launching the freshly installed APPLICATION as a
-    subprocess, instead of importing the code here: the installer is
-    deliberately lean and does not carry the generate_dashboard package
-    (see installer.spec), which the application does have. The subprocess
-    inherits the console, so the bar draws in the same window.
+    subprocess, instead of importing the code here. The installer does carry
+    a piece of generate_dashboard (the translated messages, see
+    installer.spec), but neither the backfill module nor the templates:
+    rebuilding the history is the application's job, and it is right that it
+    runs with the freshly installed code rather than with the copy inside the
+    installer. The subprocess inherits the console, so the bar draws in the
+    same window.
 
     A failure here is not a failure of the installation: the hooks are
     already registered and monitoring works from here on regardless.
