@@ -4,7 +4,7 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🪙</text></svg>" />
-<title>Claude Code &mdash; Utilizzo token</title>
+<title data-i18n="page.dashboard">Claude Code &mdash; Utilizzo token</title>
 <style>
   :root {
     color-scheme: light;
@@ -180,11 +180,10 @@ __HEADER_CSS__
      "chrome-compact" della barra, che stringeva i sei filtri su una riga
      sola allineandoli alle colonne della tabella: in colonna non c'e'
      niente da stringere e nessuna colonna da inseguire.
-     La larghezza della pagina cresce esattamente di quanto occupa la
-     colonna (248 + 24 di gap), cosi' il contenuto resta largo i 900px di
-     sempre invece di stringersi per far posto ai filtri. L'aumento vale
-     solo qui: .wrap e' definita in header.py per tutte e tre le pagine, e
-     guida e tariffario non hanno una barra laterale.
+     La colonna e il suo scarto (248 + 24) sono gia' compresi nella
+     larghezza di .wrap, che sta in header.py ed e' la stessa per tutte e
+     tre le pagine: il contenuto resta largo i 900px di sempre senza che
+     questo template debba allargare niente.
      [EN] --- The filters column ---
      Global filters are no longer a horizontal bar above the content but a
      left-hand column, stuck below the header (--header-h is published by
@@ -198,12 +197,10 @@ __HEADER_CSS__
      of the bar, which squeezed the six filters onto a single row aligned
      with the table columns -- in a column there is nothing to squeeze and
      no column to follow.
-     The page width grows by exactly what the column takes (248 + 24 of
-     gap), so the content stays the usual 900px instead of shrinking to
-     make room. The increase applies here only: .wrap is defined in
-     header.py for all three pages, and the guide and price list have no
-     sidebar. */
-  .wrap { max-width: 1172px; }
+     The column and its gap (248 + 24) are already part of .wrap's width,
+     which lives in header.py and is the same for all three pages: the
+     content stays the usual 900px without this template having to widen
+     anything. */
   .layout { display: grid; grid-template-columns: 248px minmax(0, 1fr); gap: 24px; align-items: start; }
   .sidebar {
     position: sticky;
@@ -1695,6 +1692,7 @@ __HEADER_CSS__
     * { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; }
   }
 </style>
+__I18N_BOOT__
 __REVEAL_BOOT__
 </head>
 <body>
@@ -1702,26 +1700,26 @@ __REVEAL_BOOT__
 __SITE_HEADER__
 
   <div class="page-title-block">
-    <h1>Utilizzo token &mdash; Claude Code</h1>
-    <p class="page-desc">Monitoraggio dettagliato dei consumi, costi stimati e interazioni per sessione</p>
+    <h1 data-i18n="dash.h1">Utilizzo token &mdash; Claude Code</h1>
+    <p class="page-desc" data-i18n="dash.desc">Monitoraggio dettagliato dei consumi, costi stimati e interazioni per sessione</p>
   </div>
 
   <details class="help-block" data-reveal>
-    <summary>Quanti token utilizza questo sistema di monitoraggio?</summary>
+    <summary data-i18n="help.summary">Quanti token utilizza questo sistema di monitoraggio?</summary>
     <div class="help-body"><div class="help-body-inner">
-    <p>Il logging (gli hook che scrivono <code>tokens.csv</code> e <code>operations.csv</code>, piu' la rigenerazione di questa pagina) non chiama mai l'API di Claude: legge solo file gia' salvati in locale e scrive file locali. <strong>Token utilizzati: zero.</strong></p>
-    <p>Gli hook non restituiscono mai messaggi che finiscono nel contesto della conversazione (nessun <code>systemMessage</code> o <code>additionalContext</code>), quindi non aggiungono nemmeno un token nei turni futuri, ne' in questa sessione ne' in quelle successive.</p>
-    <p>L'unico costo e' locale e non monetario: ad ogni tool call e ad ogni fine turno gli script rileggono il transcript della sessione per calcolare i delta di utilizzo. Cresce leggermente con la lunghezza della sessione, ma resta nell'ordine di millisecondi &mdash; un'attesa impercettibile, non un impatto sul portafoglio.</p>
+    <p data-i18n-html="help.p1">Il logging (gli hook che scrivono <code>tokens.csv</code> e <code>operations.csv</code>, piu' la rigenerazione di questa pagina) non chiama mai l'API di Claude: legge solo file gia' salvati in locale e scrive file locali. <strong>Token utilizzati: zero.</strong></p>
+    <p data-i18n-html="help.p2">Gli hook non restituiscono mai messaggi che finiscono nel contesto della conversazione (nessun <code>systemMessage</code> o <code>additionalContext</code>), quindi non aggiungono nemmeno un token nei turni futuri, ne' in questa sessione ne' in quelle successive.</p>
+    <p data-i18n-html="help.p3">L'unico costo e' locale e non monetario: ad ogni tool call e ad ogni fine turno gli script rileggono il transcript della sessione per calcolare i delta di utilizzo. Cresce leggermente con la lunghezza della sessione, ma resta nell'ordine di millisecondi &mdash; un'attesa impercettibile, non un impatto sul portafoglio.</p>
     </div></div>
   </details>
 
   <div class="layout">
   <aside class="sidebar">
     <div class="side-section">
-      <div class="side-title">Filtri</div>
+      <div class="side-title" data-i18n="side.filters">Filtri</div>
       <div class="filter-row" id="filters-bar" data-reveal>
     <div class="filter-item" id="fi-project">
-      <label>Progetti:</label>
+      <label data-i18n="filters.projects">Progetti:</label>
       <!-- Una lista di caselle e non una tendina: i progetti si scelgono
            anche a piu' d'uno per volta, e una tendina a scelta multipla
            nasconde dietro un clic proprio cio' che serve sapere sempre --
@@ -1738,57 +1736,67 @@ __SITE_HEADER__
       <select id="project-filter" multiple style="display:none"></select>
     </div>
     <div class="filter-item" id="fi-session">
-      <label>Sessione:</label>
+      <label data-i18n="filters.session">Sessione:</label>
       <div id="session-filter-custom" class="custom-dropdown"></div>
       <select id="session-filter" style="display:none"></select>
     </div>
     <div class="filter-item" id="fi-account">
-      <label>Account:</label>
+      <label data-i18n="filters.account">Account:</label>
       <div id="account-filter-custom" class="custom-dropdown"></div>
       <select id="account-filter" style="display:none"></select>
     </div>
     <div class="filter-item" id="fi-period">
-      <label>Periodo:</label>
+      <label data-i18n="filters.period">Periodo:</label>
       <div id="period-filter-custom" class="custom-dropdown"></div>
       <select id="period-filter" style="display:none"></select>
     </div>
     <div class="filter-item" id="fi-model">
-      <label>Modello:</label>
+      <label data-i18n="filters.model">Modello:</label>
       <div id="model-filter-custom" class="custom-dropdown"></div>
       <select id="model-filter" style="display:none"></select>
     </div>
     <div class="filter-item" id="fi-search">
-      <label for="search-filter">Cerca nella richiesta:</label>
+      <label for="search-filter" data-i18n="filters.search">Cerca nella richiesta:</label>
       <div class="search-box">
-        <input type="search" id="search-filter" class="search-input" placeholder="Testo della richiesta&hellip;"
+        <input type="search" id="search-filter" class="search-input" data-i18n-placeholder="filters.searchPlaceholder" placeholder="Testo della richiesta&hellip;"
                autocomplete="off" spellcheck="false">
-        <button type="button" class="search-clear" id="search-clear" hidden aria-label="Cancella la ricerca">&times;</button>
+        <button type="button" class="search-clear" id="search-clear" hidden data-i18n-aria-label="filters.searchClear" aria-label="Cancella la ricerca">&times;</button>
       </div>
     </div>
       </div>
     </div>
     <div class="side-section">
-      <div class="side-title">Unità</div>
-      <!-- L'unita' di misura degli importi. Stava sopra il primo
-           grafico, che era il primo punto in cui la si incontrava
-           scorrendo: ora che c'e' una colonna per le scelte che
-           valgono per tutta la pagina, sta con le altre. Vale per
-           TUTTI i grafici, non per uno solo.
-           [EN] The unit of measure for amounts. It used to sit above
-           the first chart, the first place you met it while
-           scrolling: now that there is a column for choices that
-           apply to the whole page, it sits with the others. It
-           applies to ALL charts, not just one. -->
+      <div class="side-title" data-i18n="side.unit">Unità</div>
+      <!-- Cosa misurano i grafici. Vale per TUTTI i grafici, non per
+           uno solo, ed e' per questo che sta nella colonna delle
+           scelte che valgono per tutta la pagina invece che sopra il
+           primo grafico, dov'era prima.
+           Le voci erano tre: dollari, euro, token. Le prime due sono
+           diventate una da quando la valuta si sceglie
+           nell'intestazione: era una scelta a meta', perche' toccava
+           solo i grafici mentre schede, tabelle e tooltip restavano in
+           dollari comunque. Qui resta la domanda che riguarda
+           davvero i grafici, cioe' se l'asse conti soldi o token; in
+           che moneta siano quei soldi lo dice la combo in alto.
+           [EN] What the charts measure. It applies to ALL charts, not
+           just one, which is why it sits in the column of choices
+           that apply to the whole page rather than above the first
+           chart, where it used to be.
+           There were three entries: dollars, euros, tokens. The first
+           two became one once the currency is chosen in the header:
+           it was a half choice, because it touched the charts only
+           while cards, tables and tooltips stayed in dollars anyway.
+           What stays here is the question that really concerns the
+           charts, namely whether the axis counts money or tokens; what
+           money that is, is said by the combo at the top. -->
       <div class="segmented-control unit-control" id="unit-filter-custom">
         <div class="indicator"></div>
-        <button type="button" data-value="usd" class="active">Dollari</button>
-        <button type="button" data-value="eur">Euro</button>
-        <button type="button" data-value="tokens">Token</button>
+        <button type="button" data-value="money" class="active" data-i18n="unit.money">Costo</button>
+        <button type="button" data-value="tokens" data-i18n="unit.tokens">Token</button>
       </div>
       <select id="unit-filter" style="display:none">
-        <option value="usd" selected>Dollari</option>
-        <option value="eur">Euro</option>
-        <option value="tokens">Token</option>
+        <option value="money" selected data-i18n="unit.money">Costo</option>
+        <option value="tokens" data-i18n="unit.tokens">Token</option>
       </select>
     </div>
   </aside>
@@ -1814,15 +1822,15 @@ __SITE_HEADER__
              concerns ONLY this chart, which is why it sits here and not
              in the filter bar at the top. -->
         <div class="filter-row chart-control">
-          <label>Raggruppa:</label>
+          <label data-i18n="chart.groupBy">Raggruppa:</label>
           <div class="segmented-control" id="bar-group-filter-custom">
             <div class="indicator"></div>
-            <button type="button" data-value="day" class="active">Per giorno</button>
-            <button type="button" data-value="month">Per mese</button>
+            <button type="button" data-value="day" class="active" data-i18n="chart.byDay">Per giorno</button>
+            <button type="button" data-value="month" data-i18n="chart.byMonth">Per mese</button>
           </div>
           <select id="bar-group-filter" style="display:none">
-            <option value="day" selected>Per giorno</option>
-            <option value="month">Per mese</option>
+            <option value="day" selected data-i18n="chart.byDay">Per giorno</option>
+            <option value="month" data-i18n="chart.byMonth">Per mese</option>
           </select>
         </div>
       </div>
@@ -1848,15 +1856,15 @@ __SITE_HEADER__
       <h2 id="bar2-chart-title">Costo totale per sessione (tutto lo storico)</h2>
       <div class="chart-controls">
         <div class="filter-row chart-control">
-          <label>Raggruppa:</label>
+          <label data-i18n="chart.groupBy">Raggruppa:</label>
           <div class="segmented-control" id="bar2-group-filter-custom">
             <div class="indicator"></div>
-            <button type="button" data-value="session" class="active">Per sessione</button>
-            <button type="button" data-value="project">Per progetto</button>
+            <button type="button" data-value="session" class="active" data-i18n="chart.bySession">Per sessione</button>
+            <button type="button" data-value="project" data-i18n="chart.byProject">Per progetto</button>
           </div>
           <select id="bar2-group-filter" style="display:none">
-            <option value="session" selected>Per sessione</option>
-            <option value="project">Per progetto</option>
+            <option value="session" selected data-i18n="chart.bySession">Per sessione</option>
+            <option value="project" data-i18n="chart.byProject">Per progetto</option>
           </select>
         </div>
       </div>
@@ -1885,19 +1893,19 @@ __SITE_HEADER__
     </div>
     <div class="chart-controls chart-controls-own-row">
       <div class="filter-row chart-control">
-        <label>Modalità:</label>
+        <label data-i18n="chart.mode">Modalità:</label>
         <div class="segmented-control" id="mode-filter-custom">
           <div class="indicator"></div>
-          <button type="button" data-value="aggregate">Aggregato</button>
-          <button type="button" data-value="session" class="active">Per sessione</button>
-          <button type="button" data-value="model">Per modello</button>
-          <button type="button" data-value="project">Per progetto</button>
+          <button type="button" data-value="aggregate" data-i18n="chart.aggregate">Aggregato</button>
+          <button type="button" data-value="session" class="active" data-i18n="chart.bySession">Per sessione</button>
+          <button type="button" data-value="model" data-i18n="chart.byModel">Per modello</button>
+          <button type="button" data-value="project" data-i18n="chart.byProject">Per progetto</button>
         </div>
         <select id="mode-filter" style="display:none">
-          <option value="aggregate">Aggregato</option>
-          <option value="session" selected>Per sessione</option>
-          <option value="model">Per modello</option>
-          <option value="project">Per progetto</option>
+          <option value="aggregate" data-i18n="chart.aggregate">Aggregato</option>
+          <option value="session" selected data-i18n="chart.bySession">Per sessione</option>
+          <option value="model" data-i18n="chart.byModel">Per modello</option>
+          <option value="project" data-i18n="chart.byProject">Per progetto</option>
         </select>
       </div>
       <!-- Un controllo a segmenti e non una casella da spuntare: in tutta la
@@ -1909,15 +1917,15 @@ __SITE_HEADER__
            for a single entry would add a new control language for
            nothing. -->
       <div class="filter-row chart-control scale-control">
-        <label>Scala:</label>
+        <label data-i18n="chart.scale">Scala:</label>
         <div class="segmented-control" id="scale-filter-custom">
           <div class="indicator"></div>
-          <button type="button" data-value="linear" class="active">Lineare</button>
-          <button type="button" data-value="log">Log</button>
+          <button type="button" data-value="linear" class="active" data-i18n="chart.linear">Lineare</button>
+          <button type="button" data-value="log" data-i18n="chart.log">Log</button>
         </div>
         <select id="scale-filter" style="display:none">
-          <option value="linear" selected>Lineare</option>
-          <option value="log">Log</option>
+          <option value="linear" selected data-i18n="chart.linear">Lineare</option>
+          <option value="log" data-i18n="chart.log">Log</option>
         </select>
       </div>
       <!-- Il cursore per ultimo di proposito: e' l'unico dei tre che di
@@ -1931,10 +1939,10 @@ __SITE_HEADER__
            instead would leave it alone at the bottom looking like it ended up
            there by mistake. -->
       <div class="filter-row chart-control range-control">
-        <label for="range-filter">Periodo:</label>
+        <label for="range-filter" data-i18n="chart.period">Periodo:</label>
         <div class="range-track">
           <input type="range" id="range-filter" min="0" max="0" step="1" value="0"
-                 list="range-ticks" aria-label="Ampiezza della finestra di tempo">
+                 list="range-ticks" data-i18n-aria-label="chart.rangeAria" aria-label="Ampiezza della finestra di tempo">
           <div class="range-blocked" id="range-blocked" hidden></div>
         </div>
         <datalist id="range-ticks"></datalist>
@@ -1959,7 +1967,7 @@ __SITE_HEADER__
   </div>
 
   <div class="panel" data-reveal>
-    <h2>Interazioni recenti</h2>
+    <h2 data-i18n="turns.recent">Interazioni recenti</h2>
     <div class="table-scroll">
       <table class="turns-table">
         <colgroup>
@@ -1970,20 +1978,20 @@ __SITE_HEADER__
         </colgroup>
         <thead id="turns-thead"><tr>
           <th class="expand-col"></th>
-          <th class="sortable" data-sort="ts">Data e ora<span class="sort-arrow"></span></th>
-          <th class="sortable" data-sort="session">Sessione<span class="sort-arrow"></span></th>
-          <th class="sortable" data-sort="summary">Richiesta<span class="sort-arrow"></span></th>
-          <th class="sortable" data-sort="model">Modello<span class="sort-arrow"></span></th>
-          <th class="num sortable" data-sort="total">Totale<span class="sort-arrow"></span></th>
-          <th class="num sortable" data-sort="cost">Costo<span class="sort-arrow"></span></th>
+          <th class="sortable" data-sort="ts"><span data-i18n="turns.colTs">Data e ora</span><span class="sort-arrow"></span></th>
+          <th class="sortable" data-sort="session"><span data-i18n="turns.colSession">Sessione</span><span class="sort-arrow"></span></th>
+          <th class="sortable" data-sort="summary"><span data-i18n="turns.colRequest">Richiesta</span><span class="sort-arrow"></span></th>
+          <th class="sortable" data-sort="model"><span data-i18n="turns.colModel">Modello</span><span class="sort-arrow"></span></th>
+          <th class="num sortable" data-sort="total"><span data-i18n="turns.colTotal">Totale</span><span class="sort-arrow"></span></th>
+          <th class="num sortable" data-sort="cost"><span data-i18n="turns.colCost">Costo</span><span class="sort-arrow"></span></th>
         </tr></thead>
         <tbody id="turns-tbody"></tbody>
       </table>
     </div>
-    <nav class="pagination" id="turns-pagination" aria-label="Paginazione interazioni" hidden>
+    <nav class="pagination" id="turns-pagination" data-i18n-aria-label="turns.paginationAria" aria-label="Paginazione interazioni" hidden>
       <div class="pagination-left">
         <label class="pagination-size">
-          <span>Righe:</span>
+          <span data-i18n="turns.rows">Righe:</span>
           <select id="page-size-filter">
             <option value="10">10</option>
             <option value="20" selected>20</option>
@@ -1995,7 +2003,7 @@ __SITE_HEADER__
       </div>
       <div class="pagination-pages" id="turns-pagination-pages"></div>
     </nav>
-    <footer>File generato da ~/.claude/hooks/generate_dashboard/, richiamato dall'hook Stop.</footer>
+    <footer data-i18n="footer.generated">File generato da ~/.claude/hooks/generate_dashboard/, richiamato dall'hook Stop.</footer>
   </div>
   </main>
   </div>
@@ -2003,6 +2011,7 @@ __SITE_HEADER__
 
 <div id="custom-tooltip" class="custom-tooltip" role="tooltip"></div>
 
+__I18N_APPLY__
 <script src="dashboard-data.js"></script>
 <script>
 (function () {
@@ -2031,18 +2040,6 @@ __SITE_HEADER__
     return (cinqueMin / 1e6) * p.cacheWrite + (unOra / 1e6) * p.cacheWrite1h;
   }
   var DEFAULT_MODEL_KEY = payload.defaultModelKey;
-  // Cambio $ -> EUR fissato a mano in pricing.py (non e' un cambio in
-  // tempo reale: la pagina e' generata offline). Il "|| 1" e' solo una
-  // rete di sicurezza per una dashboard rigenerata con un payload vecchio,
-  // privo del campo: meglio euro sbagliati ma leggibili che tutti gli
-  // importi a zero.
-  // [EN] USD -> EUR rate fixed by hand in pricing.py (it is not a live
-  // [EN] rate: the page is generated offline). The "|| 1" is just a safety
-  // [EN] net for a dashboard regenerated with an old payload missing the
-  // [EN] field: better wrong-but-readable euros than every amount at zero.
-  var USD_TO_EUR = payload.usdToEur || 1;
-  var USD_TO_EUR_DATE = payload.usdToEurDate || '';
-
   // Il transcript a volte riporta l'ID modello con un suffisso data (es.
   // "claude-haiku-4-5-20251001" invece di "claude-haiku-4-5"): un lookup
   // esatto nel tariffario fallirebbe silenziosamente sul prezzo di default
@@ -2113,11 +2110,11 @@ __SITE_HEADER__
   function actionCostCell(a) {
     if (a.model === 'n/d') {
       var tip = tooltipAttr(simpleTooltipData([
-        seg('Costo non determinabile: azione eseguita da un sotto-agente delegato (Task/Agent). Il suo consumo token non compare nel transcript della sessione principale, quindi non e’ stimabile qui -- non e’ zero, e’ sconosciuto.')
+        seg(tr('tt.subAgentCost'))
       ]));
       return '<span class="cost-na" data-tooltip="' + tip + '">n/d</span>';
     }
-    return fmtUsd(turnCostUsd(a));
+    return fmtMoney(turnCostUsd(a));
   }
 
   // Separatore delle migliaia inserito a mano: toLocaleString('it-IT') su
@@ -2128,60 +2125,69 @@ __SITE_HEADER__
   // [EN] V8 (Node and Chromium) does not group 4-digit numbers (e.g.
   // [EN] "2091" instead of "2.091") while grouping correctly from 5 digits
   // [EN] up -- for visual consistency we format everything manually.
-  function groupThousands(intStr) {
-    return intStr.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  // Il profilo di formattazione della lingua attiva: separatori, simboli
+  // di valuta, abbreviazione dei miliardi. Lo pubblica lo script
+  // nell'<head> (vedi I18N_BOOT in header.py); qui lo si legge una volta
+  // sola e lo si ripone in variabili corte, invece di interrogarlo ad ogni
+  // numero formattato.
+  //
+  // I ripieghi sono i valori italiani, per lo stesso motivo per cui il
+  // testo italiano resta scritto nel markup: se il dizionario non si
+  // carica, la pagina resta esattamente quella di prima invece di
+  // diventare una pagina rotta.
+  //
+  // fmtOpt e non "FMT.x || ripiego": in inglese il simbolo di valuta in
+  // coda e' la stringa VUOTA, che in JavaScript e' falsa. Con "||" un
+  // valore corretto ma vuoto verrebbe scambiato per un valore assente, e
+  // gli importi inglesi si ritroverebbero il dollaro sia davanti sia
+  // dietro. Serve distinguere "non c'e'" da "c'e' ed e' vuoto".
+  // [EN] The active language's formatting profile: separators, currency
+  // symbols, billions abbreviation. It is published by the script in the
+  // <head> (see I18N_BOOT in header.py); here it is read once and put away
+  // in short variables, instead of being queried at every formatted number.
+  //
+  // The fallbacks are the Italian values, for the same reason the Italian
+  // text stays written in the markup: if the dictionary does not load, the
+  // page stays exactly as it was instead of becoming a broken page.
+  //
+  // fmtOpt and not "FMT.x || fallback": in English the trailing currency
+  // symbol is the EMPTY string, which in JavaScript is falsy. With "||" a
+  // correct but empty value would be mistaken for a missing one, and
+  // English amounts would end up with the dollar both in front and behind.
+  // We need to tell "absent" from "present and empty" apart.
+  var FMT = window.FMT || {};
+  function fmtOpt(name, fallback) {
+    return FMT[name] === undefined ? fallback : FMT[name];
   }
-  // Numero con 2 decimali e separatore delle migliaia, SENZA simbolo di
-  // valuta: e' il motore comune di fmtUsd e fmtEur, cosi' dollari ed euro
-  // arrotondano e raggruppano esattamente allo stesso modo (prima questa
-  // logica viveva dentro fmtUsd, quando il dollaro era l'unica valuta).
-  // [EN] Number with 2 decimals and thousands separator, WITHOUT a currency
-  // [EN] symbol: it is the shared engine of fmtUsd and fmtEur, so dollars
-  // [EN] and euros round and group in exactly the same way (this logic used
-  // [EN] to live inside fmtUsd, when the dollar was the only currency).
-  function fmtDecimal2(n) {
-    // Arrotondato per eccesso a 2 decimali (con tolleranza per errori di
-    // virgola mobile, cosi' un valore "vero" come 7.92 non diventa 7.93).
-    // [EN] Rounded up to 2 decimals (with tolerance for floating-point
-    // [EN] errors, so a "true" value like 7.92 does not become 7.93).
-    var cents = Math.ceil(n * 100 - 1e-9);
-    // normalizza -0 a 0
-    // [EN] normalizes -0 to 0
-    var totalCents = Math.round(cents + 0);
-    var sign = totalCents < 0 ? '-' : '';
-    totalCents = Math.abs(totalCents);
-    var intPart = Math.floor(totalCents / 100);
-    var centsPart = totalCents % 100;
-    var centsStr = centsPart < 10 ? '0' + centsPart : String(centsPart);
-    return sign + groupThousands(String(intPart)) + ',' + centsStr;
-  }
-  // Simbolo in coda per tutte e due le valute, come si scrive in italiano.
-  // Prima il dollaro lo teneva davanti ("$12,34") e l'euro dietro
-  // ("12,34 €"): cambiare unita' faceva saltare il simbolo da un lato
-  // all'altro del numero, un movimento che si notava e non significava
-  // niente. Se un giorno si torna al simbolo davanti, va spostato in
-  // entrambe -- e anche negli assi, dove fmtMoneyAxis prende il simbolo
-  // come parametro (vedi UNIT_MODES).
-  // [EN] Trailing symbol for both currencies, as written in Italian. The
-  // [EN] dollar used to keep it in front ("$12.34") and the euro behind
-  // [EN] ("12,34 €"): switching unit made the symbol jump from one side of
-  // [EN] the number to the other, a movement you noticed and that meant
-  // [EN] nothing. If one day the leading symbol comes back, it must move in
-  // [EN] both -- and in the axes too, where fmtMoneyAxis takes the symbol
-  // [EN] as a parameter (see UNIT_MODES).
-  function fmtUsd(n) { return fmtDecimal2(n) + ' $'; }
-  // Prende SEMPRE un importo in dollari e applica il cambio internamente:
-  // chi chiama non deve mai ricordarsi di moltiplicare (e non rischia di
-  // farlo due volte).
-  // [EN] ALWAYS takes an amount in dollars and applies the exchange rate
-  // [EN] internally: callers never need to remember to multiply (and cannot
-  // [EN] do it twice).
-  function fmtEur(usd) { return fmtDecimal2(usd * USD_TO_EUR) + ' €'; }
-  // Coppia "valore ufficiale + controvalore", il formato usato nei tooltip
-  // dei grafici: il dollaro e' il dato di listino, l'euro e' la conversione.
-  // [EN] "Official value + counter-value" pair, the format used in chart
-  // [EN] tooltips: the dollar is the list price, the euro the conversion.
-  function fmtUsdEur(usd) { return fmtUsd(usd) + ' · ' + fmtEur(usd); }
+  var DEC = fmtOpt('dec', ',');
+  var THOU = fmtOpt('thou', '.');
+  var BILLION = fmtOpt('billion', 'Md');
+
+  // --- La valuta ---
+  // Il formattatore degli importi non vive piu' qui: sta in header.py,
+  // dentro I18N_BOOT, perche' le pagine che mostrano importi sono due --
+  // questa e il tariffario -- e una funzione sola vuol dire che schede,
+  // tabelle, tooltip, assi e listino diranno sempre la stessa cosa.
+  // Qui restano solo gli alias locali, cosi' i punti di chiamata (una
+  // trentina) continuano a scrivere fmtMoney(...) senza il prefisso.
+  // MONEY_PRE e MONEY_POST servono agli assi: fmtMoneyAxis li riceve come
+  // parametri da UNIT_MODES, perche' sull'asse i centesimi si mostrano o
+  // no a seconda della scala.
+  // [EN] --- The currency ---
+  // The amount formatter no longer lives here: it sits in header.py,
+  // inside I18N_BOOT, because there are two pages showing amounts -- this
+  // one and the price list -- and a single function means cards, tables,
+  // tooltips, axes and tariff will always say the same thing.
+  // What stays here are the local aliases, so the (thirty or so) call
+  // sites keep writing fmtMoney(...) with no prefix.
+  // MONEY_PRE and MONEY_POST are needed by the axes: fmtMoneyAxis receives
+  // them as parameters from UNIT_MODES, because on an axis the cents are
+  // shown or not depending on the scale.
+  var fmtMoney = window.fmtMoney;
+  var groupThousands = window.groupThousands;
+  var CUR_RATE = window.CUR_RATE;
+  var MONEY_PRE = window.MONEY_PRE;
+  var MONEY_POST = window.MONEY_POST;
 
   // Etichette degli assi: gli importi sull'asse non hanno bisogno dei
   // centesimi quando i valori sono grandi (un asse a "$1.234,00" e'
@@ -2199,8 +2205,8 @@ __SITE_HEADER__
   function fmtMoneyAxis(v, scale, symbolBefore, symbolAfter) {
     var body;
     if (scale >= 100) body = fmtInt(v);
-    else if (scale >= 10) body = v.toFixed(1).replace('.', ',');
-    else body = v.toFixed(2).replace('.', ',');
+    else if (scale >= 10) body = v.toFixed(1).replace('.', DEC);
+    else body = v.toFixed(2).replace('.', DEC);
     return symbolBefore + body + symbolAfter;
   }
   // {ts, sid, tool, target}
@@ -2294,7 +2300,7 @@ __SITE_HEADER__
   // [EN] grouping key, and a group key cannot be null -- when the session
   // [EN] has no project (or is missing from the list) it lands in its own,
   // [EN] declared group instead of vanishing from the count.
-  var SENZA_PROGETTO = '(senza progetto)';
+  var SENZA_PROGETTO = tr('common.noProject');
   function projectOf(t) { return projectById[t.sid] || SENZA_PROGETTO; }
 
   function esc(s) {
@@ -2376,7 +2382,7 @@ __SITE_HEADER__
 
     var scope = document.createElement('div');
     scope.className = 'tt-sub';
-    scope.textContent = data.scope + ' · ' + data.count + (data.count === 1 ? ' interazione' : ' interazioni');
+    scope.textContent = data.scope + ' · ' + tr('common.turns', data.count);
     container.appendChild(scope);
 
     var span = document.createElement('div');
@@ -2389,12 +2395,11 @@ __SITE_HEADER__
     var costStrong = document.createElement('strong');
     costStrong.textContent = data.cost;
     totals.appendChild(costStrong);
-    totals.appendChild(document.createTextNode(' · ' + data.costEur));
     container.appendChild(totals);
 
     var totalsTokens = document.createElement('div');
     totalsTokens.className = 'tt-sub';
-    totalsTokens.textContent = data.tot + ' token';
+    totalsTokens.textContent = tr('common.tokensStr', { n: data.tot });
     container.appendChild(totalsTokens);
 
     var breakdown = document.createElement('div');
@@ -2434,7 +2439,9 @@ __SITE_HEADER__
         : document.getElementById(CHART_FILTER_SELECTS[data.filter.kind]).value === data.filter.value;
       var action = document.createElement('div');
       action.className = 'tt-action';
-      action.textContent = (already ? '\u25b8 Togli il filtro su ' : '\u25b8 Filtra su ') + data.filter.label;
+      action.textContent = '\u25b8 ' + (already
+        ? tr('tt.unfilterOn', { what: data.filter.label })
+        : tr('tt.filterOn', { what: data.filter.label }));
       // Lo spec viaggia sull'elemento e non in un attributo: il tooltip e'
       // ricostruito ad ogni disegno, quindi non sopravvive a nessun
       // ridisegno e non ha bisogno di essere leggibile dal markup.
@@ -2447,7 +2454,7 @@ __SITE_HEADER__
 
     var dismiss = document.createElement('div');
     dismiss.className = 'tt-dismiss';
-    dismiss.textContent = 'Clicca fuori o premi Esc per chiudere.';
+    dismiss.textContent = tr('tt.dismiss');
     container.appendChild(dismiss);
   }
 
@@ -2460,29 +2467,31 @@ __SITE_HEADER__
 
     var sub = document.createElement('div');
     sub.className = 'tt-sub';
-    sub.textContent = data.start + '–' + data.end + ' · ' + data.count + (data.count === 1 ? ' interazione' : ' interazioni');
+    sub.textContent = data.start + '–' + data.end + ' · ' + tr('common.turns', data.count);
     container.appendChild(sub);
 
-    // Il costo passa in testa (e' il dato che conta di piu' qui dentro),
-    // con il controvalore in euro subito accanto; i token restano, ma come
-    // riga secondaria. data.costEur puo' mancare su un tooltip generato da
-    // una versione precedente della pagina, da cui il controllo.
-    // [EN] Cost moves to the top (it is the number that matters most in
-    // [EN] here), with the euro counter-value right next to it; tokens
-    // [EN] remain, but as a secondary line. data.costEur can be missing on
-    // [EN] a tooltip generated by a previous version of the page, hence
-    // [EN] the check.
+    // Il costo passa in testa: e' il dato che conta di piu' qui dentro. I
+    // token restano, ma come riga secondaria. Accanto al costo stava il
+    // controvalore in euro: non serve piu' da quando la valuta si sceglie
+    // nell'intestazione, perche' l'importo e' gia' in quella scelta e
+    // affiancargli l'altra vorrebbe dire mostrare una conversione che
+    // nessuno ha chiesto.
+    // [EN] Cost moves to the top: it is the number that matters most in
+    // [EN] here. Tokens remain, but as a secondary line. Next to the cost
+    // [EN] there used to be the euro counter-value: it is no longer needed
+    // [EN] now that the currency is chosen in the header, because the
+    // [EN] amount is already in the chosen one, and putting the other
+    // [EN] beside it would mean showing a conversion nobody asked for.
     var totals = document.createElement('div');
     totals.className = 'tt-sub';
     var costStrong = document.createElement('strong');
     costStrong.textContent = data.cost;
     totals.appendChild(costStrong);
-    if (data.costEur) { totals.appendChild(document.createTextNode(' · ' + data.costEur)); }
     container.appendChild(totals);
 
     var totalsTokens = document.createElement('div');
     totalsTokens.className = 'tt-sub';
-    totalsTokens.textContent = data.tot + ' token';
+    totalsTokens.textContent = tr('common.tokensStr', { n: data.tot });
     container.appendChild(totalsTokens);
 
     var breakdown = document.createElement('div');
@@ -2500,7 +2509,7 @@ __SITE_HEADER__
 
     var toggle = document.createElement('div');
     toggle.className = 'tt-toggle';
-    toggle.textContent = '▸ Mostra le iterazioni';
+    toggle.textContent = '▸ ' + tr('tt.showIterations');
     container.appendChild(toggle);
 
     var details = document.createElement('div');
@@ -2534,7 +2543,8 @@ __SITE_HEADER__
       e.stopPropagation();
       var open = details.style.display !== 'none';
       details.style.display = open ? 'none' : 'block';
-      toggle.textContent = (open ? '▸ Mostra' : '▾ Nascondi') + ' le iterazioni';
+      toggle.textContent = open ? ('▸ ' + tr('tt.showIterations'))
+                                : ('▾ ' + tr('tt.hideIterations'));
       positionTooltip(tooltipTarget);
     });
   }
@@ -2694,9 +2704,11 @@ __SITE_HEADER__
   // there the number is there to explain the list's order, not to be summed.
   function fmtCompactTokens(n) {
     var v = Math.round(n || 0);
-    // "Md" e non "B": in italiano un bilione e' mille miliardi, e un numero
-    // che vale mille volte meno di quel che sembra e' peggio di un numero
-    // lungo. Il decimale cade oltre le tre cifre intere ("561M" e non
+    // L'abbreviazione dei miliardi arriva dal profilo della lingua: "Md"
+    // in italiano, "B" in inglese. Non e' pignoleria: in italiano un
+    // "bilione" e' mille miliardi, quindi una "B" letta da un italiano
+    // varrebbe mille volte piu' del vero. Le altre abbreviazioni ("k",
+    // "M") si scrivono uguali nelle due lingue e restano scritte qui. Il decimale cade oltre le tre cifre intere ("561M" e non
     // "560,5M"): li' la frazione non aggiunge niente e ruba spazio al nome
     // del progetto.
     // [EN] "Md" (miliardi) and not "B": in Italian a "bilione" is a
@@ -2704,7 +2716,7 @@ __SITE_HEADER__
     // looks is worse than a long number. The decimal drops past three
     // integer digits ("561M" and not "560,5M"): there the fraction adds
     // nothing and steals room from the project's name.
-    if (v >= 1e9) { return oneDecimal(v / 1e9) + 'Md'; }
+    if (v >= 1e9) { return oneDecimal(v / 1e9) + BILLION; }
     if (v >= 1e8) { return Math.round(v / 1e6) + 'M'; }
     if (v >= 1e6) { return oneDecimal(v / 1e6) + 'M'; }
     if (v >= 1e4) { return Math.round(v / 1e3) + 'k'; }
@@ -2718,7 +2730,7 @@ __SITE_HEADER__
   // comma zero says nothing and takes two characters in a narrow column.
   function oneDecimal(v) {
     var s = v.toFixed(1);
-    return (s.slice(-2) === '.0' ? s.slice(0, -2) : s).replace('.', ',');
+    return (s.slice(-2) === '.0' ? s.slice(0, -2) : s).replace('.', DEC);
   }
 
   function fmtInt(n) {
@@ -2727,8 +2739,8 @@ __SITE_HEADER__
     return sign + groupThousands(String(Math.abs(v)));
   }
   function fmtPct(part, whole) {
-    if (!whole) return '0,0%';
-    return (part / whole * 100).toFixed(1).replace('.', ',') + '%';
+    if (!whole) return '0' + DEC + '0%';
+    return (part / whole * 100).toFixed(1).replace('.', DEC) + '%';
   }
   function pad2(n) { return n < 10 ? '0' + n : String(n); }
   function dayKey(ts) {
@@ -2747,10 +2759,18 @@ __SITE_HEADER__
     return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate());
   }
   function pad3(n) { return n < 10 ? '00' + n : (n < 100 ? '0' + n : String(n)); }
+  // I nomi dei mesi arrivano dal profilo della lingua. I due elenchi
+  // italiani restano scritti qui come ripiego: sono la pagina che si vede
+  // quando il dizionario non si carica, la stessa di sempre.
+  // [EN] The month names come from the language profile. The two Italian
+  // lists stay written here as the fallback: they are the page one sees
+  // when the dictionary does not load, the same as ever.
   var MONTHS_IT = ['gen', 'feb', 'mar', 'apr', 'mag', 'giu', 'lug', 'ago', 'set', 'ott', 'nov', 'dic'];
   var MONTHS_IT_FULL = ['gennaio', 'febbraio', 'marzo', 'aprile', 'maggio', 'giugno',
     'luglio', 'agosto', 'settembre', 'ottobre', 'novembre', 'dicembre'];
-  function fmtDayNice(dayNum, monthNum1based) { return dayNum + ' ' + MONTHS_IT[monthNum1based - 1]; }
+  var MONTHS = fmtOpt('monthsShort', MONTHS_IT);
+  var MONTHS_FULL = fmtOpt('monthsLong', MONTHS_IT_FULL);
+  function fmtDayNice(dayNum, monthNum1based) { return dayNum + ' ' + MONTHS[monthNum1based - 1]; }
 
   // Come dayKey, un gradino piu' in alto: "2026-08". Stessa avvertenza sul
   // fuso -- si passa da new Date e dai getter locali, non dalla
@@ -2773,7 +2793,7 @@ __SITE_HEADER__
   // [EN] the same.
   function fmtMonthShort(k) {
     var parts = k.split('-');
-    return MONTHS_IT[parseInt(parts[1], 10) - 1] + ' ' + parts[0].slice(2);
+    return MONTHS[parseInt(parts[1], 10) - 1] + ' ' + parts[0].slice(2);
   }
   // "Agosto 2026": forma estesa per la tendina dei periodi, dove lo spazio
   // c'e' e l'abbreviazione si leggerebbe peggio.
@@ -2781,7 +2801,7 @@ __SITE_HEADER__
   // [EN] room and the abbreviation would read worse.
   function fmtMonthLong(k) {
     var parts = k.split('-');
-    var nome = MONTHS_IT_FULL[parseInt(parts[1], 10) - 1];
+    var nome = MONTHS_FULL[parseInt(parts[1], 10) - 1];
     return nome.charAt(0).toUpperCase() + nome.slice(1) + ' ' + parts[0];
   }
   function fmtTs(ts) {
@@ -2805,7 +2825,7 @@ __SITE_HEADER__
     return pad2(d.getHours()) + ':' + pad2(d.getMinutes()) + ':' + pad2(d.getSeconds()) + '.' + pad3(d.getMilliseconds());
   }
   function sessionLabel(sid) {
-    return titleById[sid] || ('Sessione ' + String(sid || '').slice(0, 8));
+    return titleById[sid] || tr('common.sessionFallback', { id: String(sid || '').slice(0, 8) });
   }
   function sessionCellHtml(sid, acc) {
     var project = projectById[sid];
@@ -3192,13 +3212,21 @@ __SITE_HEADER__
      which is ordered precisely because two adjacent ones look alike; red
      stays out: in here a red chip would look like an error, not a
      filter. */
+  // L'etichetta non e' piu' scritta qui: si ricava dal tipo, che ha lo
+  // stesso nome della chiave nel dizionario ("chip.project" per "project").
+  // Una lista sola invece di due che devono restare in fila.
+  // [EN] The label is no longer written here: it is derived from the kind,
+  // which carries the same name as the dictionary key ("chip.project" for
+  // "project"). One list instead of two that have to stay in step.
   var FILTER_CHIP_DEFS = [
-    { kind: 'project', label: 'Progetto', selectId: 'project-filter', tint: '--series-3' },
-    { kind: 'session', label: 'Sessione', selectId: 'session-filter', tint: '--series-1' },
-    { kind: 'account', label: 'Account', selectId: 'account-filter', tint: '--series-7' },
-    { kind: 'period', label: 'Periodo', selectId: 'period-filter', tint: '--series-4' },
-    { kind: 'model', label: 'Modello', selectId: 'model-filter', tint: '--series-5' }
+    { kind: 'project', selectId: 'project-filter', tint: '--series-3' },
+    { kind: 'session', selectId: 'session-filter', tint: '--series-1' },
+    { kind: 'account', selectId: 'account-filter', tint: '--series-7' },
+    { kind: 'period', selectId: 'period-filter', tint: '--series-4' },
+    { kind: 'model', selectId: 'model-filter', tint: '--series-5' }
   ];
+
+  function chipLabel(kind) { return tr('chip.' + kind); }
 
   var FILTER_CHIP_HOSTS = ['bar-chart-chips', 'bar2-chart-chips', 'line-chart-chips'];
 
@@ -3267,7 +3295,7 @@ __SITE_HEADER__
     var chips = activeFilterChips();
     var html = chips.map(function (chip) {
       return '<span class="chip" style="--chip-tint: var(' + chip.tint + '); --chip-wash: var(' + chip.tint + '-fill)">' +
-        '<span class="chip-key">' + esc(chip.label) + '</span>' +
+        '<span class="chip-key">' + esc(chipLabel(chip.kind)) + '</span>' +
         '<span class="chip-val" title="' + esc(chip.text) + '">' + esc(chip.text) + '</span>' +
         '<button type="button" class="chip-x" data-clear-filter="' + esc(chip.kind) + '"' +
         // Solo i progetti hanno un valore da spegnere uno per uno: gli altri
@@ -3275,11 +3303,12 @@ __SITE_HEADER__
         // [EN] Only projects have a value to switch off one at a time: the
         // other filters have at most one chip each, and the x turns it off.
         (chip.value ? (' data-clear-value="' + esc(chip.value) + '"') : '') +
-        ' title="Togli questo filtro" aria-label="Togli il filtro ' + esc(chip.label) + '">&times;</button>' +
+        ' title="' + esc(tr('chip.remove')) + '"' +
+        ' aria-label="' + esc(tr('chip.removeAria', { kind: chipLabel(chip.kind) })) + '">&times;</button>' +
         '</span>';
     }).join('');
     if (chips.length > 1) {
-      html += '<button type="button" class="chip chip-all" data-clear-filter="all">Azzera tutto</button>';
+      html += '<button type="button" class="chip chip-all" data-clear-filter="all">' + esc(tr('chip.clearAll')) + '</button>';
     }
     FILTER_CHIP_HOSTS.forEach(function (id) {
       var host = document.getElementById(id);
@@ -3446,17 +3475,16 @@ __SITE_HEADER__
     var label = document.createElement('span');
     label.className = 'dropdown-trigger-label';
     label.textContent = title;
-    // Forma breve per la barra compatta, dove il filtro e' largo quanto la
-    // colonna che filtra e "Tutti gli account" non ci sta. La scrive il CSS
-    // (attr(data-short)) solo sotto html.chrome-compact: non serve
-    // ricostruire i trigger ad ogni cambio di forma, e chi non ha una forma
-    // breve -- un nome di progetto, un titolo di sessione -- resta com'e'.
-    // [EN] Short form for the compact bar, where the filter is as wide as
-    // [EN] the column it filters and "Tutti gli account" does not fit. The
-    // [EN] CSS writes it (attr(data-short)) only under html.chrome-compact:
-    // [EN] no need to rebuild the triggers on every shape change, and
-    // [EN] whatever has no short form -- a project name, a session title --
-    // [EN] stays as it is.
+    // Forma breve del trigger, tenuta sull'elemento e non usata da nessuno
+    // in questo momento: la scriveva il CSS quando i filtri erano una barra
+    // orizzontale che si stringeva, e quella barra non c'e' piu' da quando
+    // sono passati in colonna. Resta perche' e' un dato, non una regola --
+    // se un domani serve di nuovo una forma corta, e' gia' li'.
+    // [EN] The trigger's short form, kept on the element and used by nobody
+    // right now: the CSS wrote it when the filters were a horizontal bar
+    // that tightened, and that bar is gone since they moved into a column.
+    // It stays because it is data, not a rule -- if a short form is ever
+    // needed again, it is already there.
     if (short) label.setAttribute('data-short', short);
     trigger.appendChild(label);
     var icon = document.createElement('span');
@@ -3483,14 +3511,14 @@ __SITE_HEADER__
       ? includedSessions.filter(function (s) { return projs.indexOf(s.project) >= 0; })
       : includedSessions;
 
-    var html = '<div class="dropdown-trigger" title="Tutte le sessioni"><span class="dropdown-trigger-label" data-short="Sessioni">Tutte le sessioni</span><span class="dropdown-icon">▼</span></div>';
+    var html = '<div class="dropdown-trigger" title="' + esc(tr('dd.allSessions')) + '"><span class="dropdown-trigger-label" data-short="' + esc(tr('dd.shortSessions')) + '">' + esc(tr('dd.allSessions')) + '</span><span class="dropdown-icon">▼</span></div>';
     html += '<div class="dropdown-menu">';
 
     // Opzione "Tutte le sessioni" come pill speciale
     // [EN] "Tutte le sessioni" option as a special pill
-    html += '<div class="dropdown-item all-sessions" data-value="" data-short="Sessioni">';
-    html += '<div class="item-title">Tutte le sessioni</div>';
-    html += '<div class="item-meta">' + visibleSessions.length + ' sessioni</div>';
+    html += '<div class="dropdown-item all-sessions" data-value="" data-short="' + esc(tr('dd.shortSessions')) + '">';
+    html += '<div class="item-title">' + esc(tr('dd.allSessions')) + '</div>';
+    html += '<div class="item-meta">' + esc(tr('dd.sessionCount', visibleSessions.length)) + '</div>';
     html += '</div>';
 
     // Popola il select nascosto
@@ -3498,7 +3526,7 @@ __SITE_HEADER__
     select.options.length = 0;
     var opt = document.createElement('option');
     opt.value = '';
-    opt.textContent = 'Tutte le sessioni';
+    opt.textContent = tr('dd.allSessions');
     select.appendChild(opt);
 
     // Sessioni ordinate per ultima attività (il Python le passa già ordinate)
@@ -3517,7 +3545,7 @@ __SITE_HEADER__
       // [EN] markup (same bug already avoided in populateProjectList).
       html += '<div class="dropdown-item" data-value="' + esc(s.id) + '">';
       html += '<div class="item-title" title="' + esc(s.title) + '">' + esc(s.title) + '</div>';
-      html += '<div class="item-meta">' + s.count + ' interazioni • ' + timeStr + '</div>';
+      html += '<div class="item-meta">' + esc(tr('common.turns', s.count)) + ' • ' + timeStr + '</div>';
       html += '</div>';
 
       // Aggiungi anche al select nascosto
@@ -3552,15 +3580,23 @@ __SITE_HEADER__
     });
   }
 
+  // "5m fa", "3h ago": tre chiavi e non una frase con l'unita' dentro,
+  // perche' la forma cambia da lingua a lingua -- l'italiano mette il
+  // "fa" dopo, l'inglese l'"ago", e una lingua che lo mettesse davanti
+  // non entrerebbe in una concatenazione scritta qui.
+  // [EN] "5m fa", "3h ago": three keys and not one sentence with the unit
+  // inside, because the shape changes from language to language -- Italian
+  // puts "fa" after, English "ago", and a language putting it in front
+  // would not fit a concatenation written here.
   function formatTimeCompact(date) {
     var now = new Date();
     var diffMs = now - date;
     var diffMins = Math.floor(diffMs / 60000);
-    if (diffMins < 60) return diffMins + 'm fa';
+    if (diffMins < 60) return tr('common.agoMin', { n: diffMins });
     var diffHours = Math.floor(diffMins / 60);
-    if (diffHours < 24) return diffHours + 'h fa';
+    if (diffHours < 24) return tr('common.agoHour', { n: diffHours });
     var diffDays = Math.floor(diffHours / 24);
-    return diffDays + 'd fa';
+    return tr('common.agoDay', { n: diffDays });
   }
 
   /* Costruttore generico di dropdown a voci semplici (etichetta + valore).
@@ -3634,12 +3670,12 @@ __SITE_HEADER__
      month". The value '' means "no limit". */
   var PERIODS = {
     today: {
-      label: 'Oggi',
+      label: tr('period.today'),
       from: function () { var d = new Date(); d.setHours(0, 0, 0, 0); return d; }
     },
     week: {
-      label: 'Questa settimana',
-      short: 'Settimana',
+      label: tr('period.week'),
+      short: tr('period.weekShort'),
       from: function () {
         var d = new Date();
         d.setHours(0, 0, 0, 0);
@@ -3653,13 +3689,13 @@ __SITE_HEADER__
       }
     },
     month: {
-      label: 'Questo mese',
-      short: 'Mese',
+      label: tr('period.month'),
+      short: tr('period.monthShort'),
       from: function () { var d = new Date(); d.setHours(0, 0, 0, 0); d.setDate(1); return d; }
     },
     year: {
-      label: "Quest'anno",
-      short: 'Anno',
+      label: tr('period.year'),
+      short: tr('period.yearShort'),
       from: function () { var d = new Date(); d.setHours(0, 0, 0, 0); d.setMonth(0, 1); return d; }
     }
   };
@@ -3753,7 +3789,7 @@ __SITE_HEADER__
     // [EN] Tutte le sessioni, ...), and in compact form the whole row reads
     // [EN] with the same scheme -- Periodi, Sessioni, Modelli, Progetti,
     // [EN] Account. "Sempre" was the only entry out of tune.
-    var items = [{ value: '', label: 'Tutti i periodi', short: 'Periodi' }];
+    var items = [{ value: '', label: tr('dd.allPeriods'), short: tr('dd.shortPeriods') }];
     periodKeysOrdered().forEach(function (k) {
       items.push({ value: k, label: PERIODS[k].label, short: PERIODS[k].short });
     });
@@ -3772,7 +3808,7 @@ __SITE_HEADER__
     models.sort(function (a, b) {
       return modelShortLabel(a).localeCompare(modelShortLabel(b));
     });
-    var items = [{ value: '', label: 'Tutti i modelli', short: 'Modelli' }];
+    var items = [{ value: '', label: tr('dd.allModels'), short: tr('dd.shortModels') }];
     models.forEach(function (m) { items.push({ value: m, label: modelShortLabel(m) }); });
     buildSimpleDropdown('model-filter-custom', 'model-filter', items);
   }
@@ -3795,13 +3831,13 @@ __SITE_HEADER__
     });
     accounts.sort();
 
-    var html = '<div class="dropdown-trigger" title="Tutti gli account"><span class="dropdown-trigger-label" data-short="Account">Tutti gli account</span><span class="dropdown-icon">▼</span></div>';
+    var html = '<div class="dropdown-trigger" title="' + esc(tr('dd.allAccounts')) + '"><span class="dropdown-trigger-label" data-short="' + esc(tr('dd.shortAccounts')) + '">' + esc(tr('dd.allAccounts')) + '</span><span class="dropdown-icon">▼</span></div>';
     html += '<div class="dropdown-menu">';
 
     // Opzione "Tutti gli account"
     // [EN] "Tutti gli account" option
-    html += '<div class="dropdown-item all-sessions" data-value="" data-short="Account">';
-    html += '<div class="item-title">Tutti gli account</div>';
+    html += '<div class="dropdown-item all-sessions" data-value="" data-short="' + esc(tr('dd.shortAccounts')) + '">';
+    html += '<div class="item-title">' + esc(tr('dd.allAccounts')) + '</div>';
     html += '</div>';
 
     // Popola il select nascosto
@@ -3809,7 +3845,7 @@ __SITE_HEADER__
     select.options.length = 0;
     var opt = document.createElement('option');
     opt.value = '';
-    opt.textContent = 'Tutti gli account';
+    opt.textContent = tr('dd.allAccounts');
     select.appendChild(opt);
 
     accounts.forEach(function (acc) {
@@ -3916,7 +3952,7 @@ __SITE_HEADER__
     });
 
     if (!projects.length) {
-      list.innerHTML = '<div class="check-empty">Nessun progetto</div>';
+      list.innerHTML = '<div class="check-empty">' + esc(tr('dd.noProject')) + '</div>';
       return;
     }
 
@@ -3928,20 +3964,21 @@ __SITE_HEADER__
         '<span class="check-count">' + esc(fmtCompactTokens(tokens[p] || 0)) + '</span>' +
         '</label>' +
         '<button type="button" class="check-ban" data-exclude="' + esc(p) + '" title="' +
-        (isBanned ? 'Rimetti questo progetto fra quelli visibili' : 'Escludi sempre questo progetto') +
-        '" aria-label="' + (isBanned ? 'Rimetti ' : 'Escludi sempre ') + esc(p) + '">' +
+        esc(isBanned ? tr('dd.restoreProject') : tr('dd.excludeProject')) +
+        '" aria-label="' + esc(isBanned ? tr('dd.restoreAria', { name: p })
+                                        : tr('dd.excludeAria', { name: p })) + '">' +
         (isBanned ? '&#8634;' : '&#8856;') + '</button>' +
         '</div>';
     }
 
     var html = '<button type="button" class="check-row check-all active">' +
-      '<span class="check-name">Tutti i progetti</span>' +
+      '<span class="check-name">' + esc(tr('dd.allProjects')) + '</span>' +
       '<span class="check-count">' + choosable.length + '</span></button>';
     choosable.forEach(function (p) { html += rowHtml(p, false); });
     if (banned.length) {
       html += '<button type="button" class="check-divider check-toggle" aria-expanded="false">' +
         '<span class="check-toggle-icon">&#9656;</span>' +
-        '<span class="check-toggle-label">Esclusi sempre</span>' +
+        '<span class="check-toggle-label">' + esc(tr('dd.excludedAlways')) + '</span>' +
         '<span class="check-toggle-count">' + banned.length + '</span></button>';
       // Il doppio <div> non e' di troppo: quello fuori anima l'altezza
       // (grid-template-rows), quello dentro e' cio' che viene ritagliato
@@ -4137,28 +4174,28 @@ __SITE_HEADER__
     // [EN] measure: the cost card shows the 4 dollar amounts, the token
     // [EN] card shows the 4 counts.
     var costBreakdown = [
-      { label: 'Input', val: fmtUsd(costI), pct: fmtPct(costI, costAll) },
-      { label: 'Output', val: fmtUsd(costO), pct: fmtPct(costO, costAll) },
-      { label: 'Cache write', val: fmtUsd(costCw), pct: fmtPct(costCw, costAll) },
-      { label: 'Cache read', val: fmtUsd(costCr), pct: fmtPct(costCr, costAll) }
+      { label: tr('stats.input'), val: fmtMoney(costI), pct: fmtPct(costI, costAll) },
+      { label: tr('stats.output'), val: fmtMoney(costO), pct: fmtPct(costO, costAll) },
+      { label: tr('stats.cacheWrite'), val: fmtMoney(costCw), pct: fmtPct(costCw, costAll) },
+      { label: tr('stats.cacheRead'), val: fmtMoney(costCr), pct: fmtPct(costCr, costAll) }
     ];
     var tokenBreakdown = [
-      { label: 'Input', val: fmtInt(totI), pct: fmtPct(totI, totalAll) },
-      { label: 'Output', val: fmtInt(totO), pct: fmtPct(totO, totalAll) },
-      { label: 'Cache write', val: fmtInt(totCw), pct: fmtPct(totCw, totalAll) },
-      { label: 'Cache read', val: fmtInt(totCr), pct: fmtPct(totCr, totalAll) }
+      { label: tr('stats.input'), val: fmtInt(totI), pct: fmtPct(totI, totalAll) },
+      { label: tr('stats.output'), val: fmtInt(totO), pct: fmtPct(totO, totalAll) },
+      { label: tr('stats.cacheWrite'), val: fmtInt(totCw), pct: fmtPct(totCw, totalAll) },
+      { label: tr('stats.cacheRead'), val: fmtInt(totCr), pct: fmtPct(totCr, totalAll) }
     ];
     var heroCards = [
-      ['Costo stimato', fmtUsd(costAll), costBreakdown],
-      ['Token nuovi (input+output)', fmtInt(freshAll), tokenBreakdown]
+      [tr('stats.estCost'), fmtMoney(costAll), costBreakdown],
+      [tr('stats.freshTokens'), fmtInt(freshAll), tokenBreakdown]
     ];
     var miniCards = [
-      ['Costo oggi', fmtUsd(todayCost)],
-      ['Token oggi', fmtInt(todayTotal)],
-      ['Interazioni registrate', fmtInt(nTurns)],
-      ['Sessioni', fmtInt(nSessions)],
-      ['Media nuovi/interazione', fmtInt(avgFresh)],
-      ['Token totali (con cache)', fmtInt(totalAll)]
+      [tr('stats.costToday'), fmtMoney(todayCost)],
+      [tr('stats.tokensToday'), fmtInt(todayTotal)],
+      [tr('stats.turns'), fmtInt(nTurns)],
+      [tr('stats.sessions'), fmtInt(nSessions)],
+      [tr('stats.avgFresh'), fmtInt(avgFresh)],
+      [tr('stats.totalTokens'), fmtInt(totalAll)]
     ];
 
     // baseDelay: ritardo di partenza dell'intero gruppo, in secondi. Serve
@@ -4190,48 +4227,49 @@ __SITE_HEADER__
 
   // --- Unita' dei grafici -------------------------------------------------
   // I due grafici (barre e linea) tracciano lo stesso tipo di aggregato: un
-  // oggetto con .tot (token) e .cost (dollari). La scelta "token / dollari
-  // / euro" si riduce quindi a tre cose che cambiano -- quale numero
-  // estrarre da quell'aggregato, come formattarlo sull'asse, e come
-  // chiamarlo nel titolo. Nessuno dei due grafici sa quale unita' sia
-  // attiva: chiedono a currentUnit() e disegnano il numero che ne esce, per
-  // cui aggiungere un'unita' in futuro non tocca il codice di disegno.
+  // oggetto con .tot (token) e .cost (dollari). La scelta "costo / token"
+  // si riduce quindi a tre cose che cambiano -- quale numero estrarre da
+  // quell'aggregato, come formattarlo sull'asse, e come chiamarlo nel
+  // titolo. Nessuno dei due grafici sa quale unita' sia attiva: chiedono a
+  // currentUnit() e disegnano il numero che ne esce, per cui aggiungere
+  // un'unita' in futuro non tocca il codice di disegno.
+  // Le unita' erano tre -- dollari, euro, token -- e le prime due erano la
+  // stessa cosa vista in due valute. Adesso la valuta e' una preferenza
+  // dell'intestazione che vale per tutta la pagina, e qui resta la sola
+  // domanda che riguarda i grafici: se l'asse conti soldi o token.
   // [EN] --- Chart units ---
   // [EN] The two charts (bars and line) plot the same kind of aggregate: an
-  // [EN] object with .tot (tokens) and .cost (dollars). The "tokens /
-  // [EN] dollars / euros" choice thus boils down to three things that
-  // [EN] change -- which number to extract from that aggregate, how to
-  // [EN] format it on the axis, and what to call it in the title. Neither
-  // [EN] chart knows which unit is active: they ask currentUnit() and draw
-  // [EN] the number that comes out, so adding a unit in the future does not
-  // [EN] touch the drawing code.
+  // [EN] object with .tot (tokens) and .cost (dollars). The "cost / tokens"
+  // [EN] choice thus boils down to three things that change -- which number
+  // [EN] to extract from that aggregate, how to format it on the axis, and
+  // [EN] what to call it in the title. Neither chart knows which unit is
+  // [EN] active: they ask currentUnit() and draw the number that comes out,
+  // [EN] so adding a unit in the future does not touch the drawing code.
+  // [EN] There used to be three units -- dollars, euros, tokens -- and the
+  // [EN] first two were the same thing seen in two currencies. Now the
+  // [EN] currency is a header preference applying to the whole page, and
+  // [EN] what stays here is the only question concerning the charts:
+  // [EN] whether the axis counts money or tokens.
   var UNIT_MODES = {
-    usd: {
-      valueOf: function (d) { return d.cost; },
-      axis: function (v, scale) { return fmtMoneyAxis(v, scale, '', ' $'); },
-      barNoun: 'Costo totale',
-      lineTitle: 'Andamento costo nel tempo',
-      aria: 'Costo stimato in dollari'
-    },
-    eur: {
+    money: {
       // .cost e' in dollari: la conversione avviene qui, una volta sola,
-      // cosi' l'asse e il valore massimo ragionano gia' in euro e il resto
-      // del disegno resta identico alle altre unita'.
+      // cosi' l'asse e il valore massimo ragionano gia' nella valuta scelta
+      // e il resto del disegno resta identico all'altra unita'.
       // [EN] .cost is in dollars: the conversion happens here, once, so the
-      // [EN] axis and the max value already think in euros and the rest of
-      // [EN] the drawing stays identical to the other units.
-      valueOf: function (d) { return d.cost * USD_TO_EUR; },
-      axis: function (v, scale) { return fmtMoneyAxis(v, scale, '', ' €'); },
-      barNoun: 'Costo totale in euro',
-      lineTitle: 'Andamento costo in euro nel tempo',
-      aria: 'Costo stimato in euro'
+      // [EN] axis and the max value already think in the chosen currency
+      // [EN] and the rest of the drawing stays identical to the other unit.
+      valueOf: function (d) { return d.cost * CUR_RATE; },
+      axis: function (v, scale) { return fmtMoneyAxis(v, scale, MONEY_PRE, MONEY_POST); },
+      barNoun: tr('unitMode.barMoney'),
+      lineTitle: tr('unitMode.lineMoney'),
+      aria: tr('unitMode.ariaMoney')
     },
     tokens: {
       valueOf: function (d) { return d.tot; },
       axis: function (v) { return fmtInt(v); },
-      barNoun: 'Token totali',
-      lineTitle: 'Andamento token nel tempo',
-      aria: 'Token totali'
+      barNoun: tr('unitMode.barTokens'),
+      lineTitle: tr('unitMode.lineTokens'),
+      aria: tr('unitMode.ariaTokens')
     }
   };
 
@@ -4242,7 +4280,7 @@ __SITE_HEADER__
 
   function currentUnit() {
     var el = document.getElementById('unit-filter');
-    return UNIT_MODES[el && el.value] || UNIT_MODES.usd;
+    return UNIT_MODES[el && el.value] || UNIT_MODES.money;
   }
 
   // Un "secchio" del grafico a barre: l'aggregato di tutti i turni che
@@ -4409,9 +4447,9 @@ __SITE_HEADER__
   // [EN] groups that ended up in the tail.
   function altriTooltipHead(g, nounPlural) {
     return [
-      segB('Media di ' + g.altri + ' ' + nounPlural), segBr(),
-      seg('In totale: '), segB(fmtUsdEur(g.altriCost)),
-      seg(' \u00b7 ' + fmtInt(g.altriTot) + ' token'), segBr()
+      segB(tr('bar.avgOf', { n: g.altri, noun: nounPlural })), segBr(),
+      seg(tr('bar.inTotal')), segB(fmtMoney(g.altriCost)),
+      seg(' \u00b7 ' + tr('common.tokensStr', { n: fmtInt(g.altriTot) })), segBr()
     ];
   }
 
@@ -4428,7 +4466,7 @@ __SITE_HEADER__
   // [EN] kind of thing.
   var BAR_GROUPS = {
     day: {
-      noun: 'per giorno',
+      noun: tr('bar.perDay'),
       keyFn: function (t) { return dayKey(t.ts); },
       // Giorno e mese in cifre ("27/08"): k e' gia' "AAAA-MM-GG" con
       // entrambi a due cifre, quindi bastano le due parti in ordine
@@ -4470,7 +4508,7 @@ __SITE_HEADER__
         var sorted = keys.slice().sort();
         return {
           keys: sorted.slice(-maxBars),
-          truncLabel: sorted.length > maxBars ? ('ultimi ' + maxBars + ' giorni') : null
+          truncLabel: sorted.length > maxBars ? tr('bar.lastDays', { n: maxBars }) : null
         };
       },
       // Il giorno non e' una voce fissa della tendina Periodo: la chiave
@@ -4481,7 +4519,7 @@ __SITE_HEADER__
       tooltipHead: function (label) { return [segB(label), segBr()]; }
     },
     month: {
-      noun: 'per mese',
+      noun: tr('bar.perMonth'),
       keyFn: function (t) { return monthKey(t.ts); },
       label: function (k) { return fmtMonthShort(k); },
       rotateLabels: false,
@@ -4498,23 +4536,22 @@ __SITE_HEADER__
         var sorted = keys.slice().sort();
         return {
           keys: sorted.slice(-maxBars),
-          truncLabel: sorted.length > maxBars ? ('ultimi ' + maxBars + ' mesi') : null
+          truncLabel: sorted.length > maxBars ? tr('bar.lastMonths', { n: maxBars }) : null
         };
       },
       filterFor: function (k) { return { kind: 'period', month: k }; },
       tooltipHead: function (label, g) {
         return [
           segB(label), segBr(),
-          seg(g.nSids + (g.nSids === 1 ? ' sessione' : ' sessioni') + ' · ' +
-              g.count + (g.count === 1 ? ' interazione' : ' interazioni')), segBr()
+          seg(tr('common.sessions', g.nSids) + ' · ' + tr('common.turns', g.count)), segBr()
         ];
       }
     },
     project: {
-      noun: 'per progetto',
+      noun: tr('bar.perProject'),
       keyFn: projectOf,
       label: function (k, g) {
-        if (g.altri) { return 'Media altri (' + g.altri + ')'; }
+        if (g.altri) { return tr('bar.avgOthersProjects', { n: g.altri }); }
         return ellipsize(k, 14);
       },
       // I nomi di progetto sono lunghi e spesso si somigliano
@@ -4531,7 +4568,7 @@ __SITE_HEADER__
       // [EN] on the chosen period, and beyond a dozen the bars thin out
       // [EN] until they say nothing anymore.
       maxBars: function () { return BAR_MAX_PROJECTS; },
-      arrange: makeRankArrange(function (n) { return 'primi ' + n + ' progetti'; }),
+      arrange: makeRankArrange(function (n) { return tr('bar.topProjects', { n: n }); }),
       // La coda e' la media di piu' progetti e "(senza progetto)" non e' un
       // progetto: nessuno dei due ha una voce nella tendina Progetto, e una
       // barra che non sa dove portare non si clicca.
@@ -4543,16 +4580,15 @@ __SITE_HEADER__
         return (g.altri || k === SENZA_PROGETTO) ? null : { kind: 'project', value: k };
       },
       tooltipHead: function (label, g, key) {
-        if (g.altri) { return altriTooltipHead(g, 'altri progetti'); }
+        if (g.altri) { return altriTooltipHead(g, tr('bar.otherProjects')); }
         return [
           segB(key), segBr(),
-          seg(g.nSids + (g.nSids === 1 ? ' sessione' : ' sessioni') + ' · ' +
-              g.count + (g.count === 1 ? ' interazione' : ' interazioni')), segBr()
+          seg(tr('common.sessions', g.nSids) + ' · ' + tr('common.turns', g.count)), segBr()
         ];
       }
     },
     session: {
-      noun: 'per sessione',
+      noun: tr('bar.perSession'),
       keyFn: function (t) { return t.sid; },
       // Il titolo della sessione, non il suo UUID: sull'asse un id grezzo
       // non direbbe niente. sessionLabel ripiega comunque su "Sessione
@@ -4561,7 +4597,7 @@ __SITE_HEADER__
       // [EN] say nothing. sessionLabel still falls back to "Sessione <first
       // [EN] 8 chars>" when there is no title.
       label: function (k, g) {
-        if (g.altri) { return 'Media altre (' + g.altri + ')'; }
+        if (g.altri) { return tr('bar.avgOthersSessions', { n: g.altri }); }
         return ellipsize(sessionLabel(k), 14);
       },
       // Come i progetti: i titoli sono lunghi e dritti si accavallerebbero.
@@ -4582,15 +4618,15 @@ __SITE_HEADER__
       colorKeyFn: function (k, g) {
         return g.altri ? null : (projectById[k] || SENZA_PROGETTO);
       },
-      legendOtherLabel: function (n) { return 'altri ' + n + ' progetti'; },
+      legendOtherLabel: function (n) { return tr('bar.legendOtherProjects', { n: n }); },
       maxBars: function () { return BAR_MAX_SESSIONS; },
-      arrange: makeRankArrange(function (n) { return 'prime ' + n + ' sessioni'; }),
+      arrange: makeRankArrange(function (n) { return tr('bar.topSessions', { n: n }); }),
       // Come per i progetti: la coda e' la media di tante sessioni, non una.
       // [EN] As for projects: the tail is the average of many sessions, not
       // [EN] one of them.
       filterFor: function (k, g) { return g.altri ? null : { kind: 'session', value: k }; },
       tooltipHead: function (label, g, key) {
-        if (g.altri) { return altriTooltipHead(g, 'altre sessioni'); }
+        if (g.altri) { return altriTooltipHead(g, tr('bar.otherSessions')); }
         // Il progetto sotto il titolo: due sessioni possono chiamarsi allo
         // stesso modo, ed e' il progetto a dire quale delle due si sta
         // guardando. nSids qui e' sempre 1, quindi non lo si stampa.
@@ -4600,7 +4636,7 @@ __SITE_HEADER__
         var head = [segB(sessionLabel(key)), segBr()];
         var proj = projectById[key];
         if (proj) { head.push(seg(proj), segBr()); }
-        head.push(seg(g.count + (g.count === 1 ? ' interazione' : ' interazioni')), segBr());
+        head.push(seg(tr('common.turns', g.count)), segBr());
         return head;
       }
     }
@@ -4860,7 +4896,7 @@ __SITE_HEADER__
       var periodLabel;
       if (arranged.truncLabel) periodLabel = arranged.truncLabel;
       else if (periodKey) periodLabel = PERIODS[periodKey].label.toLowerCase();
-      else periodLabel = 'tutto lo storico';
+      else periodLabel = tr('bar.allHistory');
       titleEl.textContent = unit.barNoun + ' ' + group.noun + ' (' + periodLabel + ')';
     }
     var el = document.getElementById(cfg.chartId);
@@ -4871,11 +4907,10 @@ __SITE_HEADER__
     // and where the number that drawing would have shown is. The title and
     // the controls stay: they are the way back.
     if (barChartDead[cfg.chartId]) {
-      el.innerHTML = '<p class="empty">Con questo filtro ogni raggruppamento darebbe una barra sola: ' +
-        'il totale è nelle schede in cima alla pagina.</p>';
+      el.innerHTML = '<p class="empty">' + esc(tr('bar.singleBar')) + '</p>';
       return;
     }
-    if (!keys.length) { el.innerHTML = '<p class="empty">Nessun dato ancora.</p>'; return; }
+    if (!keys.length) { el.innerHTML = '<p class="empty">' + esc(tr('bar.noData')) + '</p>'; return; }
 
     // Le etichette inclinate scendono in diagonale sotto l'asse e vogliono
     // piu' spazio in basso. Cresce il riquadro, non si comprime il disegno:
@@ -4923,12 +4958,12 @@ __SITE_HEADER__
       var y = baseY - barH;
       var label = group.label(k, g);
       var tooltipData = simpleTooltipData(group.tooltipHead(label, g, k).concat([
-        segB(fmtUsdEur(g.cost)), segBr(),
-        seg(fmtInt(g.tot) + ' token'), segBr(),
-        seg('Input: '), segB(fmtInt(g.i)), seg(' (' + fmtUsd(g.costI) + ')'), segBr(),
-        seg('Output: '), segB(fmtInt(g.o)), seg(' (' + fmtUsd(g.costO) + ')'), segBr(),
-        seg('Cache write: '), segB(fmtInt(g.cw)), seg(' (' + fmtUsd(g.costCw) + ')'), segBr(),
-        seg('Cache read: '), segB(fmtInt(g.cr)), seg(' (' + fmtUsd(g.costCr) + ')')
+        segB(fmtMoney(g.cost)), segBr(),
+        seg(tr('common.tokensStr', { n: fmtInt(g.tot) })), segBr(),
+        seg(tr('stats.input') + ': '), segB(fmtInt(g.i)), seg(' (' + fmtMoney(g.costI) + ')'), segBr(),
+        seg(tr('stats.output') + ': '), segB(fmtInt(g.o)), seg(' (' + fmtMoney(g.costO) + ')'), segBr(),
+        seg(tr('stats.cacheWrite') + ': '), segB(fmtInt(g.cw)), seg(' (' + fmtMoney(g.costCw) + ')'), segBr(),
+        seg(tr('stats.cacheRead') + ': '), segB(fmtInt(g.cr)), seg(' (' + fmtMoney(g.costCr) + ')')
       ]));
       // Il fill va in stile inline, non in una classe: i colori arrivano
       // dalla palette a run time, una classe per tonalita' vorrebbe dire
@@ -5109,20 +5144,56 @@ __SITE_HEADER__
   // a linear scale the durations actually used (24 hours, 7 days) would all
   // be crammed into the first centimeter. With growing steps, instead,
   // every position is a round duration and you reach it without aiming.
+  // Ogni tacca dice quanto dura e in quale unita' si conta; le due
+  // etichette (lunga e corta) le compone il dizionario a partire da quei
+  // due dati. Prima ogni tacca si portava le due frasi gia' scritte:
+  // tredici tacche facevano ventisei stringhe da tradurre, e aggiungerne
+  // una ne aggiungeva altre due. Adesso sono nove frasi in tutto e una
+  // tacca nuova non ne aggiunge nessuna.
+  // [EN] Every stop states how long it lasts and in which unit it is
+  // counted; the two labels (long and short) are composed by the
+  // dictionary from those two facts. Each stop used to carry the two
+  // ready-written sentences: thirteen stops made twenty-six strings to
+  // translate, and adding one added two more. Now there are nine sentences
+  // in all and a new stop adds none.
   var RANGE_LADDER = [
-    { hours: 3, label: 'Ultime 3 ore', short: '3 ore' },
-    { hours: 6, label: 'Ultime 6 ore', short: '6 ore' },
-    { hours: 12, label: 'Ultime 12 ore', short: '12 ore' },
-    { hours: 24, label: 'Ultime 24 ore', short: '24 ore' },
-    { hours: 48, label: 'Ultimi 2 giorni', short: '2 gg' },
-    { hours: 72, label: 'Ultimi 3 giorni', short: '3 gg' },
-    { hours: 168, label: 'Ultimi 7 giorni', short: '7 gg' },
-    { hours: 336, label: 'Ultimi 14 giorni', short: '14 gg' },
-    { hours: 720, label: 'Ultimi 30 giorni', short: '30 gg' },
-    { hours: 2160, label: 'Ultimi 3 mesi', short: '3 mesi' },
-    { hours: 4320, label: 'Ultimi 6 mesi', short: '6 mesi' },
-    { hours: 8760, label: 'Ultimo anno', short: '1 anno' }
+    { hours: 3, n: 3, unit: 'Hours' },
+    { hours: 6, n: 6, unit: 'Hours' },
+    { hours: 12, n: 12, unit: 'Hours' },
+    { hours: 24, n: 24, unit: 'Hours' },
+    { hours: 48, n: 2, unit: 'Days' },
+    { hours: 72, n: 3, unit: 'Days' },
+    { hours: 168, n: 7, unit: 'Days' },
+    { hours: 336, n: 14, unit: 'Days' },
+    { hours: 720, n: 30, unit: 'Days' },
+    { hours: 2160, n: 3, unit: 'Months' },
+    { hours: 4320, n: 6, unit: 'Months' },
+    { hours: 8760, n: 1, unit: 'Year' }
   ];
+
+  // Da una tacca della scala alla tacca completa, con le sue due etichette
+  // gia' scritte. Le etichette restano PROPRIETA' della tacca e non
+  // funzioni da chiamare: mezza dozzina di punti legge step.label e
+  // step.short, e uno di loro non e' nemmeno una tacca della scala ma un
+  // periodo costruito al volo. Tenere la stessa forma per entrambi vuol
+  // dire non dover toccare nessuno di quei punti.
+  // La tacca finale ("tutto lo storico") non ha ne' un numero ne'
+  // un'unita', e per questo ha due chiavi sue invece di passare di qui.
+  // [EN] From a ladder rung to the complete stop, with its two labels
+  // already written. The labels stay PROPERTIES of the stop and not
+  // functions to call: half a dozen places read step.label and step.short,
+  // and one of them is not even a ladder rung but a period built on the
+  // fly. Keeping the same shape for both means not having to touch any of
+  // those places.
+  // The final stop ("all history") has neither a number nor a unit, and
+  // therefore has two keys of its own instead of coming through here.
+  function labelledStep(st) {
+    return {
+      hours: st.hours,
+      label: tr('range.last' + st.unit, { n: st.n }),
+      short: tr('range.short' + st.unit, { n: st.n })
+    };
+  }
   var RANGE_DEFAULT_HOURS = 24;
   var RANGE_STEPS = [];
 
@@ -5147,8 +5218,13 @@ __SITE_HEADER__
       if (ms && (!oldest || ms < oldest)) { oldest = ms; }
     });
     var spanHours = oldest ? Math.ceil((Date.now() - oldest) / 3600000) : RANGE_DEFAULT_HOURS;
-    var steps = RANGE_LADDER.filter(function (st) { return st.hours < spanHours; });
-    steps.push({ hours: Math.max(spanHours, 1), label: 'Tutto lo storico', short: 'tutto' });
+    var steps = RANGE_LADDER.filter(function (st) { return st.hours < spanHours; })
+                            .map(labelledStep);
+    steps.push({
+      hours: Math.max(spanHours, 1),
+      label: tr('range.all'),
+      short: tr('range.shortAll')
+    });
     return steps;
   }
 
@@ -5626,18 +5702,18 @@ __SITE_HEADER__
       type: 'bucket',
       session: titleText,
       start: fmtWindowTs(b.start, windowHours), end: fmtWindowTs(b.end, windowHours),
-      count: b.count, tot: fmtInt(b.tot), cost: fmtUsd(b.cost), costEur: fmtEur(b.cost),
+      count: b.count, tot: fmtInt(b.tot), cost: fmtMoney(b.cost),
       breakdown: [
-        { label: 'Input', val: fmtInt(b.i), cost: fmtUsd(b.costI) },
-        { label: 'Output', val: fmtInt(b.o), cost: fmtUsd(b.costO) },
-        { label: 'Cache write', val: fmtInt(b.cw), cost: fmtUsd(b.costCw) },
-        { label: 'Cache read', val: fmtInt(b.cr), cost: fmtUsd(b.costCr) }
+        { label: tr('stats.input'), val: fmtInt(b.i), cost: fmtMoney(b.costI) },
+        { label: tr('stats.output'), val: fmtInt(b.o), cost: fmtMoney(b.costO) },
+        { label: tr('stats.cacheWrite'), val: fmtInt(b.cw), cost: fmtMoney(b.costCw) },
+        { label: tr('stats.cacheRead'), val: fmtInt(b.cr), cost: fmtMoney(b.costCr) }
       ],
       turns: b.turns.map(function (t) {
         return {
           ts: fmtTurnTs(parseTs(t.ts), windowHours),
-          req: t.sum || '(nessuna richiesta registrata)',
-          cost: fmtUsd(turnCostUsd(t))
+          req: t.sum || tr('tt.noRequest'),
+          cost: fmtMoney(turnCostUsd(t))
         };
       })
     };
@@ -5684,7 +5760,7 @@ __SITE_HEADER__
     session: {
       keyFn: function (t) { return t.sid; },
       titleFn: function (b) { return sessionLabel(b.groupId); },
-      scopeLabel: 'Totale dell’intera sessione',
+      scopeLabel: tr('line.scopeSession'),
       // Nella legenda serve un nome leggibile: l'id di una sessione e' un
       // uuid. Il taglio non serve a farci stare le voci (la legenda va a
       // capo da sola) ma a impedire che un titolo lunghissimo si prenda una
@@ -5694,8 +5770,8 @@ __SITE_HEADER__
       // [EN] its own) but to keep a very long title from taking a whole row
       // [EN] to itself; the full name stays in the native "title".
       legendLabel: function (gid) { return ellipsize(sessionLabel(gid), 28); },
-      legendOtherLabel: function (n) { return 'altre ' + n + ' sessioni'; },
-      filterFor: function (gid) { return { kind: 'session', value: gid, label: 'questa sessione' }; },
+      legendOtherLabel: function (n) { return tr('bar.legendOtherSessions', { n: n }); },
+      filterFor: function (gid) { return { kind: 'session', value: gid, label: tr('line.thisSession') }; },
       // Solo qui: su finestre larghe le sessioni non hanno abbastanza
       // intervalli per essere linee (vedi seriesAreDegenerate). Modelli e
       // progetti sono pochi valori distinti che coprono tutta la finestra, e
@@ -5711,9 +5787,9 @@ __SITE_HEADER__
       titleFn: function (b) {
         var seen = {}; var n = 0;
         b.turns.forEach(function (t) { if (!seen[t.sid]) { seen[t.sid] = true; n++; } });
-        return n === 1 ? sessionLabel(b.turns[0].sid) : (n + ' sessioni');
+        return n === 1 ? sessionLabel(b.turns[0].sid) : tr('common.sessions', n);
       },
-      scopeLabel: 'Totale complessivo'
+      scopeLabel: tr('line.scopeAll')
     },
     model: {
       // Nome leggibile (stesso helper usato dalla tabella interazioni),
@@ -5724,12 +5800,12 @@ __SITE_HEADER__
       // [EN] future multiple raw keys appear for the same model.
       keyFn: function (t) { return modelShortLabel(t.model); },
       titleFn: function (b) { return b.groupId; },
-      scopeLabel: 'Totale per questo modello',
+      scopeLabel: tr('line.scopeModel'),
       legendLabel: function (gid) { return ellipsize(gid, 28); },
-      legendOtherLabel: function (n) { return 'altri ' + n + ' modelli'; },
+      legendOtherLabel: function (n) { return tr('bar.legendOtherModels', { n: n }); },
       filterFor: function (gid) {
         var key = modelKeyForLabel(gid);
-        return key ? { kind: 'model', value: key, label: 'questo modello' } : null;
+        return key ? { kind: 'model', value: key, label: tr('line.thisModel') } : null;
       }
     },
     project: {
@@ -5743,15 +5819,15 @@ __SITE_HEADER__
       // [EN] while the bar chart above gives its total.
       keyFn: projectOf,
       titleFn: function (b) { return b.groupId; },
-      scopeLabel: 'Totale dell’intero progetto',
+      scopeLabel: tr('line.scopeProject'),
       legendLabel: function (gid) { return ellipsize(gid, 28); },
-      legendOtherLabel: function (n) { return 'altri ' + n + ' progetti'; },
+      legendOtherLabel: function (n) { return tr('bar.legendOtherProjects', { n: n }); },
       // "(senza progetto)" non e' un progetto e non ha una voce nella
       // tendina: come per il grafico a barre, li' non si filtra.
       // [EN] "(senza progetto)" is not a project and has no entry in the
       // [EN] dropdown: as for the bar chart, there is nothing to filter on.
       filterFor: function (gid) {
-        return gid === SENZA_PROGETTO ? null : { kind: 'project', value: gid, label: 'questo progetto' };
+        return gid === SENZA_PROGETTO ? null : { kind: 'project', value: gid, label: tr('line.thisProject') };
       }
     }
   };
@@ -5846,23 +5922,25 @@ __SITE_HEADER__
     // [EN] say the same thing twice).
     var windowNote = null;
     if (totals.cost - windowCost > 0.005 || totals.count !== windowCount) {
-      windowNote = 'Nel periodo mostrato (' + windowLabel.toLowerCase() + '): ' + fmtUsd(windowCost) +
-        ' su ' + windowCount + (windowCount === 1 ? ' interazione' : ' interazioni') + '.';
+      windowNote = tr('tt.windowNote', {
+        period: windowLabel.toLowerCase(),
+        cost: fmtMoney(windowCost),
+        turns: tr('common.turns', windowCount)
+      });
     }
     return {
       type: 'group',
       title: title,
       scope: scopeLabel,
       count: totals.count,
-      span: totals.count ? ('dal ' + fmtTs(totals.firstTs) + ' al ' + fmtTs(totals.lastTs)) : '',
-      cost: fmtUsd(totals.cost),
-      costEur: fmtEur(totals.cost),
+      span: totals.count ? tr('tt.span', { from: fmtTs(totals.firstTs), to: fmtTs(totals.lastTs) }) : '',
+      cost: fmtMoney(totals.cost),
       tot: fmtInt(totals.tot),
       breakdown: [
-        { label: 'Input', val: fmtInt(totals.i), cost: fmtUsd(totals.costI) },
-        { label: 'Output', val: fmtInt(totals.o), cost: fmtUsd(totals.costO) },
-        { label: 'Cache write', val: fmtInt(totals.cw), cost: fmtUsd(totals.costCw) },
-        { label: 'Cache read', val: fmtInt(totals.cr), cost: fmtUsd(totals.costCr) }
+        { label: tr('stats.input'), val: fmtInt(totals.i), cost: fmtMoney(totals.costI) },
+        { label: tr('stats.output'), val: fmtInt(totals.o), cost: fmtMoney(totals.costO) },
+        { label: tr('stats.cacheWrite'), val: fmtInt(totals.cw), cost: fmtMoney(totals.costCw) },
+        { label: tr('stats.cacheRead'), val: fmtInt(totals.cr), cost: fmtMoney(totals.costCr) }
       ],
       windowNote: windowNote,
       // Su cosa filtrare la pagina se si sceglie l'azione in fondo al
@@ -5997,7 +6075,7 @@ __SITE_HEADER__
     // [EN] groups from a previous drawing.
     groupTooltips = [];
     if (buckets.length < 2) {
-      el.innerHTML = '<p class="empty">Nessuna interazione a sufficienza per il grafico (' +
+      el.innerHTML = '<p class="empty">' + esc(tr('line.notEnough')) + ' (' +
         esc(rangeStep.label.toLowerCase()) + ').</p>';
       return;
     }
@@ -6187,10 +6265,10 @@ __SITE_HEADER__
     }
 
     function tailLabelOf(m) {
-      return m.legendOtherLabel ? m.legendOtherLabel(nTail) : ('altri ' + nTail);
+      return m.legendOtherLabel ? m.legendOtherLabel(nTail) : tr('bar.legendOtherGeneric', { n: nTail });
     }
 
-    var svg = '<svg viewBox="0 0 ' + width + ' ' + height + '" class="chart" role="img" aria-label="' + esc(unit.aria) + ' nel tempo">';
+    var svg = '<svg viewBox="0 0 ' + width + ' ' + height + '" class="chart" role="img" aria-label="' + esc(tr('line.ariaOverTime', { what: unit.aria })) + '">';
     // Le tacche le decide l'asse: quattro equispaziate in lineare, una per
     // decade in logaritmica. Come nel grafico a barre, niente Math.round,
     // che azzererebbe tutte le tacche di un asse in valuta da pochi
@@ -6247,7 +6325,7 @@ __SITE_HEADER__
       var isTail = gid === LINE_TAIL_KEY;
       var totals = isTail ? totalsFromBuckets(pts) : (allTotals[gid] || newGroupAcc());
       var title = isTail ? tailLabelOf(mode) : mode.titleFn({ groupId: gid, turns: totals.turns });
-      var scope = isTail ? 'Totale nel periodo mostrato' : mode.scopeLabel;
+      var scope = isTail ? tr('line.scopeTail') : mode.scopeLabel;
       groupTooltips.push(groupTooltipData(totals, title, scope,
         isTail ? totals.cost : windowCost,
         isTail ? totals.count : windowCount, rangeStep.label,
@@ -6521,14 +6599,22 @@ __SITE_HEADER__
     return map;
   }
 
-  // Celle della tabella turni: devono restare identiche al <thead> statico
-  // nell'HTML (vedi TEMPLATE Python) -- riusate qui per la riga di
-  // intestazione ripetuta sotto ogni turno espanso.
+  // Celle della tabella turni: leggono le stesse chiavi del <thead>
+  // statico nell'HTML (vedi TEMPLATE Python) -- riusate qui per la riga di
+  // intestazione ripetuta sotto ogni turno espanso. Le chiavi condivise
+  // sono cio' che le tiene allineate: una traduzione che manca, manca in
+  // tutti e due i posti insieme, invece di farli divergere in una lingua
+  // sola -- che sarebbe il caso peggiore, perche' invisibile nell'altra.
   // [EN] Turns table cells: they must stay identical to the static <thead>
   // [EN] in the HTML (see the Python TEMPLATE) -- reused here for the
   // [EN] repeated header row under each expanded turn.
-  var TURNS_HEADER_CELLS_HTML = '<th class="expand-col"></th><th>Data e ora</th><th>Sessione</th><th>Richiesta</th>' +
-    '<th>Modello</th><th class="num">Totale</th><th class="num">Costo</th>';
+  var TURNS_HEADER_CELLS_HTML = '<th class="expand-col"></th>' +
+    '<th>' + tr('turns.colTs') + '</th>' +
+    '<th>' + tr('turns.colSession') + '</th>' +
+    '<th>' + tr('turns.colRequest') + '</th>' +
+    '<th>' + tr('turns.colModel') + '</th>' +
+    '<th class="num">' + tr('turns.colTotal') + '</th>' +
+    '<th class="num">' + tr('turns.colCost') + '</th>';
 
   // Dettaglio Input/Output/Cache write/Cache read non occupa piu' colonne
   // proprie (rendeva la riga illeggibile): resta consultabile al passaggio
@@ -6543,10 +6629,10 @@ __SITE_HEADER__
     var costCw = cacheWriteCostUsd(t, p);
     var costCr = (t.cr / 1e6) * p.cacheRead;
     return simpleTooltipData([
-      seg('Input: '), segB(fmtInt(t.i)), seg(' (' + fmtUsd(costI) + ')'), segBr(),
-      seg('Output: '), segB(fmtInt(t.o)), seg(' (' + fmtUsd(costO) + ')'), segBr(),
-      seg('Cache write: '), segB(fmtInt(t.cw)), seg(' (' + fmtUsd(costCw) + ')'), segBr(),
-      seg('Cache read: '), segB(fmtInt(t.cr)), seg(' (' + fmtUsd(costCr) + ')')
+      seg(tr('stats.input') + ': '), segB(fmtInt(t.i)), seg(' (' + fmtMoney(costI) + ')'), segBr(),
+      seg(tr('stats.output') + ': '), segB(fmtInt(t.o)), seg(' (' + fmtMoney(costO) + ')'), segBr(),
+      seg(tr('stats.cacheWrite') + ': '), segB(fmtInt(t.cw)), seg(' (' + fmtMoney(costCw) + ')'), segBr(),
+      seg(tr('stats.cacheRead') + ': '), segB(fmtInt(t.cr)), seg(' (' + fmtMoney(costCr) + ')')
     ]);
   }
 
@@ -6620,8 +6706,8 @@ __SITE_HEADER__
       // [EN] alarming.
       tbody.innerHTML = '<tr><td colspan="7" class="empty">' +
         (turns.length
-          ? 'Nessuna interazione corrisponde ai filtri scelti.'
-          : 'Nessuna interazione registrata ancora.') +
+          ? tr('turns.emptyFiltered')
+          : tr('turns.emptyNone')) +
         '</td></tr>';
       if (pager) pager.hidden = true;
       return;
@@ -6686,12 +6772,14 @@ __SITE_HEADER__
 
     var from = turnsState.page * TURNS_PAGE_SIZE + 1;
     var to = Math.min(from + TURNS_PAGE_SIZE - 1, total);
-    info.textContent = from + '–' + to + ' di ' + total +
-      (totalPages > 1 ? '  ·  pagina ' + (turnsState.page + 1) + ' di ' + totalPages : '');
+    info.textContent = tr('turns.pageInfo', { from: from, to: to, total: total }) +
+      (totalPages > 1
+        ? tr('turns.pageOf', { page: turnsState.page + 1, total: totalPages })
+        : '');
 
     if (totalPages < 2) { pages.innerHTML = ''; return; }
 
-    var html = '<button type="button" class="page-btn" data-goto="prev" aria-label="Pagina precedente"' +
+    var html = '<button type="button" class="page-btn" data-goto="prev" aria-label="' + esc(tr('turns.prevPage')) + '"' +
       (turnsState.page === 0 ? ' disabled' : '') + '>‹</button>';
     pageButtonsModel(turnsState.page, totalPages).forEach(function (item) {
       if (item.gap) { html += '<span class="page-gap">…</span>'; return; }
@@ -6700,7 +6788,7 @@ __SITE_HEADER__
         '" data-goto="' + item.page + '"' + (isCurrent ? ' aria-current="page"' : '') +
         '>' + (item.page + 1) + '</button>';
     });
-    html += '<button type="button" class="page-btn" data-goto="next" aria-label="Pagina successiva"' +
+    html += '<button type="button" class="page-btn" data-goto="next" aria-label="' + esc(tr('turns.nextPage')) + '"' +
       (turnsState.page >= totalPages - 1 ? ' disabled' : '') + '>›</button>';
     pages.innerHTML = html;
   }
@@ -6739,21 +6827,23 @@ __SITE_HEADER__
       html += '<tr class="' + rowCls + '"' + rowStyle + ' data-target="' + rowId + '">' +
         '<td class="expand-toggle">&#9654;</td>' +
         '<td class="ts">' + esc(fmtTs(t.ts)) + '</td>' +
-        '<td class="session" data-tooltip="' + tooltipAttr(simpleTooltipData([segB(sessionLabel(t.sid)), { br: true }, seg('Sessione: '), seg(t.sid)])) + '">' + sessionCellHtml(t.sid, t.acc) + '</td>' +
+        '<td class="session" data-tooltip="' + tooltipAttr(simpleTooltipData([segB(sessionLabel(t.sid)), { br: true }, seg(tr('tt.sessionId')), seg(t.sid)])) + '">' + sessionCellHtml(t.sid, t.acc) + '</td>' +
         '<td class="summary" data-tooltip="' + tooltipAttr(simpleTooltipData([seg(summaryText)])) + '">' + esc(summaryText) + '</td>' +
         '<td class="model">' + esc(modelShortLabel(t.model)) + '</td>' +
         '<td class="num total" data-tooltip="' + tooltipAttr(totaleTooltipData(t)) + '">' + fmtInt(t.tot) + '</td>' +
-        '<td class="num">' + fmtUsd(turnCostUsd(t)) + '</td></tr>';
+        '<td class="num">' + fmtMoney(turnCostUsd(t)) + '</td></tr>';
       html += '<tr class="actions-row" id="' + rowId + '"><td colspan="7"><div class="actions-reveal">';
       if (actions.length) {
         html += '<div class="actions-nested"><table><colgroup><col style="width:92px"><col style="width:190px"><col><col style="width:64px"></colgroup>' +
-          '<thead><tr><th>Timestamp</th><th>Tool</th><th>Target</th><th>Costo</th></tr></thead><tbody>' +
+          '<thead><tr><th>' + esc(tr('turns.actTimestamp')) + '</th><th>' +
+          esc(tr('turns.actTool')) + '</th><th>' + esc(tr('turns.actTarget')) +
+          '</th><th>' + esc(tr('turns.actCost')) + '</th></tr></thead><tbody>' +
           actions.map(function (a) {
             return '<tr><td class="ts">' + esc(fmtTimeFull(a.ts)) + '</td><td>' + esc(a.tool) + '</td><td class="target">' + esc(a.target) +
               '</td><td>' + actionCostCell(a) + '</td></tr>';
           }).join('') + '</tbody></table></div>';
       } else {
-        html += '<div class="actions-empty">Nessuna azione registrata per questa interazione.</div>';
+        html += '<div class="actions-empty">' + esc(tr('turns.noActions')) + '</div>';
       }
       html += '</div></td></tr>';
       // Intestazione ripetuta, visibile solo insieme al dettaglio espanso:
@@ -7120,8 +7210,20 @@ __SITE_HEADER__
       document.getElementById(cfg.selectId).value = v;
       setSegmentedControl(cfg.customId, v);
     });
-    if (restoredFilters.unit) {
-      document.getElementById('unit-filter').value = restoredFilters.unit;
+    // Si ripristina solo un valore che esiste ancora. Le unita' sono
+    // cambiate una volta (dollari/euro/token sono diventati costo/token) e
+    // possono cambiare di nuovo: una scheda rimasta aperta attraverso una
+    // rigenerazione riporterebbe indietro un valore che non c'e' piu', e il
+    // controllo resterebbe senza nessun bottone acceso.
+    // [EN] Only a value that still exists is restored. The units changed
+    // once (dollars/euros/tokens became cost/tokens) and can change again:
+    // a tab left open across a regeneration would bring back a value that
+    // no longer exists, and the control would be left with no lit button.
+    var unitSelect = document.getElementById('unit-filter');
+    var unitOk = restoredFilters.unit && [].some.call(unitSelect.options,
+      function (o) { return o.value === restoredFilters.unit; });
+    if (unitOk) {
+      unitSelect.value = restoredFilters.unit;
       setSegmentedControl('unit-filter-custom', restoredFilters.unit);
     }
     if (restoredFilters.period) { ensureSavedPeriod(restoredFilters.period); }
@@ -7426,11 +7528,12 @@ __SITE_HEADER__
     return false;
   }
 
-  function reloadPreservingFilters() {
+  function saveFiltersForReload() {
     try {
-      // Questo e' un ricaricamento "di servizio" (automatico o chiesto col
-      // bottone): la pagina non deve rifare tutta la sua entrata animata
-      // solo perche' sono cambiati dei numeri. La chiave viene letta e
+      // Questo e' un ricaricamento "di servizio" (automatico, chiesto col
+      // bottone, oppure provocato da un cambio di lingua): la pagina non
+      // deve rifare tutta la sua entrata animata solo perche' sono
+      // cambiati dei numeri o la lingua in cui sono scritti. La chiave viene letta e
       // cancellata dallo script in <head> (REVEAL_BOOT in header.py),
       // quindi vale per un solo caricamento: un F5 dato a mano rivede
       // l'animazione.
@@ -7457,8 +7560,30 @@ __SITE_HEADER__
         pageSize: document.getElementById('page-size-filter').value
       }));
     } catch (e) {}
+  }
+
+  function reloadPreservingFilters() {
+    saveFiltersForReload();
     location.reload();
   }
+
+  // Il cambio di lingua vive in header.py, perche' lo switch sta
+  // nell'intestazione ed e' condiviso con le altre due pagine: da li' non
+  // si puo' chiamare niente che esista solo qui. Quindi e' la dashboard a
+  // farsi avanti, appendendo il proprio salvataggio a window: chi cambia
+  // lingua lo cerca, e se lo trova lo usa.
+  // Cosi' le altre due pagine non hanno bisogno di nessun caso speciale --
+  // non hanno stato da conservare, semplicemente non definiscono niente e
+  // il cambio di lingua ricarica e basta.
+  // [EN] The language change lives in header.py, because the switch sits
+  // in the header and is shared with the other two pages: from there
+  // nothing that exists only here can be called. So it is the dashboard
+  // that steps forward, hanging its own saver on window: whoever changes
+  // language looks for it, and uses it if found.
+  // This way the other two pages need no special case -- they have no
+  // state to preserve, they simply define nothing and the language change
+  // just reloads.
+  window.__saveStateForReload = saveFiltersForReload;
 
   function cancelAwayReload() {
     if (awayTimer) { clearTimeout(awayTimer); awayTimer = null; }
@@ -7488,8 +7613,7 @@ __SITE_HEADER__
   function markStale() {
     if (statusPill) {
       statusPill.classList.add('stale');
-      statusPill.title = "Questi numeri sono quelli letti all'ora indicata: "
-        + 'nel frattempo potrebbero essercene di nuovi. Premi Aggiorna per rileggerli.';
+      statusPill.title = tr('misc.stale', { refresh: tr('header.refresh') });
     }
     if (refreshBtn) refreshBtn.hidden = false;
   }

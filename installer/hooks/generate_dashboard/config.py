@@ -146,9 +146,36 @@ except (OSError, json.JSONDecodeError):
 # means "use out_dir from the config if present and non-empty,
 # otherwise use the default path".
 OUT_DIR = _CONFIG.get("out_dir") or os.path.join(HOME, ".claude", "dashboard-token")
+
+# Lingua preferita per i messaggi a terminale: {"lang": "en"} nello stesso
+# file di configurazione. Vale SOLO per il terminale -- le pagine hanno il
+# loro switch e ricordano la scelta nel browser, quindi non guardano qui.
+# Stringa vuota (e non un default "it"/"en") quando la chiave non c'e':
+# "nessuna preferenza espressa" e' un'informazione diversa da "vuole
+# l'inglese", e la catena di ripiego in i18n.cli_lang() ha altri tre indizi
+# da consultare prima di arrendersi.
+# [EN] Preferred language for the terminal messages: {"lang": "en"} in the
+# same configuration file. It applies ONLY to the terminal -- the pages
+# have their own switch and remember the choice in the browser, so they do
+# not look here. An empty string (and not a default "it"/"en") when the key
+# is absent: "no preference expressed" is different information from "wants
+# English", and the fallback chain in i18n.cli_lang() has three more clues
+# to consult before giving up.
+LANG = _CONFIG.get("lang") or ""
 OUT_HTML = os.path.join(OUT_DIR, "dashboard.html")
 OUT_PRICING_HTML = os.path.join(OUT_DIR, "pricing.html")
 OUT_GUIDE_HTML = os.path.join(OUT_DIR, "guida-costi.html")
+# La guida esiste in due file, uno per lingua, e non in uno solo tradotto a
+# runtime come le altre due pagine: e' prosa lunga, non etichette, e il
+# perche' della scelta sta nel docstring di templates/guide.en.html --
+# ovvero nello script che l'ha generata. Il nome del file inglese e' in
+# inglese: chi ci arriva da un link deve poterlo riconoscere.
+# [EN] The guide exists as two files, one per language, and not as a single
+# one translated at runtime like the other two pages: it is long prose, not
+# labels, and the reason for the choice is explained where that file was
+# generated. The English file has an English name: whoever arrives from a
+# link should be able to recognise it.
+OUT_GUIDE_HTML_EN = os.path.join(OUT_DIR, "cost-guide.html")
 
 # File JS separati, caricati dalle pagine con <script src="...">: tenendo
 # fuori dai 3 file .html sia i dati di sessione (grosso payload che cambia
@@ -165,6 +192,19 @@ OUT_GUIDE_HTML = os.path.join(OUT_DIR, "guida-costi.html")
 # time changing on their own.
 OUT_DATA_JS = os.path.join(OUT_DIR, "dashboard-data.js")
 OUT_META_JS = os.path.join(OUT_DIR, "site-meta.js")
+
+# Le stringhe tradotte di TUTTE le lingue, in un unico file caricato dalle
+# tre pagine. Sta qui fuori e non dentro i .html per la stessa ragione dei
+# due sopra: il dizionario cambia ad ogni ritocco a una traduzione, e se
+# fosse incollato nei template ogni sua modifica produrrebbe un diff su
+# tutte e tre le pagine fatto solo di quello. Vedi i18n.js_payload().
+# [EN] The translated strings of ALL languages, in a single file loaded by
+# the three pages. It lives out here and not inside the .html for the same
+# reason as the two above: the dictionary changes at every tweak to a
+# translation, and if it were pasted into the templates every such change
+# would produce a diff on all three pages made of nothing else. See
+# i18n.js_payload().
+OUT_I18N_JS = os.path.join(OUT_DIR, "site-i18n.js")
 
 
 def _cartelle_log_app():

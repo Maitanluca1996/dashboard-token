@@ -7,7 +7,7 @@ Un solo binario fa tutto, distinguendo il compito dal primo argomento:
     dashboard-token log-tokens      hook Stop -- lo chiama Claude Code
     dashboard-token log-operation   hook PostToolUse -- lo chiama Claude Code
     dashboard-token backfill        recupera lo storico dalle sessioni gia' aperte
-    dashboard-token config          le due personalizzazioni facoltative
+    dashboard-token config          le tre personalizzazioni facoltative
     dashboard-token self-update     controlla e installa una versione nuova
     dashboard-token version         stampa la versione e i percorsi
 
@@ -25,7 +25,7 @@ One binary does everything, telling the tasks apart by the first argument:
     dashboard-token log-tokens      Stop hook -- invoked by Claude Code
     dashboard-token log-operation   PostToolUse hook -- invoked by Claude Code
     dashboard-token backfill        recovers history from sessions already open
-    dashboard-token config          the two optional customizations
+    dashboard-token config          the three optional customizations
     dashboard-token self-update     checks for and installs a new version
     dashboard-token version         prints the version and the paths
 
@@ -72,26 +72,38 @@ import setup_hooks  # noqa: E402
 import updater      # noqa: E402
 import version      # noqa: E402
 
-# Testo di aiuto scritto per esteso invece di ricavarlo da __doc__: se un
-# giorno la build usasse l'ottimizzazione -OO di Python, le docstring
+# Il testo di aiuto non e' piu' una costante qui: sta nel dizionario, sotto
+# la chiave "usage", perche' va tradotto come tutto il resto. Resta pero'
+# scritto per esteso e non ricavato da __doc__, per la ragione di sempre: se
+# un giorno la build usasse l'ottimizzazione -OO di Python, le docstring
 # verrebbero eliminate dal binario e __doc__ sarebbe None.
-# [EN] Help text written out in full instead of deriving it from __doc__:
-# if one day the build used Python's -OO optimization, docstrings would be
-# stripped from the binary and __doc__ would be None.
-USAGE = """dashboard-token -- dashboard consumi token di Claude Code
+# [EN] The help text is no longer a constant here: it lives in the
+# dictionary, under the "usage" key, because it must be translated like
+# everything else. It stays written out in full and not derived from
+# __doc__, for the usual reason: if one day the build used Python's -OO
+# optimization, docstrings would be stripped from the binary and __doc__
+# would be None.
+def _T():
+    """Il traduttore dei messaggi, legato alla lingua scelta per il
+    terminale.
 
-  dashboard-token                 doppio click: sull'installer scaricato
-                                  installa, sull'app installata controlla
-                                  e applica gli aggiornamenti
-  dashboard-token install         installa, da riga di comando (--no-pause per la CI)
-  dashboard-token log-tokens      hook Stop -- lo chiama Claude Code
-  dashboard-token log-operation   hook PostToolUse -- lo chiama Claude Code
-  dashboard-token backfill        ricostruisce lo storico dai transcript delle
-                                  sessioni gia' aperte prima dell'installazione
-                                  (--dry-run per vedere l'effetto senza scrivere)
-  dashboard-token config          le due personalizzazioni facoltative
-  dashboard-token self-update     controlla e installa una versione nuova (-v)
-  dashboard-token version         stampa la versione e i percorsi"""
+    L'import di generate_dashboard sta DENTRO la funzione e non in cima al
+    file: in cima il package non e' ancora raggiungibile, perche' e'
+    _prepare_import_path() a metterlo nel percorso di ricerca, e quello gira
+    dopo. E' lo stesso motivo per cui gli altri import del package, qui
+    dentro, sono tutti dentro le funzioni che li usano.
+
+    [EN] The message translator, bound to the language chosen for the
+    terminal.
+
+    The generate_dashboard import lives INSIDE the function and not at the
+    top of the file: at the top the package is not reachable yet, because it
+    is _prepare_import_path() that puts it on the search path, and that runs
+    later. It is the same reason the other package imports in here are all
+    inside the functions that use them.
+    """
+    from generate_dashboard import i18n
+    return i18n.translator(i18n.cli_lang())
 
 
 def _run_log_tokens():
@@ -213,43 +225,77 @@ def _configure():
     labels_path = os.path.join(paths.HOOKS_DIR, "account_labels.json")
     default_out = os.path.join(paths.CLAUDE_DIR, "dashboard-token")
 
-    print("== Personalizzazioni facoltative ==")
-    print("Premi INVIO per lasciare tutto com'e'.")
+    from generate_dashboard import i18n
+    T = _T()
+
+    print(T("cfg.title"))
+    print(T("cfg.enterKeeps"))
     print("")
 
     config = _read_json(config_path)
     current = config.get("out_dir") or default_out
-    print("Cartella in cui vengono generate le pagine HTML.")
-    print("  attuale: {}".format(current))
-    answer = input("  nuova (INVIO = lascia, - = torna al default): ").strip()
+    print(T("cfg.outDir"))
+    print(T("cfg.current", valore=current))
+    answer = input(T("cfg.outDirPrompt")).strip()
     if answer == "-":
         config.pop("out_dir", None)
         _write_json(config_path, config)
-        print("  -> tornata al default.")
+        print(T("cfg.backToDefault"))
     elif answer:
         config["out_dir"] = answer
         _write_json(config_path, config)
-        print("  -> impostata.")
+        print(T("cfg.set"))
+
+    # La lingua dei messaggi a terminale. Le pagine non la leggono da qui:
+    # hanno il loro switch e ricordano la scelta nel browser. Questa vale
+    # solo per il terminale, ed e' il modo di dirlo una volta per sempre su
+    # questa macchina; per un singolo comando basta la variabile d'ambiente
+    # DASHBOARD_TOKEN_LANG (vedi i18n.cli_lang).
+    # "-" toglie la chiave invece di scrivere un valore: senza preferenza
+    # scritta si torna a dedurla dal sistema operativo, che e' una cosa
+    # diversa dallo scegliere l'inglese.
+    # [EN] The language of the terminal messages. The pages do not read it
+    # from here: they have their own switch and remember the choice in the
+    # browser. This one applies to the terminal only, and it is the way to
+    # say it once and for all on this machine; for a single command the
+    # DASHBOARD_TOKEN_LANG environment variable is enough (see
+    # i18n.cli_lang).
+    # "-" removes the key instead of writing a value: with no preference
+    # written we go back to deducing it from the operating system, which is
+    # a different thing from choosing English.
+    print("")
+    print(T("cfg.langTitle"))
+    print(T("cfg.current",
+            valore=config.get("lang") or T("cfg.langAuto")))
+    answer = input(T("cfg.langPrompt", lingue="/".join(i18n.LANGS))).strip()
+    if answer == "-":
+        config.pop("lang", None)
+        _write_json(config_path, config)
+        print(T("cfg.backToDefault"))
+    elif answer and i18n.normalize(answer):
+        config["lang"] = i18n.normalize(answer)
+        _write_json(config_path, config)
+        print(T("cfg.set"))
 
     accounts = _known_accounts()
     if accounts:
         print("")
-        print("Etichette per gli account Claude visti su questo PC.")
+        print(T("cfg.labels"))
         labels = _read_json(labels_path)
         changed = False
         for uuid in accounts:
             current_label = labels.get(uuid, "")
-            prompt = "  {} [{}]: ".format(uuid, current_label or "nessuna etichetta")
+            prompt = "  {} [{}]: ".format(uuid, current_label or T("cfg.noLabel"))
             answer = input(prompt).strip()
             if answer:
                 labels[uuid] = answer
                 changed = True
         if changed:
             _write_json(labels_path, labels)
-            print("  -> etichette salvate.")
+            print(T("cfg.labelsSaved"))
 
     print("")
-    print("Fatto. Le modifiche valgono dalla prossima generazione della dashboard.")
+    print(T("cfg.done"))
     return 0
 
 
@@ -277,12 +323,82 @@ def _selftest():
     from generate_dashboard import backfill  # noqa: F401
     from generate_dashboard import templating
 
-    for name in ("dashboard.html", "pricing.html", "guide.html"):
+    for name in ("dashboard.html", "pricing.html", "guide.html",
+                 "guide.en.html"):
         body = templating.load_template(name)
         if not body.strip():
             print("FALLITO: template {} vuoto".format(name))
             return 1
         print("  template {}: {} byte".format(name, len(body)))
+
+    # Le due guide sono lo stesso documento in due lingue, e devono restare
+    # la stessa STRUTTURA: e' il prezzo di averle come due file invece che
+    # come un template solo tradotto a runtime (il perche' di quella scelta
+    # e' nel docstring di render_guide.render).
+    # Il confronto guarda gli id delle sezioni, che sono anche le ancore dei
+    # collegamenti interni e i bersagli degli aria-controls dei bottoni: se
+    # divergono, in una delle due lingue un bottone smette di dire a quale
+    # riquadro appartiene, e un collegamento porta nel vuoto. Sono guasti
+    # che nessuno nota rileggendo la traduzione, e che invece qui saltano
+    # fuori subito.
+    # Lo stile non ha bisogno di controlli: vive in guide_css.py, e i due
+    # template lo richiamano invece di portarselo scritto dentro.
+    # [EN] The two guides are the same document in two languages, and must
+    # stay the same STRUCTURE: that is the price of having them as two files
+    # rather than one template translated at runtime (why that choice was
+    # made is in render_guide.render's docstring).
+    # The comparison looks at the sections' ids, which are also the anchors
+    # of the internal links and the targets of the buttons' aria-controls:
+    # if they diverge, in one of the two languages a button stops saying
+    # which panel it belongs to, and a link leads nowhere. These are faults
+    # nobody notices while re-reading the translation, and which instead
+    # show up here immediately.
+    # The style needs no check: it lives in guide_css.py, and the two
+    # templates call it in rather than carrying it written inside.
+    import re
+
+    def _ids(name):
+        body = templating.load_template(name)
+        return (sorted(re.findall(r'id="([^"]+)"', body)),
+                sorted(re.findall(r'aria-controls="([^"]+)"', body)))
+
+    it_ids, it_ctrl = _ids("guide.html")
+    en_ids, en_ctrl = _ids("guide.en.html")
+    if it_ids != en_ids or it_ctrl != en_ctrl:
+        print("FALLITO: guide.html e guide.en.html hanno strutture diverse")
+        print("  solo in guide.html:    {}".format(
+            sorted(set(it_ids + it_ctrl) - set(en_ids + en_ctrl))))
+        print("  solo in guide.en.html: {}".format(
+            sorted(set(en_ids + en_ctrl) - set(it_ids + it_ctrl))))
+        return 1
+    print("  guide.html / guide.en.html: {} sezioni allineate".format(len(it_ctrl)))
+
+    # Ogni valuta offerta nella combo deve avere un cambio, un simbolo e un
+    # codice. Senza cambio verrebbe convertita a 1.0, cioe' mostrerebbe
+    # importi in dollari con sopra un altro simbolo: nessun errore, nessuna
+    # pagina rotta, solo numeri sbagliati che sembrano giusti. E' il tipo di
+    # difetto che si nota mesi dopo, quindi si ferma qui.
+    # [EN] Every currency offered in the combo must have a rate, a symbol
+    # and a code. With no rate it would be converted at 1.0, that is, it
+    # would show dollar amounts with another symbol on them: no error, no
+    # broken page, just wrong numbers that look right. It is the kind of
+    # flaw noticed months later, so it is stopped here.
+    from generate_dashboard import i18n, pricing
+    mancanti = [
+        (c, [nome for nome, tabella in (("USD_RATES", pricing.USD_RATES),
+                                        ("CURRENCY_SYMBOLS", i18n.CURRENCY_SYMBOLS),
+                                        ("CURRENCY_CODES", i18n.CURRENCY_CODES))
+             if c not in tabella])
+        for c in i18n.CURRENCIES
+    ]
+    mancanti = [(c, dove) for c, dove in mancanti if dove]
+    if mancanti:
+        print("FALLITO: valute senza tutti i dati che servono")
+        for c, dove in mancanti:
+            print("  {}: manca da {}".format(c, ", ".join(dove)))
+        return 1
+    print("  valute: {} complete (cambi del {})".format(
+        len(i18n.CURRENCIES), pricing.USD_RATES_DATE))
 
     print("selftest OK ({})".format(version.VERSION))
     return 0
@@ -290,7 +406,7 @@ def _selftest():
 
 def _pause():
     try:
-        input("Premi INVIO per chiudere...")
+        input(_T()("misc.pressEnter"))
     except (EOFError, KeyboardInterrupt):
         pass
 
@@ -312,13 +428,14 @@ def _interactive_update():
     local executable. This is the closest thing to a button you can give
     someone who never opens a terminal.
     """
+    T = _T()
     print("dashboard-token {}".format(version.VERSION))
     print("")
-    print("Questa applicazione la lancia Claude Code da sola a ogni turno.")
-    print("La tua dashboard e' in:")
+    print(T("upd.launchedByClaude"))
+    print(T("upd.yourDashboard"))
     print("  {}".format(os.path.join(paths.CLAUDE_DIR, "dashboard-token", "dashboard.html")))
     print("")
-    print("Controllo se c'e' una versione piu' recente...")
+    print(T("upd.checking"))
 
     found = updater.check_latest(print)
     if found is None:
@@ -332,29 +449,36 @@ def _interactive_update():
 
     tag, entry, assets = found
     print("")
-    print("Disponibile la versione {} (adesso hai la {}).".format(tag, version.VERSION))
+    print(T("upd.available", nuova=tag, attuale=version.VERSION))
     try:
-        answer = input("Vuoi aggiornare adesso? (S/n): ").strip()
+        answer = input(T("upd.prompt")).strip()
     except (EOFError, KeyboardInterrupt):
-        answer = "n"
-    if answer[:1].lower() == "n":
-        print("Ok, lasciamo stare. Si aggiornera' comunque da solo entro 24 ore.")
+        answer = T("upd.promptNo")
+    # La lettera del "no" arriva dalla traduzione: in italiano si risponde
+    # "n", in inglese pure, ma una terza lingua potrebbe non farlo, e il
+    # confronto deve restare quello della lingua in cui e' stata posta la
+    # domanda.
+    # [EN] The "no" letter comes from the translation: in Italian one
+    # answers "n", in English too, but a third language might not, and the
+    # comparison must stay the one of the language the question was asked in.
+    if answer[:1].lower() == T("upd.promptNo")[:1].lower():
+        print(T("upd.declined"))
         print("")
         _pause()
         return 0
 
-    print("Scarico e verifico...")
+    print(T("upd.downloading"))
     if not updater.apply_update(tag, entry, assets, print):
         print("")
-        print("Aggiornamento non riuscito. Riprova piu' tardi: intanto la")
-        print("versione che hai continua a funzionare.")
+        print(T("upd.failed1"))
+        print(T("upd.failed2"))
         print("")
         _pause()
         return 0
 
     print("")
-    print("Aggiornamento avviato. Si completa da solo in un paio di secondi,")
-    print("questa finestra si chiude fra poco.")
+    print(T("upd.started1"))
+    print(T("upd.started2"))
     # Nessuna pausa qui, di proposito: finche' questo processo vive, la
     # cartella da cui gira resta bloccata e l'installer non puo'
     # sostituirla. I pochi secondi di attesa servono solo a dare il tempo
@@ -368,12 +492,14 @@ def _interactive_update():
 
 
 def _print_version():
-    ruolo = "installer" if paths.is_installer() else "applicazione"
+    T = _T()
+    ruolo = T("misc.roleInstaller") if paths.is_installer() else T("misc.roleApp")
     print("dashboard-token {} ({})".format(version.VERSION, ruolo))
-    print("  eseguibile:  {}".format(paths.current_exe() or "(sorgenti Python)"))
-    print("  installata:  {}".format(paths.INSTALL_DIR))
-    print("  settings:    {}".format(paths.SETTINGS_PATH))
-    print("  repo:        https://github.com/{}".format(version.GITHUB_REPO))
+    print(T("misc.exe", valore=paths.current_exe() or T("misc.fromSource")))
+    print(T("misc.installed", valore=paths.INSTALL_DIR))
+    print(T("misc.settings", valore=paths.SETTINGS_PATH))
+    print(T("misc.repo",
+            valore="https://github.com/{}".format(version.GITHUB_REPO)))
     return 0
 
 
@@ -413,11 +539,12 @@ def main(argv):
     if command in ("version", "--version", "-V"):
         return _print_version()
     if command in ("help", "--help", "-h"):
-        print(USAGE.strip())
+        print(_T()("usage").strip())
         return 0
 
-    print("Comando sconosciuto: {}".format(command))
-    print(USAGE.strip())
+    T = _T()
+    print(T("misc.unknownCommand", comando=command))
+    print(T("usage").strip())
     return 2
 
 

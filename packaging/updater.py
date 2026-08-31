@@ -66,6 +66,35 @@ import urllib.request
 
 import paths
 import setup_hooks
+
+
+def _T():
+    """Il traduttore dei messaggi, legato alla lingua scelta per il terminale.
+
+    Come in cli.py, l'import di generate_dashboard sta DENTRO la funzione:
+    in cima al file il package non e' ancora nel percorso di ricerca. Il
+    try/except copre il caso in cui non ci sia affatto -- l'aggiornatore
+    gira anche dentro l'installer, che e' volutamente magro e il package non
+    se lo porta dietro. Li' i messaggi restano quelli italiani scritti nel
+    dizionario di ripiego qui sotto: meglio un messaggio nella lingua
+    sbagliata che un aggiornamento che non parte.
+
+    [EN] The message translator, bound to the language chosen for the
+    terminal.
+
+    As in cli.py, the generate_dashboard import lives INSIDE the function:
+    at the top of the file the package is not on the search path yet. The
+    try/except covers the case where it is not there at all -- the updater
+    also runs inside the installer, which is deliberately lean and does not
+    carry the package. There the messages stay the Italian ones written in
+    the fallback below: better a message in the wrong language than an
+    update that does not start.
+    """
+    try:
+        from generate_dashboard import i18n
+    except ImportError:
+        return lambda key, **valori: key
+    return i18n.translator(i18n.cli_lang())
 import version
 
 # Ogni quanto controllare (secondi). Una volta al giorno: gli aggiornamenti
@@ -269,27 +298,27 @@ def check_latest(say):
     """
     asset_name = version.asset_name()
     if asset_name is None:
-        say("Nessun binario pubblicato per {}.".format(sys.platform))
+        say(_T()("upd.noBinary", piattaforma=sys.platform))
         return None
 
     try:
         release = json.loads(_fetch(version.LATEST_RELEASE_API, API_TIMEOUT).decode("utf-8"))
     except Exception as exc:
-        say("Controllo aggiornamenti non riuscito: {}".format(exc))
+        say(_T()("upd.checkFailed", errore=exc))
         return None
 
     tag = release.get("tag_name")
     if not tag:
-        say("Release senza tag, ignorata.")
+        say(_T()("upd.noTag"))
         return None
     if tag == version.VERSION:
-        say("Gia' aggiornato ({}).".format(version.VERSION))
+        say(_T()("upd.upToDate", versione=version.VERSION))
         return None
 
     assets = {a.get("name"): a for a in release.get("assets") or []}
     entry = assets.get(asset_name)
     if entry is None:
-        say("La release {} non contiene {}.".format(tag, asset_name))
+        say(_T()("upd.missingAsset", tag=tag, file=asset_name))
         return None
 
     return tag, entry, assets
@@ -316,7 +345,7 @@ def apply_update(tag, entry, assets, say):
     try:
         payload = _fetch(entry["browser_download_url"], DOWNLOAD_TIMEOUT)
     except Exception as exc:
-        say("Download non riuscito: {}".format(exc))
+        say(_T()("upd.downloadFailed", errore=exc))
         return False
 
     # Verifica di integrita': il file scaricato deve corrispondere a quello
@@ -329,14 +358,14 @@ def apply_update(tag, entry, assets, say):
     # the installer.
     expected_size = entry.get("size")
     if expected_size and len(payload) != expected_size:
-        say("Dimensione inattesa, aggiornamento annullato.")
+        say(_T()("upd.badSize"))
         return False
     if expected:
         if hashlib.sha256(payload).hexdigest() != expected:
-            say("Checksum non corrispondente, aggiornamento annullato.")
+            say(_T()("upd.badChecksum"))
             return False
     else:
-        say("SHA256SUMS non disponibile: verificata solo la dimensione.")
+        say(_T()("upd.noChecksums"))
 
     # L'installer va scritto FUORI dalla cartella di installazione, che sta
     # per essere sostituita da lui stesso.
@@ -352,13 +381,13 @@ def apply_update(tag, entry, assets, say):
         if sys.platform != "win32":
             os.chmod(target, 0o755)
     except OSError as exc:
-        say("Scrittura dell'installer non riuscita: {}".format(exc))
+        say(_T()("upd.writeFailed", errore=exc))
         return False
 
     try:
         _spawn_detached([target, "install", "--no-pause"])
     except OSError as exc:
-        say("Avvio dell'installer non riuscito: {}".format(exc))
+        say(_T()("upd.startFailed", errore=exc))
         return False
 
     return True
@@ -379,7 +408,7 @@ def run_update(verbose=False):
     cleanup_stale()
 
     if paths.current_exe() is None:
-        say("Non impacchettato: niente da aggiornare.")
+        say(_T()("upd.notPackaged"))
         return 0
 
     found = check_latest(say)
@@ -387,11 +416,11 @@ def run_update(verbose=False):
         return 0
 
     tag, entry, assets = found
-    say("Nuova versione disponibile: {} (attuale {}).".format(tag, version.VERSION))
+    say(_T()("upd.newVersion", nuova=tag, attuale=version.VERSION))
     if apply_update(tag, entry, assets, say):
         # Usciamo subito e di proposito, per la ragione spiegata in
         # apply_update().
         # [EN] We exit immediately and on purpose, for the reason explained
         # in apply_update().
-        say("Aggiornamento a {} in corso in background.".format(tag))
+        say(_T()("upd.updatingBg", tag=tag))
     return 0

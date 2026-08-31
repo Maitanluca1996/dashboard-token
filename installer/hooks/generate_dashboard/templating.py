@@ -122,6 +122,21 @@ HEADER_CSS = header.HEADER_CSS
 REVEAL_BOOT = header.REVEAL_BOOT
 REVEAL_JS = header.REVEAL_JS
 
+# Stessa cosa per i due frammenti della traduzione: I18N_BOOT
+# nell'<head> (segnaposto __I18N_BOOT__), I18N_APPLY piu' avanti nella
+# pagina (segnaposto __I18N_APPLY__). La posizione del secondo non e'
+# libera e il perche' e' spiegato per esteso in header.py: in breve,
+# deve girare quando il markup da tradurre esiste gia' ma il file dei
+# dati non e' ancora stato chiesto.
+# [EN] Same for the two translation fragments: I18N_BOOT in the
+# <head> (placeholder __I18N_BOOT__), I18N_APPLY further down the page
+# (placeholder __I18N_APPLY__). The position of the second one is not
+# free and the reason is spelled out in header.py: in short, it must
+# run when the markup to translate already exists but the data file
+# has not been requested yet.
+I18N_BOOT = header.I18N_BOOT
+I18N_APPLY = header.I18N_APPLY
+
 
 def load_template(filename):
     """Legge un file dentro templates/ (es. "dashboard.html") e ne
@@ -133,7 +148,7 @@ def load_template(filename):
         return f.read()
 
 
-def render_header(active_id, refresh_control=False):
+def render_header(active_id, refresh_control=False, currency_control=False):
     """Delega la generazione dell'intestazione e navbar al modulo header.
 
     E' solo un "passamano": chiama header.render_header(...) e ne
@@ -141,7 +156,9 @@ def render_header(active_id, refresh_control=False):
     stesso motivo di HEADER_CSS sopra: chi genera una pagina importa un
     solo modulo (templating), non deve sapere che dietro le quinte
     l'intestazione e' calcolata da header.py. "refresh_control" (bottone
-    "Aggiorna" accanto alla data) viaggia insieme all'altro parametro.
+    "Aggiorna" accanto alla data) e "currency_control" (la combo della
+    valuta accanto a quella della lingua) viaggiano insieme all'altro
+    parametro.
 
     [EN] Delegates the generation of the header and navbar to the
     header module.
@@ -151,7 +168,8 @@ def render_header(active_id, refresh_control=False):
     same reason as HEADER_CSS above: whoever generates a page imports a
     single module (templating), without needing to know that behind the
     scenes the header is computed by header.py. "refresh_control" (the
-    "Aggiorna" button next to the date) travels along with the other
+    "Aggiorna" button next to the date) and "currency_control" (the
+    currency combo next to the language one) travel along with the other
     parameter.
     """
-    return header.render_header(active_id, refresh_control)
+    return header.render_header(active_id, refresh_control, currency_control)

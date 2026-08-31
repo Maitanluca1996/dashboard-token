@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🪙</text></svg>" />
-<title>Tariffario prezzi &mdash; Claude Code</title>
+<title data-i18n="page.pricing">Tariffario prezzi &mdash; Claude Code</title>
 <style>
   :root {
     color-scheme: light;
@@ -63,8 +63,30 @@ __HEADER_CSS__
   @media (prefers-reduced-motion: reduce) { tbody tr { animation: none; } }
   td.model-note { color: var(--text-muted); font-size: 11px; font-style: italic; }
   .hint { font-size: 12.5px; color: var(--text-muted); margin: 12px 2px 0; line-height: 1.5; }
+  /* Il titolo di sezione esiste perche' da adesso le tabelle sono due e
+     vanno distinte. Sta dentro il pannello e non sopra, come il titolo
+     della pagina: quello dice di cosa parla la pagina, questo dice cosa
+     c'e' in questo riquadro.
+     [EN] The section title exists because from now on there are two
+     tables and they need telling apart. It sits inside the panel and not
+     above it, unlike the page title: that one says what the page is
+     about, this one says what is in this box. */
+  .section-title { font-size: 15px; font-weight: 600; margin: 0 0 4px; }
+  .section-desc { font-size: 12.5px; color: var(--text-secondary); margin: 0 0 14px; line-height: 1.5; }
+  td.rate-from { font-weight: 600; white-space: nowrap; }
+  /* La diagonale (un euro vale un euro) e' smorzata: e' li' per far
+     leggere la tabella come una griglia completa, non perche' dica
+     qualcosa. Al colore pieno attirerebbe l'occhio proprio sulle tre
+     celle che non informano.
+     [EN] The diagonal (one euro is worth one euro) is dimmed: it is
+     there to make the table read as a complete grid, not because it says
+     anything. At full colour it would draw the eye onto precisely the
+     three cells that carry no information. */
+  td.rate-self { color: var(--text-muted); }
+  .rates-date { font-variant-numeric: tabular-nums; color: var(--text-secondary); }
   code { font-family: ui-monospace, "Cascadia Code", monospace; font-size: 11.5px; color: var(--text-secondary); }
 </style>
+__I18N_BOOT__
 __REVEAL_BOOT__
 </head>
 <body>
@@ -72,22 +94,43 @@ __REVEAL_BOOT__
 __SITE_HEADER__
 
   <div class="page-title-block">
-    <h1>Tariffario prezzi &mdash; Claude Code</h1>
-    <p class="page-desc">Prezzi di listino Anthropic come configurati nel tariffario locale, in $ per milione di token (input, output, cache)</p>
+    <h1 data-i18n="pricingPage.h1">Tariffario prezzi &mdash; Claude Code</h1>
+    <p class="page-desc" data-i18n="pricingPage.desc">Prezzi di listino Anthropic come configurati nel tariffario locale, per milione di token (input, output, cache), nella valuta scelta in alto a destra</p>
   </div>
 
   <div class="panel" data-reveal>
     <table>
       <thead><tr>
-        <th>Modello</th><th class="num">Input</th><th class="num">Output</th>
-        <th class="num">Cache write</th><th class="num">Cache read</th><th>ID / note</th>
+        <th data-i18n="pricingPage.colModel">Modello</th>
+        <th class="num" data-i18n="stats.input">Input</th>
+        <th class="num" data-i18n="stats.output">Output</th>
+        <th class="num" data-i18n="stats.cacheWrite">Cache write</th>
+        <th class="num" data-i18n="stats.cacheRead">Cache read</th>
+        <th data-i18n="pricingPage.colIdNote">ID / note</th>
       </tr></thead>
       <tbody>
         __ROWS__
       </tbody>
     </table>
   </div>
-  <p class="hint" data-reveal>
+  <div class="panel" data-reveal>
+    <h2 class="section-title" data-i18n="pricingPage.ratesH2">Cambi tra le valute</h2>
+    <p class="section-desc" data-i18n="pricingPage.ratesDesc">Quanto vale una unit&agrave; della valuta in riga, espressa nella valuta in colonna. La dashboard calcola tutto in dollari e converte con questi rapporti nella valuta scelta nell&rsquo;intestazione.</p>
+    <table>
+      <thead><tr>
+        <th data-i18n="pricingPage.ratesCorner">1 unit&agrave; di</th>
+__RATE_HEAD__
+      </tr></thead>
+      <tbody>
+__RATE_ROWS__
+      </tbody>
+    </table>
+    <p class="hint">
+      <span data-i18n="pricingPage.ratesHint">Cambi fissati a mano e non aggiornati in tempo reale: la dashboard si genera senza mai andare in rete, quindi non c&rsquo;&egrave; nessun servizio di cambi da interrogare. Si aggiornano modificando <code>USD_RATES</code> in <code>pricing.py</code>. Ultimo aggiornamento:</span>
+      <span class="rates-date">__RATES_DATE__</span>
+    </p>
+  </div>
+  <p class="hint" data-reveal data-i18n-html="pricingPage.hint">
     Cache write = 1,25&times; il prezzo input con TTL 5 minuti, <strong>2&times; con TTL 1 ora</strong>
     (quella usata da Claude Code, e quindi la quasi totalita' delle scritture di cache) &middot;
     cache read = 0,1&times; il prezzo input &mdash; moltiplicatori standard Anthropic, uguali per ogni modello.<br>
@@ -95,6 +138,7 @@ __SITE_HEADER__
     non c'e' fatturazione a token, ma la dashboard li usa comunque come stima di riferimento.
   </p>
 </div>
+__I18N_APPLY__
 __REVEAL_JS__
 </body>
 </html>

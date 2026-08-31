@@ -31,6 +31,15 @@ and identical to the other two pages. If tomorrow you want to change
 the logo or add a menu item, you touch ONLY this file, not three
 different templates.
 """
+# i18n serve per due cose sole, entrambe nello switch di lingua piu'
+# sotto: sapere QUALI lingue esistono e come si chiamano. Le stringhe
+# dell'intestazione non passano da qui -- vengono tradotte nel browser
+# a partire dagli attributi data-i18n del markup.
+# [EN] i18n is needed for two things only, both in the language switch
+# below: knowing WHICH languages exist and what they are called. The
+# header strings do not go through here -- they are translated in the
+# browser starting from the markup's data-i18n attributes.
+from . import i18n
 
 # Una TRIPLA STRINGA (tra tre virgolette """ ... """) può contenere testo
 # su più righe così com'è scritto, "a capo" inclusi: qui dentro c'è del CSS
@@ -69,18 +78,31 @@ HEADER_CSS = """
   }
 
   /* Larghezza del contenuto: UNA sola definizione per tutte e tre le
-     pagine. Prima ogni template aveva la sua (900px dashboard e
-     tariffario, 860px guida) e l'intestazione, che e' identica ovunque,
-     si ritrovava larga 40px in meno su una pagina delle tre. Se domani
-     va cambiata, si cambia qui e vale per tutte -- che e' lo stesso
-     motivo per cui il resto dell'intestazione vive in questo file.
-     [EN] Content width: ONE single definition for all three pages. Each
-     template used to have its own (900px dashboard and price list, 860px
-     guide) and the header, identical everywhere, ended up 40px narrower
-     on one page out of three. If it ever needs changing, change it here
-     and it applies to all -- the same reason the rest of the header
-     lives in this file. */
-  .wrap { max-width: 900px; margin: 0 auto; }
+     pagine, e nessuna eccezione. Prima ogni template aveva la sua (900px
+     dashboard e tariffario, 860px guida) e l'intestazione, che e'
+     identica ovunque, si ritrovava larga 40px in meno su una pagina
+     delle tre; poi la dashboard ha rialzato la propria a 1172px per far
+     posto alla colonna dei filtri, ed e' tornato lo stesso difetto al
+     contrario -- passando da una scheda all'altra la cornice si
+     restringeva sotto gli occhi.
+     Il valore e' quello che serve alla pagina piu' esigente: 900px di
+     contenuto piu' la colonna dei filtri della dashboard (248px) e il
+     suo scarto (24px). Le altre due pagine non hanno una colonna e
+     usano tutto lo spazio per il contenuto: e' una riga di testo lunga
+     sulla guida, ed e' il prezzo di una cornice che non si muove.
+     [EN] Content width: ONE single definition for all three pages, and
+     no exceptions. Each template used to have its own (900px dashboard
+     and price list, 860px guide) and the header, identical everywhere,
+     ended up 40px narrower on one page out of three; then the dashboard
+     raised its own to 1172px to make room for the filters column, and
+     the same flaw came back the other way round -- moving from one tab
+     to the next, the frame narrowed before your eyes.
+     The value is what the most demanding page needs: 900px of content
+     plus the dashboard's filters column (248px) and its gap (24px). The
+     other two pages have no column and spend it all on content: that is
+     a long line of text on the guide, and it is the price of a frame
+     that does not move. */
+  .wrap { max-width: 1172px; margin: 0 auto; }
   /* Il respiro superiore della pagina passa dal body all'intestazione.
      Serve perche' l'intestazione e' agganciata in cima: il padding del
      body scorre via col resto della pagina, e senza questo spostamento il
@@ -119,12 +141,80 @@ HEADER_CSS = """
     z-index: 200;
     background: var(--page);
   }
+  /* Tre zone: il logo a sinistra, la data con il bottone Aggiorna al
+     centro, la scelta della lingua a destra.
+     Griglia "1fr auto 1fr" e non flex con space-between: con space-between
+     il gruppo di mezzo finisce al centro solo se i due lati pesano uguale,
+     e non pesano uguale -- il logo con il suo sottotitolo e' largo, la
+     combo della lingua no. Le due colonne 1fr, essendo per definizione
+     larghe uguale, tengono il gruppo di mezzo al centro VERO della riga
+     qualunque cosa ci sia ai lati.
+     [EN] Three zones: the logo on the left, the date with the refresh
+     button in the centre, the language choice on the right.
+     A "1fr auto 1fr" grid and not flex with space-between: with
+     space-between the middle group only ends up centred if the two sides
+     weigh the same, and they do not -- the logo with its subtitle is wide,
+     the language combo is not. The two 1fr columns, being by definition
+     equally wide, hold the middle group at the TRUE centre of the row
+     whatever sits on either side. */
   .site-header-top {
-    display: flex;
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
     align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
     gap: 12px;
+  }
+  .brand-group { justify-self: start; min-width: 0; }
+  .site-header-meta { justify-self: center; }
+  /* Le preferenze stanno insieme in fondo a destra: sono la stessa
+     categoria di scelta -- come guardo la pagina, non cosa contiene -- e
+     tenerle affiancate le rende una cosa sola da cercare invece di due.
+     [EN] The preferences sit together at the far right: they are the same
+     category of choice -- how I look at the page, not what it contains --
+     and keeping them side by side makes them one thing to look for
+     instead of two. */
+  .pref-group {
+    justify-self: end;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  /* Sotto i 700px le tre zone su una riga non ci stanno. La riga va a capo:
+     logo e lingua restano affiancati, la data con il suo bottone scende
+     sotto, sempre centrata. Non e' una "forma compatta" che scatta allo
+     scorrimento: e' la stessa intestazione che si dispone su due righe, e
+     vale identica da ferma e mentre si scorre.
+     [EN] Below 700px the three zones do not fit on one row. The row wraps:
+     logo and language stay side by side, the date with its button drops
+     below, still centred. It is not a "compact form" triggered by
+     scrolling: it is the same header laid out on two rows, and it is
+     identical at rest and while scrolling. */
+  @media (max-width: 699px) {
+    .site-header-top {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .site-header-meta { order: 3; width: 100%; justify-content: center; }
+    /* Su schermo stretto il BOTTONE delle combo perde il nome e tiene solo
+       bandiera o simbolo. Serve a far stare logo e preferenze sulla stessa
+       riga: con due combo per esteso non ci stanno, e l'intestazione --
+       che e' agganciata in cima -- si mangerebbe una terza riga di schermo
+       per sempre.
+       Solo il bottone: dentro l'elenco i nomi restano, ed e' li' che
+       servono, perche' e' li' che si sceglie fra cose che non si conoscono
+       ancora. Il bottone invece mostra una scelta gia' fatta, e per
+       riconoscerla la bandiera basta.
+       [EN] On a narrow screen the combos' BUTTON drops the name and keeps
+       only the flag or the symbol. It is what makes the logo and the
+       preferences fit on the same row: with two combos written out in full
+       they do not, and the header -- which is stuck to the top -- would eat
+       a third row of screen forever.
+       The button only: inside the list the names stay, and that is where
+       they are needed, because that is where you choose between things you
+       do not know yet. The button, by contrast, shows a choice already
+       made, and the flag is enough to recognise it. */
+    .pref-trigger .pref-name { display: none; }
   }
   .brand-group {
     display: flex;
@@ -159,16 +249,21 @@ HEADER_CSS = """
     align-items: center;
     gap: 8px;
   }
+  /* La data non e' una pillola come il bottone accanto: non si preme, non
+     si apre, non ha stati. Il bordo tondo la faceva sembrare un controllo
+     e le dava un peso che una didascalia non deve avere. Restano il
+     pallino e il testo, che sono l'informazione.
+     [EN] The date is not a pill like the button next to it: it is not
+     pressed, does not open, has no states. The round border made it look
+     like a control and gave it a weight a caption should not have. The
+     dot and the text remain, which are the information. */
   .meta-status {
     display: inline-flex;
     align-items: center;
     gap: 6px;
     font-size: 12px;
     color: var(--text-secondary);
-    background: var(--surface-1);
-    border: 1px solid var(--border);
-    border-radius: 999px;
-    padding: 5px 12px;
+    padding: 5px 2px;
     font-variant-numeric: tabular-nums;
     white-space: nowrap;
   }
@@ -250,6 +345,162 @@ HEADER_CSS = """
      did take effect even if the browser takes a moment to respond. */
   .meta-refresh.busy .refresh-icon { animation: meta-refresh-spin 0.8s linear infinite; }
   @keyframes meta-refresh-spin { to { transform: rotate(360deg); } }
+  /* La scelta della lingua.
+     NON un <select> nativo: dentro un <option> il browser non disegna
+     markup, quindi una bandiera non si potrebbe mostrare. E le bandiere
+     emoji non sono un'alternativa -- Windows non le disegna, le rende come
+     la coppia di lettere che le compone dentro due riquadri (verificato
+     misurando la larghezza resa). Quindi un elenco costruito a mano, con i
+     ruoli ARIA che dicono a un lettore di schermo che si tratta di una
+     scelta fra opzioni, e non un bottone qualsiasi.
+     Il bottone che apre resta nel vocabolario "a pillola" gia' adoperato
+     qui accanto dal bottone Aggiorna: bordo tondo, stesso corpo, stessi
+     colori. Cambia il contenuto, non la forma.
+     Le classi si chiamano pref-* e non lang-* perche' di combo ce ne sono
+     due -- lingua e valuta -- e sono lo stesso oggetto: stesso CSS, stesso
+     cablaggio, stesso comportamento da tastiera. Cambia soltanto cosa c'e'
+     dentro le voci, ed e' render_header a metterlo. Una terza preferenza
+     futura non aggiunge una riga a questo CSS.
+     [EN] The language choice.
+     NOT a native <select>: inside an <option> the browser draws no markup,
+     so a flag could not be shown. And flag emoji are no alternative --
+     Windows does not draw them, it renders them as the pair of letters
+     composing them inside two boxes (verified by measuring the rendered
+     width). Hence a hand-built list, with the ARIA roles that tell a screen
+     reader this is a choice among options and not just some button.
+     The button that opens it stays in the "pill" vocabulary already used
+     next to it by the Refresh button: round border, same size, same
+     colours. The content changes, not the shape.
+     The classes are called pref-* and not lang-* because there are two
+     combos -- language and currency -- and they are the same object: same
+     CSS, same wiring, same keyboard behaviour. Only what is inside the
+     entries changes, and render_header is what puts it there. A future
+     third preference adds no line to this CSS. */
+  .pref-combo { position: relative; }
+  .pref-trigger {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    background: var(--surface-1);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 5px 10px 5px 8px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: color 0.18s ease, border-color 0.18s ease;
+  }
+  .pref-trigger:hover {
+    color: var(--text-primary);
+    border-color: var(--series-1);
+  }
+  .pref-trigger:focus-visible {
+    outline: 2px solid var(--series-1);
+    outline-offset: 2px;
+  }
+  .pref-current { display: inline-flex; align-items: center; gap: 7px; }
+  /* La bandiera e' un rettangolo pieno: senza un filo di contorno, la banda
+     bianca dell'italiana sparirebbe nello sfondo chiaro della pillola. Il
+     contorno lo mette il CSS e non l'SVG, ed e' un grigio medio
+     semitrasparente: un nero trasparente sarebbe invisibile sul tema scuro,
+     un bianco trasparente sul tema chiaro. Un grigio a meta' strada si vede
+     su entrambi, e questo CSS serve le due varianti di tutte e tre le
+     pagine.
+     box-shadow inset e non border: un bordo spingerebbe il contenuto
+     dell'SVG verso l'interno, restringendo le bande di un pixel per lato;
+     l'ombra interna si disegna sopra senza toccare il disegno.
+     [EN] The flag is a solid rectangle: without a hairline outline, the
+     white band of the Italian one would vanish into the pill's light
+     background. The outline is done in CSS and not in the SVG, and it is a
+     semi-transparent mid grey: a transparent black would be invisible on
+     the dark theme, a transparent white on the light one. A grey halfway
+     between shows on both, and this CSS serves both variants of all three
+     pages.
+     box-shadow inset and not border: a border would push the SVG's
+     contents inwards, narrowing the bands by a pixel a side; the inner
+     shadow paints on top without touching the drawing. */
+  .lang-flag {
+    display: block;
+    flex-shrink: 0;
+    border-radius: 2px;
+    box-shadow: inset 0 0 0 1px rgba(128, 128, 128, 0.45);
+  }
+  /* Il simbolo della valuta sta nella casella che nell'altra combo tiene
+     la bandiera, ed e' largo uguale: cosi' i due bottoni affiancati hanno
+     il testo incolonnato invece di scalare di due pixel l'uno dall'altro.
+     [EN] The currency symbol sits in the box that holds the flag in the
+     other combo, and is just as wide: this way the two buttons side by
+     side have their text lined up instead of shifting a couple of pixels
+     from one another. */
+  .pref-symbol {
+    display: block;
+    flex-shrink: 0;
+    width: 19px;
+    text-align: center;
+    font-size: 13px;
+    line-height: 13px;
+    color: var(--text-primary);
+  }
+  .pref-caret {
+    font-size: 9px;
+    color: var(--text-muted);
+    transition: transform 0.18s ease;
+  }
+  .pref-combo.open .pref-caret { transform: rotate(180deg); }
+  /* L'elenco si apre ancorato al bordo DESTRO del bottone, perche' la combo
+     sta all'estremita' destra dell'intestazione: ancorandolo a sinistra
+     uscirebbe dallo schermo.
+     [EN] The list opens anchored to the button's RIGHT edge, because the
+     combo sits at the far right of the header: anchored left it would run
+     off the screen. */
+  .pref-menu {
+    position: absolute;
+    top: calc(100% + 6px);
+    right: 0;
+    min-width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    background: var(--surface-1);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 4px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    z-index: 300;
+  }
+  .pref-menu[hidden] { display: none; }
+  .pref-option {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    background: none;
+    border: 0;
+    border-radius: 7px;
+    padding: 6px 10px;
+    cursor: pointer;
+    white-space: nowrap;
+    text-align: left;
+  }
+  /* --gridline e non una tinta d'accento: e' l'unica variabile di sfondo
+     tenue definita da tutte e tre le pagine, e questo CSS le serve tutte.
+     [EN] --gridline and not an accent tint: it is the only soft background
+     variable defined by all three pages, and this CSS serves all three. */
+  .pref-option:hover {
+    background: var(--gridline);
+    color: var(--text-primary);
+  }
+  .pref-option[aria-selected="true"] { color: var(--text-primary); }
+  .pref-option:focus-visible {
+    outline: 2px solid var(--series-1);
+    outline-offset: -2px;
+  }
   .site-nav {
     display: flex;
     width: 100%;
@@ -345,61 +596,27 @@ HEADER_CSS = """
     line-height: 1.5;
   }
 
-  /* --- Forma compatta durante lo scorrimento -------------------------------
-     Da ferma l'intestazione resta quella di sempre: logo, sottotitolo, data
-     e schede su due righe. Appena la pagina scorre si stringe su una riga
-     sola. Serve perche' agganciata in cima, sommata alla barra dei filtri,
-     arrivava a coprire un terzo dello schermo -- in una pagina che esiste
-     per leggere una tabella lunga.
-     "display: contents" su .site-header-top toglie di mezzo il contenitore
-     senza toccare il markup: logo, data e schede diventano fratelli sulla
-     stessa riga. Nel sorgente la data viene prima delle schede (perche' a
-     due righe sta in alto a destra); "order" le rimette nell'ordine giusto
-     per una riga sola, senza duplicare markup ne' spostare nodi da JS.
-     La classe la accende lo script in fondo a questo file.
-     [EN] --- Compact form while scrolling ---
-     At rest the header stays as always: logo, subtitle, date and tabs on
-     two rows. As soon as the page scrolls it tightens onto a single row.
-     Needed because, pinned to the top and added to the filter bar, it
-     came to cover a third of the screen -- on a page that exists to read
-     a long table.
-     "display: contents" on .site-header-top removes the container
-     without touching the markup: logo, date and tabs become siblings on
-     the same row. In the source the date comes before the tabs (because
-     on two rows it sits top right); "order" puts them back in the right
-     order for a single row, without duplicating markup or moving nodes
-     via JS. The class is switched on by the script at the end of this
-     file. */
-  html.chrome-compact .site-header {
-    padding-top: 10px;
-    padding-bottom: 10px;
-    gap: 10px;
-  }
-  html.chrome-compact .brand-tag { display: none; }
-  /* Su schermo stretto ci si ferma qui, e in piu' si toglie la data: logo,
-     data e tre schede su una riga sola a 375px non ci stanno: le schede
-     finirebbero fuori dallo schermo e la pagina prenderebbe a scorrere in
-     orizzontale. La data torna appena si risale in cima.
-     [EN] On narrow screens we stop here, and the date goes away too:
-     logo, date and three tabs on one row do not fit at 375px -- the tabs
-     would overflow the screen and the page would start scrolling
-     horizontally. The date comes back as soon as you scroll back to the
-     top. */
-  @media (max-width: 699px) {
-    html.chrome-compact .site-header-meta { display: none; }
-  }
-  @media (min-width: 700px) {
-    html.chrome-compact .site-header {
-      flex-direction: row;
-      align-items: center;
-      gap: 16px;
-    }
-    html.chrome-compact .site-header-top { display: contents; }
-    html.chrome-compact .brand-group { order: 1; flex-shrink: 0; }
-    html.chrome-compact .site-nav { order: 2; flex: 1; min-width: 0; }
-    html.chrome-compact .site-header-meta { order: 3; flex-shrink: 0; }
-    html.chrome-compact .nav-tab { padding: 6px 12px; min-width: 92px; }
-  }
+  /* L'intestazione agganciata in cima resta IDENTICA a quella ferma: due
+     righe, logo con sottotitolo, data, lingua e schede tutti al loro posto.
+     Prima si stringeva su una riga sola appena la pagina si muoveva. Serviva
+     a recuperare spazio verticale su una pagina che esiste per leggere una
+     tabella lunga, ma il prezzo era che l'intestazione cambiava forma sotto
+     gli occhi mentre si scorreva -- e il suo contenuto si spostava di
+     conseguenza. Adesso non cambia: quel che si vede fermi e' quel che si
+     vede scorrendo.
+     Il costo dichiarato: sulla dashboard l'intestazione, sommata alla
+     colonna dei filtri agganciata, occupa mentre si scorre lo spazio che
+     occupa da ferma.
+     [EN] The header pinned to the top stays IDENTICAL to the one at rest:
+     two rows, logo with subtitle, date, language and tabs all in place.
+     It used to tighten onto a single row as soon as the page moved. That
+     bought back vertical space on a page that exists to read a long table,
+     but the price was that the header changed shape under your eyes while
+     scrolling -- and its contents moved accordingly. Now it does not
+     change: what you see at rest is what you see while scrolling.
+     The stated cost: on the dashboard the header, added to the pinned
+     filters column, takes up while scrolling the room it takes up at rest.
+  */
   /* Niente transizione sulle misure: il passaggio da due righe a una non e'
      animabile (flex-direction non lo e') e scatta comunque. Animare intanto
      il padding darebbe un ibrido -- meta' scatto e meta' scivolamento -- e
@@ -463,6 +680,34 @@ HEADER_CSS = """
      drawing itself in the dashboard charts): without it they would start
      at load time while the box is still off-screen, and would already be
      over by the time you scroll down to it. */
+  /* Varco anti-lampeggio della traduzione. La classe la mette lo script
+     nell'<head> (I18N_BOOT) e la toglie quello che applica le traduzioni
+     (I18N_APPLY), che gira poco piu' avanti nella pagina: nel mezzo il
+     corpo resta invisibile, cosi' chi ha il browser in inglese non vede
+     un lampo di italiano prima dello scambio.
+     Quasi tutta la pagina sarebbe gia' coperta dalla rivelazione allo
+     scorrimento qui sotto (nasce a opacita' zero); questa regola serve ai
+     pochi blocchi che non hanno data-reveal e nascerebbero visibili.
+     visibility e non display: lo spazio resta occupato, quindi non c'e'
+     nessun salto di impaginazione quando il corpo ricompare.
+     La classe viene messa SOLO se il dizionario si e' caricato davvero, e
+     tolta in un finally: nessuna combinazione di errori puo' lasciare la
+     pagina vuota per sempre.
+     [EN] Anti-flash gate for the translation. The class is set by the
+     script in the <head> (I18N_BOOT) and removed by the one applying the
+     translations (I18N_APPLY), which runs slightly further down the page:
+     in between the body stays invisible, so someone with an English
+     browser does not see a flash of Italian before the swap.
+     Almost all of the page would already be covered by the reveal-on-
+     scroll below (it is born at zero opacity); this rule serves the few
+     blocks that have no data-reveal and would be born visible.
+     visibility and not display: the space stays occupied, so there is no
+     layout jump when the body comes back.
+     The class is set ONLY if the dictionary actually loaded, and removed
+     in a finally: no combination of errors can leave the page blank
+     forever. */
+  html.i18n-pending body { visibility: hidden; }
+
   .has-reveal [data-reveal] {
     opacity: 0;
     transform: translateY(16px);
@@ -506,6 +751,8 @@ HEADER_CSS = """
     .meta-refresh:hover { transform: none; }
     .meta-refresh:hover .refresh-icon { transform: none; }
     .meta-refresh.busy .refresh-icon { animation: none; }
+    .pref-trigger { transition: none; }
+    .pref-caret { transition: none; }
   }
 """
 
@@ -514,26 +761,40 @@ HEADER_CSS = """
 # "id" e' usato solo internamente (per capire qual e' la voce "attiva",
 # vedi render_header sotto), "href" e' il link vero, "label" il testo
 # mostrato, "icon" l'SVG dell'iconcina incollato cosi' com'e' nell'HTML.
+# "key" e' la chiave con cui il testo viene tradotto a runtime: "label"
+# resta l'italiano scritto nell'HTML, che e' quello che si vede se il
+# dizionario non si carica o se JavaScript e' spento.
 # [EN] NAV_ITEMS is a LIST of dictionaries: one element per menu item of
 # the navigation bar, in the order they appear on the page.
 # "id" is used only internally (to figure out which item is "active",
 # see render_header below), "href" is the actual link, "label" the text
 # shown, "icon" the SVG of the small icon pasted as-is into the HTML.
+# "key" is the key the text is translated with at runtime: "label" stays
+# the Italian written into the HTML, which is what one sees if the
+# dictionary fails to load or if JavaScript is off.
 NAV_ITEMS = [
     {
         "id": "dashboard",
+        "key": "nav.dashboard",
         "href": "dashboard.html",
         "label": "Dashboard",
         "icon": '<svg class="nav-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9"></rect><rect x="14" y="3" width="7" height="5"></rect><rect x="14" y="12" width="7" height="9"></rect><rect x="3" y="16" width="7" height="5"></rect></svg>',
     },
     {
         "id": "pricing",
+        "key": "nav.pricing",
         "href": "pricing.html",
         "label": "Tariffario",
         "icon": '<svg class="nav-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>',
     },
     {
         "id": "guide",
+        "key": "nav.guide",
+        # Unica voce con un collegamento che cambia con la lingua: la
+        # guida esiste in due file, uno per lingua (vedi config.py).
+        # [EN] The only entry whose link changes with the language: the
+        # guide exists as two files, one per language (see config.py).
+        "hrefKey": "nav.guideHref",
         "href": "guida-costi.html",
         "label": "Guida ai costi",
         "icon": '<svg class="nav-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 1 1 7.072 0l-.548.547A3.374 3.374 0 0 0 14 18.469V19a2 2 0 1 1-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path></svg>',
@@ -554,7 +815,28 @@ NAV_ITEMS = [
 # It is the same reason templating.py uses .replace() instead of
 # .format() on the templates (see the docstring there).
 HEADER_SCRIPT = """  <script>
-  document.getElementById('meta-timestamp').textContent = GENERATED_AT;
+  /* L'ora si scrive due volte in due modi, e si prende il primo che
+     riesce: l'istante formattato nella lingua attiva, oppure -- se il
+     dizionario non si e' caricato e fmtGeneratedAt non esiste -- il testo
+     italiano gia' pronto che main.py scrive comunque. Senza questo
+     ripiego, un dizionario mancante lascerebbe uno spazio vuoto accanto al
+     pallino verde, che e' peggio di una data nella lingua sbagliata.
+     [EN] The time is written twice in two ways, and the first that works
+     wins: the instant formatted in the active language, or -- if the
+     dictionary did not load and fmtGeneratedAt does not exist -- the
+     ready-made Italian text main.py writes anyway. Without this fallback,
+     a missing dictionary would leave a blank next to the green dot, which
+     is worse than a date in the wrong language. */
+  (function () {
+    var el = document.getElementById('meta-timestamp');
+    if (!el) return;
+    if (typeof GENERATED_AT_ISO !== 'undefined' &&
+        typeof window.fmtGeneratedAt === 'function') {
+      var text = window.fmtGeneratedAt(GENERATED_AT_ISO);
+      if (text) { el.textContent = text; return; }
+    }
+    if (typeof GENERATED_AT !== 'undefined') el.textContent = GENERATED_AT;
+  })();
   /* Pubblica l'altezza dell'intestazione come variabile CSS --header-h.
      Serve a chi deve agganciarsi SOTTO di lei (la barra dei filtri della
      dashboard): un valore fisso si romperebbe, perche' l'altezza cambia
@@ -583,52 +865,11 @@ HEADER_SCRIPT = """  <script>
       window.addEventListener('resize', publish);
       window.addEventListener('load', publish);
     }
-
-    /* Forma compatta dell'intestazione una volta che la pagina si e' mossa:
-       le regole stanno nel CSS, sotto html.chrome-compact.
-       Due soglie invece di una: si stringe oltre i 100px e si riapre sotto
-       i 60. Con una soglia sola, fermarsi giusto sul valore limite farebbe
-       rimbalzare la classe avanti e indietro ad ogni pixel -- e qui il
-       cambio e' vistoso, perche' l'intestazione passa da due righe a una.
-       La fascia morta tra le due soglie lo impedisce.
-       --header-h viene ripubblicata SUBITO dopo il cambio di classe, e non
-       lasciata al ResizeObserver: quello notifica al giro di rendering
-       successivo, e per quel fotogramma la barra dei filtri resterebbe
-       agganciata a un'altezza che l'intestazione non ha piu', scoprendo
-       una striscia di contenuto in movimento. Qui la lettura di
-       offsetHeight forza il calcolo e la misura e' gia' quella nuova.
-       L'osservatore resta comunque, per i riflow che non passano di qui
-       (schede che vanno a capo, zoom, caricamento dei font).
-       [EN] Compact form of the header once the page has moved: the rules
-       live in the CSS, under html.chrome-compact.
-       Two thresholds instead of one: it tightens past 100px and reopens
-       below 60. With a single threshold, stopping right on the limit
-       would bounce the class back and forth at every pixel -- and here
-       the change is conspicuous, since the header goes from two rows to
-       one. The dead band between the two thresholds prevents it.
-       --header-h is re-published IMMEDIATELY after the class change, not
-       left to the ResizeObserver: that one notifies on the next
-       rendering pass, and for that frame the filter bar would stay
-       pinned to a height the header no longer has, uncovering a strip of
-       moving content. Here the offsetHeight read forces the layout and
-       the measurement is already the new one. The observer stays anyway,
-       for reflows that do not come through here (tabs wrapping, zoom,
-       font loading). */
-    function check() {
-      var y = window.scrollY || window.pageYOffset || 0;
-      var compatta = root.classList.contains('chrome-compact');
-      var vuole = y > 100 ? true : (y < 60 ? false : compatta);
-      if (vuole === compatta) return;
-      root.classList.toggle('chrome-compact', vuole);
-      publish();
-    }
-    window.addEventListener('scroll', check, { passive: true });
-    check();
   })();
   </script>"""
 
 
-def render_header(active_id, refresh_control=False):
+def render_header(active_id, refresh_control=False, currency_control=False):
     """Genera l'HTML dell'intestazione unificata con navigazione a schede.
 
     "active_id" e' l'id (es. "dashboard") della pagina che sta venendo
@@ -648,6 +889,12 @@ def render_header(active_id, refresh_control=False):
     i dati a schermo cominciano ad essere vecchi; sulle altre pagine il
     bottone non viene proprio generato.
 
+    "currency_control" aggiunge la combo della valuta accanto a quella
+    della lingua. Anche questa serve solo alla dashboard, e per un motivo
+    di sostanza: e' l'unica pagina che mostra importi calcolati. Il
+    tariffario e la guida riportano il listino, che e' in dollari, e li'
+    la combo non avrebbe niente da cambiare.
+
     [EN] Generates the HTML of the unified header with tabbed navigation.
 
     "active_id" is the id (e.g. "dashboard") of the page being generated
@@ -666,6 +913,12 @@ def render_header(active_id, refresh_control=False):
     hidden and is turned on by the dashboard script when the on-screen
     data starts getting old; on the other pages the button is not even
     generated.
+
+    "currency_control" adds the currency combo next to the language one.
+    This too is only for the dashboard, and for a reason of substance: it
+    is the only page showing computed amounts. The price list and the
+    guide report the tariff, which is in dollars, and there the combo
+    would have nothing to change.
     """
     # qui accumuliamo un pezzo di HTML per ciascuna voce di menu
     # [EN] here we accumulate one chunk of HTML for each menu item
@@ -693,10 +946,25 @@ def render_header(active_id, refresh_control=False):
         # written one below the other inside round brackets): it builds
         # the <a> link of this single menu item, with the SVG icon and
         # the text inside.
+        # Se questa voce ha un collegamento che cambia con la lingua, la
+        # si marca perche' la passata di traduzione lo riscriva. L'href
+        # scritto nell'HTML resta quello italiano, ed e' quello che si
+        # segue se il dizionario non si carica: un collegamento rotto
+        # sarebbe una degradazione peggiore di un collegamento in
+        # un'altra lingua.
+        # [EN] If this entry has a link that changes with the language,
+        # we mark it so the translation pass rewrites it. The href
+        # written into the HTML stays the Italian one, and that is the
+        # one followed if the dictionary does not load: a broken link
+        # would be a worse degradation than a link in another language.
+        href_attr = ""
+        if item.get("hrefKey"):
+            href_attr = f' data-i18n-href="{item["hrefKey"]}"'
+
         tabs_html.append(
-            f'      <a href="{item["href"]}" class="nav-tab{active_cls}"{aria_current}>\n'
+            f'      <a href="{item["href"]}"{href_attr} class="nav-tab{active_cls}"{aria_current}>\n'
             f'        {item["icon"]}\n'
-            f'        <span class="nav-text">{item["label"]}</span>\n'
+            f'        <span class="nav-text" data-i18n="{item["key"]}">{item["label"]}</span>\n'
             f'      </a>'
         )
 
@@ -721,6 +989,7 @@ def render_header(active_id, refresh_control=False):
     if refresh_control:
         refresh_html = (
             '\n        <button type="button" class="meta-refresh" id="meta-refresh" hidden'
+            ' data-i18n-title="header.refreshTitle"'
             ' title="Ricarica i dati conservando i filtri scelti">'
             '<svg class="refresh-icon" width="13" height="13" viewBox="0 0 24 24" fill="none"'
             ' stroke="currentColor" stroke-width="2.2" stroke-linecap="round"'
@@ -728,8 +997,140 @@ def render_header(active_id, refresh_control=False):
             '<path d="M21 12a9 9 0 1 1-2.64-6.36"></path>'
             '<polyline points="21 3 21 9 15 9"></polyline>'
             "</svg>"
-            "<span>Aggiorna</span></button>"
+            '<span data-i18n="header.refresh">Aggiorna</span></button>'
         )
+
+    # La scelta della lingua, costruita SCORRENDO IL REGISTRO invece di
+    # essere scritta a mano. E' la differenza fra una fattorizzazione vera e
+    # una a meta': con le voci scritte a mano, aggiungere una lingua
+    # costringerebbe comunque a tornare qui, e il registro in i18n.py
+    # sarebbe solo meta' della verita'.
+    #
+    # Ogni voce porta la bandiera e il nome della lingua nella lingua stessa
+    # ("Italiano", non "Italian"). I due insieme e non la bandiera da sola:
+    # una bandiera indica un paese, e una lingua non appartiene a un paese
+    # solo -- aiuta a trovare la voce con la coda dell'occhio, ma e' il nome
+    # a dire quale sia. Il nome non passa da tr(): resta "Italiano" anche
+    # mentre la pagina e' in inglese, altrimenti chi cerca la propria lingua
+    # leggerebbe il nome che le da' un'altra.
+    #
+    # lang="xx" su ciascuna voce serve a chi usa un lettore di schermo: dice
+    # al sintetizzatore vocale di pronunciare quella parola con la fonetica
+    # della sua lingua, invece di leggere "English" all'italiana.
+    # I ruoli listbox/option dicono che questa e' una scelta fra alternative
+    # e non una fila di bottoni qualsiasi. aria-selected nasce "false" su
+    # tutte e viene acceso a runtime da I18N_APPLY, che riempie anche il
+    # bottone: quale lingua sia attiva qui non si sa ancora, e cuocerlo
+    # nell'HTML vorrebbe dire generare pagine diverse per ogni lingua.
+    # [EN] The language choice, built by WALKING THE REGISTRY instead of
+    # being written out by hand. It is the difference between a real
+    # factorisation and a half one: with the entries written by hand, adding
+    # a language would still force a return here, and the registry in
+    # i18n.py would be only half the truth.
+    #
+    # Every entry carries the flag and the language's name in that language
+    # ("Italiano", not "Italian"). The two together and not the flag alone:
+    # a flag denotes a country, and a language does not belong to a single
+    # country -- it helps to spot the entry out of the corner of the eye,
+    # but it is the name that says which one it is. The name does not go
+    # through tr(): it stays "Italiano" even while the page is in English,
+    # otherwise someone looking for their own language would read the name
+    # another language gives it.
+    #
+    # lang="xx" on each entry serves screen-reader users: it tells the
+    # speech synthesiser to pronounce that word with its own language's
+    # phonetics, instead of reading "English" the Italian way.
+    # The listbox/option roles say this is a choice among alternatives and
+    # not just a row of buttons. aria-selected is born "false" on all of
+    # them and is lit at runtime by I18N_APPLY, which also fills the button:
+    # which language is active is not known here yet, and baking it into the
+    # HTML would mean generating different pages per language.
+    lang_options = "".join(
+        f'<button type="button" role="option" class="pref-option"'
+        f' data-value="{code}" lang="{code}" aria-selected="false">'
+        f"{i18n.FLAGS[code]}"
+        f'<span class="pref-name">{i18n.ENDONYMS[code]}</span>'
+        "</button>"
+        for code in i18n.LANGS
+    )
+
+    # La valuta, dallo stesso registro e nella stessa forma. Simbolo e
+    # codice ISO al posto di bandiera ed endonimo, e per la stessa ragione:
+    # il simbolo si riconosce con la coda dell'occhio, il codice toglie il
+    # dubbio. Nessuno dei due passa da tr() -- "$" e "USD" si scrivono
+    # uguali in ogni lingua.
+    # Niente lang="xx" qui: non sono parole di una lingua, sono codici, e
+    # dire a un sintetizzatore vocale di leggerli "all'inglese" non
+    # aggiungerebbe niente.
+    # [EN] The currency, from the same registry and in the same shape.
+    # Symbol and ISO code instead of flag and endonym, and for the same
+    # reason: the symbol is recognised out of the corner of the eye, the
+    # code removes the doubt. Neither goes through tr() -- "$" and "USD"
+    # are written the same in every language.
+    # No lang="xx" here: these are not words of a language, they are codes,
+    # and telling a speech synthesiser to read them "the English way" would
+    # add nothing.
+    currency_options = "".join(
+        f'<button type="button" role="option" class="pref-option"'
+        f' data-value="{code}" aria-selected="false">'
+        f'<span class="pref-symbol" aria-hidden="true">'
+        f"{i18n.CURRENCY_SYMBOLS[code]}</span>"
+        f'<span class="pref-name">{i18n.CURRENCY_CODES[code]}</span>'
+        "</button>"
+        for code in i18n.CURRENCIES
+    )
+
+    # Una combo e' una combo: cambia il nome della preferenza che pilota,
+    # l'etichetta e le voci. data-pref e' l'unica cosa che il JavaScript
+    # legge per sapere quale preferenza sta cablando, e da li' in poi il
+    # codice e' lo stesso per tutte -- niente id fissi, quindi niente
+    # limite di una sola combo per pagina.
+    # [EN] A combo is a combo: what changes is the name of the preference
+    # it drives, the label and the entries. data-pref is the only thing the
+    # JavaScript reads to know which preference it is wiring, and from
+    # there on the code is the same for all of them -- no fixed ids, hence
+    # no limit of one combo per page.
+    def combo(pref, label_key, label_it, options):
+        return (
+            f'<div class="pref-combo" data-pref="{pref}">'
+            '<button type="button" class="pref-trigger"'
+            ' aria-haspopup="listbox" aria-expanded="false"'
+            f' data-i18n-aria-label="{label_key}" aria-label="{label_it}">'
+            '<span class="pref-current"></span>'
+            '<span class="pref-caret" aria-hidden="true">&#9662;</span>'
+            "</button>"
+            f'<div class="pref-menu" role="listbox"'
+            f' data-i18n-aria-label="{label_key}" aria-label="{label_it}"'
+            f" hidden>{options}</div></div>"
+        )
+
+    # La valuta dove ci sono importi da mostrare, che oggi vuol dire tutte
+    # e tre le pagine. Non solo la dashboard: chi guarda il tariffario o la
+    # tabella dei modelli nella guida lo fa per decidere quale modello
+    # usare, e una cifra in una valuta che non e' la propria e' una cifra
+    # da convertire a mente prima di poterci ragionare.
+    # Il listino resta scritto in dollari perche' in dollari e': la sezione
+    # dei cambi nel tariffario dice a che rapporto sono convertite le altre
+    # valute, e la data a cui quel rapporto risale. Il parametro resta
+    # perche' una pagina senza importi -- se un domani ce ne fosse una --
+    # non deve mostrare un controllo che non cambia niente.
+    # [EN] The currency where there are amounts to show, which today means
+    # all three pages. Not the dashboard alone: whoever looks at the price
+    # list, or at the model table in the guide, does so to decide which
+    # model to use, and a figure in a currency that is not theirs is a
+    # figure to convert in their head before they can reason about it.
+    # The tariff stays written in dollars because in dollars is what it is:
+    # the rates section on the price list says at what ratio the other
+    # currencies are converted, and the date that ratio dates from. The
+    # parameter stays because a page with no amounts -- should there ever
+    # be one -- must not show a control that changes nothing.
+    combos = ""
+    if currency_control:
+        combos += combo("currency", "header.currencySwitch",
+                        "Valuta degli importi", currency_options)
+    combos += combo("lang", "header.langSwitch",
+                    "Lingua della pagina", lang_options)
+    prefs_html = f'<div class="pref-group">{combos}</div>'
 
     # Il "return f\"\"\" ... \"\"\"" restituisce l'HTML completo
     # dell'intestazione come un'unica stringa multi-riga, con dentro
@@ -748,24 +1149,719 @@ def render_header(active_id, refresh_control=False):
         <span class="brand-badge" aria-hidden="true">🪙</span>
         <div class="brand-info">
           <span class="brand-name">Claude Code</span>
-          <span class="brand-tag">Monitoraggio Token &amp; Costi</span>
+          <span class="brand-tag" data-i18n="header.brandTag">Monitoraggio Token &amp; Costi</span>
         </div>
       </div>
       <div class="site-header-meta">
-        <div class="meta-status" id="meta-status" title="Data e ora dell'ultimo aggiornamento">
+        <div class="meta-status" id="meta-status" data-i18n-title="header.updatedTitle" title="Data e ora dell'ultimo aggiornamento">
           <span class="status-indicator" aria-hidden="true"></span>
-          <span class="meta-label">Aggiornato</span>
+          <span class="meta-label" data-i18n="header.updated">Aggiornato</span>
           <span class="meta-timestamp" id="meta-timestamp"></span>
         </div>{refresh_html}
       </div>
+      {prefs_html}
     </div>
-    <nav class="site-nav" aria-label="Navigazione principale">
+    <nav class="site-nav" data-i18n-aria-label="header.nav" aria-label="Navigazione principale">
       <div class="nav-tabs">
 {tabs_block}
       </div>
     </nav>
   </header>
 {HEADER_SCRIPT}"""
+
+
+# I due frammenti JavaScript della traduzione. Sono divisi in due, e per
+# la stessa ragione per cui lo sono REVEAL_BOOT e REVEAL_JS qui sotto: il
+# primo deve girare PRIMA che il browser disegni qualcosa, il secondo ha
+# bisogno che il markup esista gia'.
+#
+# I18N_BOOT (segnaposto __I18N_BOOT__, nell'<head>) carica il dizionario,
+# sceglie la lingua e pubblica gli attrezzi che tutto il resto usera':
+# LANG, FMT, CURRENCY, tr() e switchPref(). Nient'altro: al momento in cui gira
+# il corpo della pagina non esiste ancora.
+#
+# I18N_APPLY (segnaposto __I18N_APPLY__) fa la passata vera e propria
+# sugli attributi data-i18n*, accende il bottone della lingua attiva e
+# toglie il varco anti-lampeggio.
+#
+# DOVE VA MESSO I18N_APPLY, E PERCHE' E' IMPORTANTE. Va incollato subito
+# PRIMA dello <script src> dei dati (dashboard-data.js), non in fondo alla
+# pagina e non dentro un DOMContentLoaded. E' uno script classico, quindi
+# bloccante: quando gira, tutto il markup che lo precede esiste gia' (ed e'
+# tutto quello che c'e' da tradurre), ma il file dei dati -- che pesa
+# megabyte -- non e' ancora stato chiesto. Aspettare DOMContentLoaded
+# significherebbe tenere il corpo invisibile finche' quei megabyte non
+# sono stati letti e interpretati: secondi di pagina bianca.
+# C'e' un secondo motivo, meno ovvio: la dashboard posiziona gli
+# indicatori scorrevoli dei suoi controlli segmentati misurando la
+# larghezza dei bottoni, una sola volta, quando li collega. Se le
+# etichette venissero tradotte DOPO quel momento, gli indicatori
+# resterebbero misurati sul testo italiano e storti fino al primo
+# ridimensionamento della finestra. Girando qui, le etichette sono gia'
+# quelle giuste quando il collegamento avviene. L'ordine e' portante:
+# spostare questo script piu' in basso romperebbe due cose insieme.
+#
+# [EN] The two JavaScript fragments of the translation. They are split in
+# two, and for the same reason REVEAL_BOOT and REVEAL_JS below are: the
+# first must run BEFORE the browser paints anything, the second needs the
+# markup to already exist.
+#
+# I18N_BOOT (placeholder __I18N_BOOT__, in the <head>) loads the
+# dictionary, chooses the language and publishes the tools everything else
+# will use: LANG, FMT, CURRENCY, tr() and switchPref(). Nothing else: at the
+# moment it runs, the page body does not exist yet.
+#
+# I18N_APPLY (placeholder __I18N_APPLY__) does the actual pass over the
+# data-i18n* attributes, lights up the active language button and removes
+# the anti-flash gate.
+#
+# WHERE I18N_APPLY GOES, AND WHY IT MATTERS. It is pasted right BEFORE the
+# data <script src> (dashboard-data.js), not at the bottom of the page and
+# not inside a DOMContentLoaded. It is a classic script, therefore
+# blocking: when it runs, all the markup preceding it already exists (and
+# that is all there is to translate), but the data file -- weighing
+# megabytes -- has not been requested yet. Waiting for DOMContentLoaded
+# would mean keeping the body invisible until those megabytes have been
+# read and parsed: seconds of blank page.
+# There is a second, less obvious reason: the dashboard positions the
+# sliding indicators of its segmented controls by measuring the buttons'
+# width, once, when it wires them. If the labels were translated AFTER
+# that moment, the indicators would stay measured against the Italian text
+# and sit crooked until the first window resize. Running here, the labels
+# are already the right ones when the wiring happens. The order is
+# load-bearing: moving this script further down would break two things at
+# once.
+I18N_BOOT = r"""  <script src="site-i18n.js"></script>
+  <script>
+  (function () {
+    /* Se il dizionario non si e' caricato non si fa NIENTE: niente varco
+       anti-lampeggio, niente traduzione. Il markup delle pagine porta il
+       testo italiano scritto dentro, quindi la degradazione e' una pagina
+       in italiano perfettamente leggibile -- molto meglio di una pagina
+       piena di nomi di chiave, e infinitamente meglio di una pagina
+       bianca in attesa di uno scambio che non arrivera'.
+       [EN] If the dictionary did not load we do NOTHING: no anti-flash
+       gate, no translation. The pages' markup carries the Italian text
+       written inside, so the degradation is a perfectly readable Italian
+       page -- much better than a page full of key names, and infinitely
+       better than a blank page waiting for a swap that will never come. */
+    if (typeof I18N === 'undefined' || !I18N.strings) return;
+
+    var LIST = I18N.langs || [];
+
+    /* La lingua si sceglie in tre mosse, dalla piu' esplicita alla piu'
+       generica: la scelta gia' fatta con lo switch, la lingua del
+       browser, il ripiego. Una scelta esplicita vince SEMPRE su quello
+       che dice il browser -- e' il senso stesso di avere uno switch.
+       navigator.languages e non solo navigator.language: e' la lista
+       ordinata delle preferenze, e chi ha l'inglese come seconda scelta
+       preferisce l'inglese al ripiego.
+       [EN] The language is chosen in three moves, from the most explicit
+       to the most generic: the choice already made with the switch, the
+       browser language, the fallback. An explicit choice ALWAYS wins over
+       what the browser says -- that is the very point of having a switch.
+       navigator.languages and not just navigator.language: it is the
+       ordered list of preferences, and someone with English as a second
+       choice prefers English to the fallback. */
+    function pick() {
+      var stored = null;
+      /* localStorage puo' sollevare un'eccezione (modalita' privata,
+         cookie di terze parti bloccati): senza try/catch un browser
+         configurato cosi' resterebbe senza traduzione del tutto.
+         [EN] localStorage can throw (private mode, blocked third-party
+         cookies): without try/catch a browser configured that way would
+         end up with no translation at all. */
+      try { stored = localStorage.getItem('dashboardLang'); } catch (e) {}
+      if (stored && LIST.indexOf(stored) >= 0) return stored;
+
+      var tags = [];
+      if (navigator.languages && navigator.languages.length) {
+        tags = tags.concat([].slice.call(navigator.languages));
+      }
+      if (navigator.language) tags.push(navigator.language);
+      for (var i = 0; i < tags.length; i++) {
+        /* "it-IT" e "en_US.UTF-8" cominciano entrambi con le due lettere
+           che ci interessano: si taglia al primo separatore.
+           [EN] "it-IT" and "en_US.UTF-8" both start with the two letters
+           we care about: cut at the first separator. */
+        var code = String(tags[i]).toLowerCase().split(/[-_.]/)[0];
+        if (LIST.indexOf(code) >= 0) return code;
+      }
+      return I18N.fallback;
+    }
+
+    var LANG = pick();
+    var DICT = I18N.strings[LANG] || {};
+
+    window.LANG = LANG;
+    window.FMT = I18N.fmt[LANG] || {};
+
+    /* La valuta e' la seconda preferenza, letta con lo stesso schema della
+       lingua meno un passaggio: quello dal browser. navigator non dichiara
+       una valuta, e dedurla dalla lingua sarebbe esattamente l'errore che
+       questa separazione esiste per evitare -- chi legge in inglese non per
+       questo paga in dollari, chi legge in italiano non per questo paga in
+       euro. Senza una scelta esplicita si mostra il dato com'e' nel
+       listino, cioe' in dollari: e' un dato, non una preferenza indovinata.
+       [EN] The currency is the second preference, read with the same
+       scheme as the language minus one step: the browser one. navigator
+       declares no currency, and inferring it from the language would be
+       exactly the mistake this separation exists to avoid -- someone
+       reading in English does not therefore pay in dollars, someone
+       reading in Italian does not therefore pay in euros. With no explicit
+       choice we show the datum as the price list has it, in dollars: a
+       fact, not a guessed preference. */
+    var CURLIST = I18N.currencies || [];
+    function pickCurrency() {
+      var stored = null;
+      try { stored = localStorage.getItem('dashboardCurrency'); } catch (e) {}
+      if (stored && CURLIST.indexOf(stored) >= 0) return stored;
+      return I18N.currencyFallback;
+    }
+
+    var CURRENCY = pickCurrency();
+
+    window.CURRENCY = CURRENCY;
+    /* Il simbolo viaggia gia' risolto: chi formatta gli importi non deve
+       sapere che esiste un registro delle valute, gli serve il carattere.
+       [EN] The symbol travels already resolved: whoever formats amounts
+       need not know a currency registry exists, they need the character. */
+    window.CURRENCY_SYMBOL = (I18N.currencySymbols || {})[CURRENCY] || '';
+
+    /* --- Come si scrive un importo ---
+       Sta qui, e non nel JavaScript della dashboard, perche' di pagine che
+       mostrano importi ce ne sono due: la dashboard e il tariffario. Il
+       secondo ha prezzi di listino, che sono in dollari, ma chi li legge
+       per decidere quale modello usare vuole vederli nella valuta in cui
+       ragiona -- ed e' esattamente la stessa domanda a cui risponde la
+       combo in alto.
+       Il POSTO del simbolo lo decide la lingua (in italiano dopo con uno
+       spazio, in inglese prima e attaccato), il simbolo lo decide la
+       valuta, il cambio lo decide la tabella in pricing.py. Tre registri
+       diversi per tre domande diverse, e un solo punto che li mette
+       insieme.
+       Il dollaro sta nella tabella dei cambi con 1.0: convertire e' sempre
+       una moltiplicazione, e non esiste un caso "questa valuta non si
+       converte" da ricordarsi.
+       [EN] --- How an amount is written ---
+       It lives here, and not in the dashboard's JavaScript, because there
+       are two pages showing amounts: the dashboard and the price list. The
+       second one has list prices, which are in dollars, but whoever reads
+       them to decide which model to use wants to see them in the currency
+       they think in -- and that is exactly the question the combo at the
+       top answers.
+       The symbol's PLACE is decided by the language (in Italian after,
+       with a space; in English before and attached), the symbol by the
+       currency, the rate by the table in pricing.py. Three different
+       registries for three different questions, and a single point putting
+       them together.
+       The dollar is in the rates table at 1.0: converting is always a
+       multiplication, and there is no "this currency does not convert"
+       case to remember. */
+    var FMT = I18N.fmt[LANG] || {};
+    function fmtOpt(name, fallback) {
+      return FMT[name] === undefined ? fallback : FMT[name];
+    }
+    var DEC = fmtOpt('dec', ',');
+    var THOU = fmtOpt('thou', '.');
+    var SYMBOL_BEFORE = fmtOpt('moneySymbolBefore', false);
+    var GAP = fmtOpt('moneyGap', ' ');
+    var SYM = window.CURRENCY_SYMBOL;
+
+    window.CUR_RATE = (I18N.rates || {})[CURRENCY] || 1;
+    window.MONEY_PRE = SYMBOL_BEFORE ? SYM + GAP : '';
+    window.MONEY_POST = SYMBOL_BEFORE ? '' : GAP + SYM;
+
+    window.groupThousands = function (intStr) {
+      return intStr.replace(/\B(?=(\d{3})+(?!\d))/g, THOU);
+    };
+
+    /* Numero con 2 decimali e separatore delle migliaia, senza simbolo e
+       senza cambio: e' il motore di fmtMoney, ed e' separato da quello
+       perche' gli assi dei grafici usano lo stesso arrotondamento su un
+       valore che il cambio l'ha gia' subito.
+       [EN] Number with 2 decimals and thousands separator, without symbol
+       and without conversion: it is fmtMoney's engine, and it is kept
+       apart from it because the chart axes use the same rounding on a
+       value that has already gone through the conversion. */
+    window.fmtDecimal2 = function (n) {
+      /* Arrotondato per eccesso a 2 decimali (con tolleranza per errori di
+         virgola mobile, cosi' un valore "vero" come 7.92 non diventa
+         7.93).
+         [EN] Rounded up to 2 decimals (with tolerance for floating-point
+         errors, so a "true" value like 7.92 does not become 7.93). */
+      var cents = Math.ceil(n * 100 - 1e-9);
+      var totalCents = Math.round(cents + 0);
+      var sign = totalCents < 0 ? '-' : '';
+      totalCents = Math.abs(totalCents);
+      var intPart = Math.floor(totalCents / 100);
+      var centsPart = totalCents % 100;
+      var centsStr = centsPart < 10 ? '0' + centsPart : String(centsPart);
+      return sign + window.groupThousands(String(intPart)) + DEC + centsStr;
+    };
+
+    /* L'unico modo di scrivere un importo. Prende SEMPRE dollari -- e'
+       l'unita' in cui arrivano sia i costi calcolati sia i prezzi di
+       listino -- e restituisce la valuta scelta, gia' convertita e col
+       simbolo al posto giusto. Chi chiama non deve mai ricordarsi di
+       moltiplicare, e non rischia di farlo due volte.
+       [EN] The only way to write an amount. It ALWAYS takes dollars -- the
+       unit both the computed costs and the list prices arrive in -- and
+       returns the chosen currency, already converted and with the symbol
+       in the right place. Callers never have to remember to multiply, and
+       cannot do it twice. */
+    window.fmtMoney = function (usd) {
+      return window.MONEY_PRE + window.fmtDecimal2(usd * window.CUR_RATE) +
+             window.MONEY_POST;
+    };
+
+    /* tr('sezione.chiave') restituisce il testo tradotto.
+
+       Si chiama tr e non t perche' in dashboard.html "t" e' gia' il nome
+       della variabile "turno" in una trentina di callback: un traduttore
+       chiamato t sarebbe irraggiungibile proprio dentro le funzioni che
+       disegnano le righe della tabella, e chi ci provasse otterrebbe un
+       "t is not a function" invece di una traduzione.
+       [EN] It is called tr and not t because in dashboard.html "t" is
+       already the name of the "turn" variable in some thirty callbacks: a
+       translator called t would be unreachable precisely inside the
+       functions that draw the table rows, and whoever tried would get a
+       "t is not a function" instead of a translation.
+       Il secondo argomento e' opzionale e ha due forme: un NUMERO, per le
+       chiavi che hanno singolare e plurale (finisce anche in {n}), oppure
+       un OGGETTO di valori da mettere nei segnaposto {cosi'}.
+       Una chiave che non esiste torna indietro come chiave: un
+       "chart.avgOthers" ben visibile in pagina e' una segnalazione che
+       chiunque riconosce, mentre un ripiego silenzioso sull'italiano
+       sarebbe un errore che viene spedito senza che nessuno se ne accorga.
+       Il perche' di tutto questo, per esteso, e' nel docstring di i18n.py.
+       [EN] tr('section.key') returns the translated text.
+       The second argument is optional and has two shapes: a NUMBER, for
+       keys having a singular and a plural (it also lands in {n}), or an
+       OBJECT of values to put into the {like_this} placeholders.
+       A key that does not exist comes back as the key: a plainly visible
+       "chart.avgOthers" on the page is a report anyone recognises, whereas
+       a silent fallback to Italian would be a bug that ships unnoticed.
+       The full reasoning is in i18n.py's docstring. */
+    /* La ricerca di una chiave, in una lingua qualsiasi. Sta fuori da tr()
+       perche' serve anche a switchPref, che quando cambia la lingua deve
+       leggere il dizionario
+       della lingua verso cui si sta andando, non di quella attuale.
+       [EN] Key lookup, in any language. It lives outside tr() because
+       switchPref needs it too: when the language changes, that one has to
+       read the dictionary of
+       the language being switched TO, not the current one. */
+    function lookup(lang, key) {
+      var node = I18N.strings[lang];
+      var parts = key.split('.');
+      for (var i = 0; i < parts.length; i++) {
+        if (!node || typeof node !== 'object' || !(parts[i] in node)) return null;
+        node = node[parts[i]];
+      }
+      return node;
+    }
+
+    window.tr = function (key, arg) {
+      var node = lookup(LANG, key);
+      if (node === null) return key;
+      if (node && typeof node === 'object') {
+        /* Chiave a due forme senza il numero per sceglierle: si torna
+           indietro con la chiave invece di tirare a indovinare.
+           [EN] Two-form key without the number to choose between them: we
+           come back with the key instead of guessing. */
+        if (typeof arg !== 'number') return key;
+        node = (arg === 1) ? node.one : node.other;
+      }
+      if (typeof node !== 'string') return key;
+      var values = (typeof arg === 'number') ? { n: arg } : (arg || {});
+      /* Un segnaposto senza valore resta scritto com'e': si vede cosa
+         manca, invece di ritrovarsi un "undefined" in mezzo alla frase.
+         [EN] A placeholder with no value stays written as it is: you see
+         what is missing, instead of finding an "undefined" mid-sentence. */
+      return node.replace(/\{(\w+)\}/g, function (whole, name) {
+        return (name in values) ? values[name] : whole;
+      });
+    };
+
+    /* Cambiare una preferenza ricarica la pagina. Non e' una rinuncia: e'
+       la scelta descritta al punto 3 del docstring di i18n.py, e riusa il
+       meccanismo che la dashboard ha gia' per i propri ricaricamenti di
+       servizio -- si salvano i filtri, si salta l'animazione d'entrata,
+       si ricarica. Vale anche per la valuta, e per la stessa ragione: gli
+       importi sono cotti nel DOM in decine di punti fra schede, tabelle,
+       tooltip e assi, e riscriverli tutti a caldo vorrebbe dire rieseguire
+       ogni disegno conservando a mano selezioni, ordinamenti e pagina --
+       cioe' rifare a mano quello che il ricaricamento fa gia'. La dashboard pubblica __saveStateForReload; le altre
+       due pagine non hanno stato da conservare e semplicemente non lo
+       definiscono, quindi qui non serve nessun caso speciale per pagina.
+       [EN] Changing a preference reloads the page. Not a concession: it
+       is the choice described at point 3 of i18n.py's docstring, and it
+       reuses the mechanism the dashboard already has for its own service
+       reloads -- save the filters, skip the entrance animation, reload.
+       It holds for the currency too, and for the same reason: amounts are
+       baked into the DOM in dozens of places across cards, tables,
+       tooltips and axes, and rewriting them all live would mean re-running
+       every draw while preserving selections, sort order and page by hand
+       -- that is, redoing by hand what the reload already does.
+       The dashboard publishes __saveStateForReload; the other two pages
+       have no state to preserve and simply do not define it, so no
+       per-page special case is needed here. */
+    /* Le preferenze in una tabella sola: nome, dove si salvano, quali
+       valori accettano, qual e' quella attiva. Il cablaggio delle combo la
+       legge da qui invece di sapere a memoria che esistono una lingua e una
+       valuta, per cui una terza preferenza si aggiunge scrivendo una riga
+       in questa tabella e una voce in render_header.
+       [EN] The preferences in a single table: name, where they are saved,
+       which values they accept, which one is active. The combos' wiring
+       reads it from here instead of knowing by heart that a language and a
+       currency exist, so a third preference is added by writing one line in
+       this table and one entry in render_header. */
+    var PREFS = {
+      lang: { store: 'dashboardLang', list: LIST, value: LANG },
+      currency: { store: 'dashboardCurrency', list: CURLIST, value: CURRENCY }
+    };
+    window.__prefs = PREFS;
+
+    window.switchPref = function (name, next) {
+      var pref = PREFS[name];
+      if (!pref || next === pref.value || pref.list.indexOf(next) < 0) return;
+      /* Quasi tutte le pagine esistono in un file solo e si traducono
+         ricaricandosi. La guida no: e' prosa lunga e vive in un file per
+         lingua, quindi ricaricare lo stesso file darebbe testo inglese
+         dentro una cornice italiana. Una pagina cosi' lo dichiara scrivendo
+         sull'elemento <html> la chiave che contiene il proprio indirizzo, e
+         qui si va a leggerla nel dizionario della lingua di destinazione.
+         Non e' un caso speciale per la guida: e' un meccanismo che vale per
+         qualunque pagina futura che nasca in piu' file.
+         Riguarda la sola lingua: la valuta non cambia il file su cui si
+         sta, cambia i numeri che ci sono dentro.
+         [EN] Almost every page exists as a single file and translates
+         itself by reloading. The guide does not: it is long prose and lives
+         as one file per language, so reloading the same file would give
+         English text inside an Italian frame. Such a page declares itself
+         by writing on the <html> element the key holding its own address,
+         and here we read that key in the destination language's dictionary.
+         It is not a special case for the guide: it is a mechanism serving
+         any future page born as several files.
+         It concerns the language alone: the currency does not change which
+         file you are on, it changes the numbers inside it. */
+      var target = null;
+      if (name === 'lang') {
+        var pageKey = document.documentElement.getAttribute('data-page-href');
+        if (pageKey) target = lookup(next, pageKey);
+      }
+      try {
+        localStorage.setItem(pref.store, next);
+        sessionStorage.setItem('skipPageIntro', '1');
+        /* Dopo il ricaricamento il fuoco deve tornare sulla combo che si e'
+           appena usata -- non su una qualsiasi: chi naviga da tastiera ha
+           premuto quella, e ritrovarsi il fuoco altrove vorrebbe dire
+           rifare la strada. Per questo si salva il NOME della preferenza e
+           non un semplice "si": con due combo affiancate, "si" non basta
+           piu' a dire quale.
+           [EN] After the reload the focus must return to the combo just
+           used -- not to any one of them: whoever navigates by keyboard
+           pressed that one, and finding the focus elsewhere would mean
+           walking the way again. Hence we save the NAME of the preference
+           and not a plain "yes": with two combos side by side, "yes" no
+           longer says which. */
+        sessionStorage.setItem('focusAfterPrefSwitch', name);
+      } catch (e) {}
+      if (typeof window.__saveStateForReload === 'function') {
+        try { window.__saveStateForReload(); } catch (e) {}
+      }
+      if (typeof target === 'string' && target) {
+        location.assign(target);
+      } else {
+        location.reload();
+      }
+    };
+
+    /* L'ora di generazione, scritta nella lingua attiva e nel fuso di chi
+       guarda. new Date() su un istante ISO fa la conversione di fuso da
+       sola, per qualunque fuso e con le regole giuste: e' il motivo per
+       cui il fuso NON segue la lingua, ma il computer di chi legge (vedi
+       il punto 6 nel docstring di i18n.py).
+       La forma e' la stessa nelle due lingue -- "25 ago 2026, 10:40" e
+       "25 Aug 2026, 10:40" -- quindi cambia solo la tabella dei mesi, che
+       arriva dal profilo di formattazione.
+       [EN] The generation time, written in the active language and in the
+       viewer's time zone. new Date() on an ISO instant does the zone
+       conversion by itself, for any zone and with the right rules: it is
+       why the zone does NOT follow the language, but the reader's computer
+       (see point 6 in i18n.py's docstring).
+       The shape is the same in both languages -- "25 ago 2026, 10:40" and
+       "25 Aug 2026, 10:40" -- so only the month table changes, and that
+       comes from the formatting profile. */
+    window.fmtGeneratedAt = function (iso) {
+      var d = new Date(iso);
+      /* Un istante che il browser non sa leggere non deve buttare giu'
+         tutto: si restituisce vuoto e chi chiama ripiega.
+         [EN] An instant the browser cannot read must not bring everything
+         down: we return empty and the caller falls back. */
+      if (isNaN(d.getTime())) return '';
+      var months = window.FMT.monthsShort || [];
+      function pad(n) { return (n < 10 ? '0' : '') + n; }
+      return d.getDate() + ' ' + months[d.getMonth()] + ' ' + d.getFullYear() +
+             ', ' + pad(d.getHours()) + ':' + pad(d.getMinutes());
+    };
+
+    document.documentElement.lang = LANG;
+    document.documentElement.classList.add('i18n-pending');
+  })();
+  </script>"""
+
+# Vedi il commento sopra I18N_BOOT per il perche' di questa divisione in
+# due e, soprattutto, per il perche' della POSIZIONE di questo secondo
+# frammento nella pagina.
+# [EN] See the comment above I18N_BOOT for why this is split in two and,
+# above all, for why this second fragment sits where it sits in the page.
+I18N_APPLY = r"""  <script>
+  (function () {
+    var root = document.documentElement;
+    try {
+      if (typeof window.tr !== 'function') return;
+
+      /* Gli attributi che non sono testo visibile. Una tabella e non una
+         catena di if: aggiungere un attributo traducibile e' una riga qui,
+         e il ciclo sotto non cambia.
+         [EN] The attributes that are not visible text. A table and not a
+         chain of ifs: adding a translatable attribute is one line here,
+         and the loop below does not change. */
+      var ATTRS = {
+        'data-i18n-title': 'title',
+        'data-i18n-aria-label': 'aria-label',
+        'data-i18n-placeholder': 'placeholder',
+        'data-i18n-href': 'href'
+      };
+
+      var els, i;
+
+      /* textContent e non innerHTML: il testo tradotto viene messo cosi'
+         com'e', quindi una traduzione non puo' mai iniettare markup per
+         sbaglio. Funziona anche sul <title> della scheda.
+         [EN] textContent and not innerHTML: the translated text is put in
+         as-is, so a translation can never inject markup by accident. It
+         works on the tab <title> too. */
+      els = document.querySelectorAll('[data-i18n]');
+      for (i = 0; i < els.length; i++) {
+        els[i].textContent = tr(els[i].getAttribute('data-i18n'));
+      }
+
+      /* L'eccezione: le poche stringhe che contengono markup (un <code>,
+         un <strong>). Stanno sotto un attributo diverso proprio perche' si
+         veda a colpo d'occhio, leggendo il markup, quali sono.
+         [EN] The exception: the few strings containing markup (a <code>, a
+         <strong>). They sit under a different attribute precisely so that
+         one can see at a glance, reading the markup, which ones they are. */
+      els = document.querySelectorAll('[data-i18n-html]');
+      for (i = 0; i < els.length; i++) {
+        els[i].innerHTML = tr(els[i].getAttribute('data-i18n-html'));
+      }
+
+      for (var data in ATTRS) {
+        if (!Object.prototype.hasOwnProperty.call(ATTRS, data)) continue;
+        els = document.querySelectorAll('[' + data + ']');
+        for (i = 0; i < els.length; i++) {
+          els[i].setAttribute(ATTRS[data], tr(els[i].getAttribute(data)));
+        }
+      }
+
+      /* Gli importi scritti nel markup dalla generazione: nell'attributo
+         c'e' il numero in dollari, nella cella ci finisce lo stesso numero
+         nella valuta scelta. Non e' una traduzione, ma passa di qui per la
+         stessa ragione per cui ci passano i titoli: e' un testo che si sa
+         solo a runtime, e questo e' il punto in cui la pagina si riscrive
+         prima di essere mostrata.
+         Serve al tariffario, i cui prezzi sono generati da Python. La
+         dashboard non lo usa: i suoi importi nascono gia' dentro il
+         JavaScript, che chiama fmtMoney direttamente.
+         Un valore che non e' un numero viene lasciato stare: il testo
+         scritto nel markup resta al suo posto, che e' meglio di un "NaN".
+         [EN] The amounts written into the markup at generation time: the
+         attribute holds the number in dollars, the cell gets the same
+         number in the chosen currency. It is not a translation, but it
+         goes through here for the same reason the titles do: it is text
+         known only at runtime, and this is the point where the page
+         rewrites itself before being shown.
+         The price list needs it, its prices being generated by Python. The
+         dashboard does not use it: its amounts are born inside the
+         JavaScript, which calls fmtMoney directly.
+         A value that is not a number is left alone: the text written in
+         the markup stays where it is, which beats a "NaN". */
+      if (typeof window.fmtMoney === 'function') {
+        els = document.querySelectorAll('[data-i18n-money]');
+        for (i = 0; i < els.length; i++) {
+          var usd = parseFloat(els[i].getAttribute('data-i18n-money'));
+          if (!isNaN(usd)) els[i].textContent = window.fmtMoney(usd);
+        }
+      }
+
+      /* Le combo dell'intestazione: si marca la voce attiva, la si copia
+         dentro il bottone che apre, e si collegano apertura, scelta e
+         chiusura. Sono due -- lingua e valuta -- e questo codice non sa
+         quali siano: legge data-pref su ciascuna e chiede a window.__prefs
+         qual e' il valore attivo di quella preferenza. Una combo in piu'
+         non aggiunge una riga qui.
+         aria-selected viene messo adesso e non nell'HTML generato perche'
+         quale voce sia attiva si sa solo a runtime: cuocerlo nel markup
+         vorrebbe dire generare una pagina diversa per ogni combinazione di
+         lingua e valuta, che e' esattamente cio' che questo disegno evita.
+         [EN] The header combos: mark the active entry, copy it into the
+         button that opens the list, and wire opening, choosing and
+         closing. There are two -- language and currency -- and this code
+         does not know which: it reads data-pref on each one and asks
+         window.__prefs what the active value of that preference is. One
+         more combo adds no line here.
+         aria-selected is set now and not in the generated HTML because
+         which entry is active is known only at runtime: baking it into the
+         markup would mean generating a different page for every
+         combination of language and currency, which is exactly what this
+         design avoids. */
+      var focusPref = null;
+      try {
+        focusPref = sessionStorage.getItem('focusAfterPrefSwitch');
+        if (focusPref) sessionStorage.removeItem('focusAfterPrefSwitch');
+      } catch (e) {}
+
+      /* Aprire e chiudere e' un'operazione sola, definita fuori dal ciclo
+         perche' serve anche a una combo per agire su un'altra: aprendo la
+         seconda si chiude la prima. Con una funzione per combo, chiusa
+         dentro il proprio giro di ciclo, nessuna saprebbe come chiudere le
+         altre.
+         [EN] Opening and closing is a single operation, defined outside the
+         loop because a combo needs it to act on another one too: opening
+         the second closes the first. With one function per combo, sealed
+         inside its own turn of the loop, none of them would know how to
+         close the others. */
+      function setOpen(combo, si) {
+        combo.classList.toggle('open', si);
+        combo.querySelector('.pref-menu').hidden = !si;
+        combo.querySelector('.pref-trigger')
+             .setAttribute('aria-expanded', si ? 'true' : 'false');
+      }
+
+      var current = null;
+      var combos = document.querySelectorAll('.pref-combo[data-pref]');
+      for (i = 0; i < combos.length; i++) {
+        (function (combo) {
+          var name = combo.getAttribute('data-pref');
+          var pref = (window.__prefs || {})[name];
+          if (!pref) return;
+          var trigger = combo.querySelector('.pref-trigger');
+          var menu = combo.querySelector('.pref-menu');
+          var options = menu.querySelectorAll('.pref-option[data-value]');
+          var attiva = null;
+
+          for (var j = 0; j < options.length; j++) {
+            (function (opt) {
+              var active = opt.getAttribute('data-value') === pref.value;
+              opt.setAttribute('aria-selected', active ? 'true' : 'false');
+              if (active) attiva = opt;
+              opt.addEventListener('click', function () {
+                window.switchPref(name, opt.getAttribute('data-value'));
+              });
+            })(options[j]);
+          }
+
+          /* Il bottone mostra la voce attiva copiandone il contenuto invece
+             di ricostruirlo: bandiera, simbolo e nome sono gia' nel
+             documento, generati una volta sola da render_header, e una
+             seconda copia sarebbe una seconda cosa da tenere allineata alla
+             prima.
+             [EN] The button shows the active entry by copying its content
+             rather than rebuilding it: flag, symbol and name are already in
+             the document, generated once by render_header, and a second
+             copy would be a second thing to keep in step with the first. */
+          if (attiva) {
+            trigger.querySelector('.pref-current').innerHTML = attiva.innerHTML;
+          }
+          if (focusPref === name) current = trigger;
+
+          trigger.addEventListener('click', function (e) {
+            /* Aprire una combo chiude le altre: due elenchi aperti insieme
+               sono due domande fatte contemporaneamente, e chi guarda non
+               sa piu' a quale delle due sta rispondendo.
+               Non basta lasciar correre il click fino al documento: il
+               gestore qui sotto ferma l'evento, e senza fermarlo qualunque
+               altro ascoltatore della pagina si ritroverebbe fra i piedi un
+               click che non lo riguarda.
+               [EN] Opening a combo closes the others: two lists open at once
+               are two questions asked at the same time, and the person
+               looking no longer knows which of the two they are answering.
+               Letting the click run up to the document is not enough: the
+               handler below stops the event, and without stopping it any
+               other listener on the page would find itself handed a click
+               that is none of its business. */
+            e.stopPropagation();
+            var aperte = document.querySelectorAll('.pref-combo.open');
+            for (var k = 0; k < aperte.length; k++) {
+              if (aperte[k] !== combo) setOpen(aperte[k], false);
+            }
+            setOpen(combo, menu.hidden);
+          });
+
+          /* Un click fuori chiude l'elenco: e' il modo in cui ci si aspetta
+             di poterlo abbandonare senza scegliere niente.
+             [EN] A click outside closes the list: it is the way one expects
+             to be able to leave it without choosing anything. */
+          document.addEventListener('click', function (e) {
+            if (!menu.hidden && !combo.contains(e.target)) setOpen(combo, false);
+          });
+
+          /* Esc chiude e riporta il fuoco sul bottone: chi ha aperto
+             l'elenco da tastiera deve ritrovarsi dov'era, non in cima al
+             documento.
+             [EN] Esc closes and returns focus to the button: whoever opened
+             the list from the keyboard must end up where they were, not at
+             the top of the document. */
+          document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape' && !menu.hidden) {
+              setOpen(combo, false);
+              trigger.focus();
+            }
+          });
+        })(combos[i]);
+      }
+
+      /* Il fuoco e' l'unica cosa qui dentro che NON va fatta subito.
+         Questo script gira mentre il parser sta ancora leggendo la pagina,
+         e un focus() dato in quel momento viene perso: a fine caricamento
+         il browser riporta il fuoco su <body>, e chi era arrivato allo
+         switch da tastiera se lo ritroverebbe in cima al documento --
+         esattamente il disagio che questo pezzo vuole evitare.
+         Le traduzioni, al contrario, devono restare qui e non possono
+         aspettare (il perche' e' nel commento sopra I18N_BOOT): quindi le
+         due cose si separano, ognuna nel momento che le serve.
+         [EN] Focus is the only thing in here that must NOT be done right
+         away. This script runs while the parser is still reading the page,
+         and a focus() given at that moment is lost: at the end of loading
+         the browser puts focus back on <body>, and whoever reached the
+         switch by keyboard would find it back at the top of the document
+         -- exactly the nuisance this piece is meant to avoid.
+         The translations, on the contrary, must stay here and cannot wait
+         (why is in the comment above I18N_BOOT): so the two are separated,
+         each at the moment it needs. */
+      if (current) {
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', function () {
+            current.focus();
+          });
+        } else {
+          current.focus();
+        }
+      }
+    } finally {
+      /* In un finally, sempre: qualunque errore capiti qui sopra, il corpo
+         della pagina torna visibile. Una traduzione incompleta e' un
+         difetto; una pagina che resta bianca per sempre e' un guasto.
+         [EN] In a finally, always: whatever error happens above, the page
+         body becomes visible again. An incomplete translation is a flaw; a
+         page staying blank forever is a failure. */
+      root.classList.remove('i18n-pending');
+    }
+  })();
+  </script>"""
 
 
 # Frammento da incollare nell'<head> di ogni pagina (segnaposto

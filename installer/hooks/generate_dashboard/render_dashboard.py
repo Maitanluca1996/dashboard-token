@@ -250,20 +250,6 @@ def _build_payload(tokens, ops, sessions_sorted, session_info, last_seen, sessio
         "modelPricing": pricing.MODEL_PRICING,
         "cacheWrite1hMultiplier": pricing.CACHE_WRITE_1H_MULTIPLIER,
         "defaultModelKey": pricing.DEFAULT_MODEL_KEY,
-        # Cambio $ -> EUR (costante scritta a mano in pricing.py, vedi il
-        # commento li'): serve al JavaScript per mostrare accanto a ogni
-        # importo in dollari il suo controvalore in euro. Passiamo anche la
-        # data dell'ultimo aggiornamento, cosi' la pagina puo' dichiarare a
-        # che cambio sono calcolati gli euro invece di farli sembrare un
-        # dato in tempo reale.
-        # [EN] $ -> EUR exchange rate (hand-written constant in
-        # pricing.py, see the comment there): the JavaScript needs it
-        # to show, next to every dollar amount, its euro equivalent. We
-        # also pass the date of the last update, so the page can state
-        # at what rate the euros are computed instead of making them
-        # look like real-time data.
-        "usdToEur": pricing.USD_TO_EUR,
-        "usdToEurDate": pricing.USD_TO_EUR_DATE,
     }
 
 
@@ -362,6 +348,8 @@ def render(tokens, ops):
     # [EN] The two pieces of the reveal-on-scroll animation, shared
     # with the other pages (see header.py): the "starter" in the <head>
     # and the observer at the bottom of the <body>.
+    html = html.replace("__I18N_BOOT__", templating.I18N_BOOT)
+    html = html.replace("__I18N_APPLY__", templating.I18N_APPLY)
     html = html.replace("__REVEAL_BOOT__", templating.REVEAL_BOOT)
     html = html.replace("__REVEAL_JS__", templating.REVEAL_JS)
     # refresh_control=True: solo qui i numeri cambiano ad ogni turno, quindi
@@ -373,7 +361,8 @@ def render(tokens, ops):
     # the template turns it on).
     html = html.replace(
         "__SITE_HEADER__",
-        templating.render_header("dashboard", refresh_control=True),
+        templating.render_header("dashboard", refresh_control=True,
+                                 currency_control=True),
     )
 
     with open(config.OUT_HTML, "w", encoding="utf-8") as f:

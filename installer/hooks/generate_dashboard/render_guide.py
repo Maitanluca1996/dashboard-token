@@ -27,6 +27,8 @@ Python (no JSON/JavaScript): the page is static, computed once at
 generation time.
 """
 from . import config
+from . import guide_css
+from . import i18n
 from . import numfmt
 from . import pricing
 from . import templating
@@ -50,7 +52,7 @@ GUIDE_EX_CONTEXT_TOKENS = 60000
 GUIDE_EX_TURNS = 40
 
 
-def _price_rows(base_in, base_label):
+def _price_rows(base_in, base_label, lang, T):
     """Tabella modelli con soglia di convenienza.
 
     Il rapporto e' identico calcolato su input o su output (in questo
@@ -88,7 +90,7 @@ def _price_rows(base_in, base_label):
         is_base = key == pricing.DEFAULT_MODEL_KEY
 
         if is_base:
-            verdict = "Riferimento del confronto."
+            verdict = T("guide.verdictBase")
         elif ratio < 1:
             # Modello piu' economico: conviene finche' non si consumano
             # troppi PIU' token del riferimento per compensare il prezzo
@@ -100,10 +102,8 @@ def _price_rows(base_in, base_label):
             # offsetting the lower unit price. "1 / ratio" is precisely
             # that maximum multiplier of extra tokens one can afford
             # while still coming out cheaper.
-            verdict = (
-                "Conviene finch&eacute; consuma <strong>meno di {}&times;</strong> i token di {}."
-                .format(numfmt.it_num(1 / ratio, 1), base_label)
-            )
+            verdict = T("guide.verdictCheaper",
+                        mult=numfmt.num(1 / ratio, 1, lang), base=base_label)
         else:
             # Modello piu' costoso: conviene solo se il compito richiede
             # DECISAMENTE meno token del riferimento. "100 / ratio" esprime
@@ -111,10 +111,8 @@ def _price_rows(base_in, base_label):
             # [EN] More expensive model: it is worthwhile only if the
             # task requires DEFINITELY fewer tokens than the reference.
             # "100 / ratio" expresses that threshold as a percentage.
-            verdict = (
-                "Conviene se consuma <strong>meno del {}%</strong> dei token di {}."
-                .format(numfmt.it_num(100 / ratio, 0), base_label)
-            )
+            verdict = T("guide.verdictPricier",
+                        pct=numfmt.num(100 / ratio, 0, lang), base=base_label)
 
         note = m.get("note", "")
         if note:
@@ -126,14 +124,35 @@ def _price_rows(base_in, base_label):
             # "verdict = verdict + ...").
             verdict += '<span class="cell-note">{}</span>'.format(note)
 
+        # I due prezzi portano il valore in dollari in data-i18n-money e
+        # il testo gia' scritto come ripiego: e' la stessa coppia usata
+        # dal tariffario, e per lo stesso motivo. La guida esiste in un
+        # file per lingua ma non in un file per valuta, quindi il numero
+        # definitivo lo scrive il browser (I18N_APPLY, vedi header.py)
+        # nella valuta scelta nell'intestazione.
+        # Il rapporto fra i modelli NON passa di li': e' un numero puro,
+        # e un rapporto non cambia cambiando valuta -- convertirlo
+        # vorrebbe dire moltiplicarlo per il cambio, cioe' sbagliarlo.
+        # [EN] The two prices carry the dollar value in data-i18n-money
+        # and the already-written text as a fallback: it is the same pair
+        # the price list uses, and for the same reason. The guide exists
+        # as one file per language but not as one file per currency, so
+        # the final number is written by the browser (I18N_APPLY, see
+        # header.py) in the currency chosen in the header.
+        # The ratio between models does NOT go through there: it is a
+        # pure number, and a ratio does not change when the currency
+        # changes -- converting it would mean multiplying it by the rate,
+        # that is, getting it wrong.
         rows.append(
             '<tr{hi}>'
             '<td class="model-name">{label}</td>'
-            '<td class="num">${inp}</td>'
-            '<td class="num">${out}</td>'
+            '<td class="num" data-i18n-money="{inRaw:.6f}">${inp}</td>'
+            '<td class="num" data-i18n-money="{outRaw:.6f}">${out}</td>'
             '<td class="num">{ratio}&times;</td>'
             '<td>{verdict}</td>'
             "</tr>".format(
+                inRaw=m["input"],
+                outRaw=m["output"],
                 # Se questo e' il modello di riferimento, aggiunge
                 # class="row-hi" alla riga per evidenziarla graficamente;
                 # altrimenti nessun attributo extra (stringa vuota).
@@ -142,16 +161,16 @@ def _price_rows(base_in, base_label):
                 # otherwise no extra attribute (empty string).
                 hi=' class="row-hi"' if is_base else "",
                 label=m["label"],
-                inp=numfmt.it_num(m["input"]),
-                out=numfmt.it_num(m["output"]),
-                ratio=numfmt.it_num(ratio),
+                inp=numfmt.num(m["input"], 2, lang),
+                out=numfmt.num(m["output"], 2, lang),
+                ratio=numfmt.num(ratio, 2, lang),
                 verdict=verdict,
             )
         )
     return rows
 
 
-def _promo_block(base, base_label):
+def _promo_block(base, base_label, T):
     """Avviso sul cambio di listino imminente.
 
     Compare solo se il modello di riferimento ha una nota nel tariffario
@@ -175,28 +194,53 @@ def _promo_block(base, base_label):
         return ""
     return (
         '<div class="callout">'
-        '<span class="callout-title">Le soglie qui sopra cambieranno</span>'
-        "<p>Il modello di riferimento ({label}) ha una nota di listino attiva: <em>{note}</em>. "
-        "Le soglie di convenienza sono calcolate sul prezzo <strong>attualmente</strong> in tariffario, "
-        "quindi cambieranno automaticamente quando il listino in <code>generate_dashboard/pricing.py</code> "
-        "verr&agrave; aggiornato. Finch&eacute; non lo si aggiorna, per&ograve;, sia questa pagina sia i costi "
-        "della dashboard restano fermi al prezzo promozionale.</p>"
-        "</div>".format(label=base_label, note=promo_note)
+        '<span class="callout-title">' + T("guide.promoTitle") + "</span>"
+        "<p>" + T("guide.promoBody", label=base_label, note=promo_note) + "</p>"
+        "</div>"
     )
 
 
-def render():
-    """Punto d'ingresso del modulo, chiamato da main.py. Scrive il file
-    finale config.OUT_GUIDE_HTML (guida-costi.html).
+def render(lang="it"):
+    """Punto d'ingresso del modulo, chiamato da main.py una volta per
+    lingua. Scrive guida-costi.html oppure cost-guide.html.
 
-    [EN] Entry point of the module, called by main.py. Writes the final
-    file config.OUT_GUIDE_HTML (guida-costi.html)."""
+    La guida e' l'unica pagina che esiste in due file invece di essere
+    tradotta a runtime come le altre due. Il motivo e' che qui non ci sono
+    etichette ma prosa lunga: centosettanta blocchi di testo scritto, che
+    dentro un dizionario Python sarebbero illeggibili da scrivere e
+    irrecensibili in un diff. Due template la lasciano quello che e', HTML
+    che si legge.
+    Cio' che passa comunque dal dizionario sono le poche frasi COSTRUITE
+    dai numeri del tariffario (la colonna delle soglie, il riquadro della
+    nota di listino): quelle non possono stare nel template, perche' vanno
+    calcolate.
+    Struttura e stile non possono divergere fra i due file: il CSS e' in
+    guide_css.py, e il selftest confronta gli id delle sezioni.
+
+    [EN] Entry point of the module, called by main.py once per language.
+    Writes guida-costi.html or cost-guide.html.
+
+    The guide is the only page existing as two files instead of being
+    translated at runtime like the other two. The reason is that there are
+    no labels here but long prose: a hundred and seventy blocks of written
+    text, which inside a Python dictionary would be unreadable to write and
+    unreviewable in a diff. Two templates leave it what it is, HTML one can
+    read.
+    What does go through the dictionary anyway are the few sentences BUILT
+    from the price list's numbers (the thresholds column, the price-note
+    callout): those cannot live in the template, because they must be
+    computed.
+    Structure and style cannot diverge between the two files: the CSS lives
+    in guide_css.py, and the selftest compares the sections' ids."""
+    template_name = "guide.html" if lang == "it" else "guide.en.html"
+    out_path = config.OUT_GUIDE_HTML if lang == "it" else config.OUT_GUIDE_HTML_EN
+    T = i18n.translator(lang, "UI")
     base = pricing.MODEL_PRICING[pricing.DEFAULT_MODEL_KEY]
     base_in = base["input"]
     base_label = base["label"]
 
-    rows = _price_rows(base_in, base_label)
-    promo_block = _promo_block(base, base_label)
+    rows = _price_rows(base_in, base_label, lang, T)
+    promo_block = _promo_block(base, base_label, T)
 
     # --- Esempio numerico sulla cache (sezione 1 della guida) --------------
     # Confronta il costo di 40 turni consecutivi che ripartono ogni volta da
@@ -230,7 +274,14 @@ def render():
     # numbers) where with_cache turned out to be 0.
     ratio_cache = no_cache / with_cache if with_cache else 0
 
-    html = templating.load_template("guide.html")
+    html = templating.load_template(template_name)
+    # Il CSS proprio di questa pagina, tenuto fuori dal template perche'
+    # i template della guida sono due, uno per lingua, e lo stile e' lo
+    # stesso: vedi il docstring di guide_css.py.
+    # [EN] This page's own CSS, kept out of the template because the
+    # guide has two templates, one per language, and the style is the
+    # same: see guide_css.py's docstring.
+    html = html.replace("__GUIDE_CSS__", guide_css.GUIDE_CSS)
     html = html.replace("__HEADER_CSS__", templating.HEADER_CSS)
     # I due pezzi dell'animazione di rivelazione allo scroll, condivisi
     # con le altre pagine (vedi header.py): lo "starter" nell'<head> e
@@ -238,19 +289,32 @@ def render():
     # [EN] The two pieces of the reveal-on-scroll animation, shared
     # with the other pages (see header.py): the "starter" in the <head>
     # and the observer at the bottom of the <body>.
+    html = html.replace("__I18N_BOOT__", templating.I18N_BOOT)
+    html = html.replace("__I18N_APPLY__", templating.I18N_APPLY)
     html = html.replace("__REVEAL_BOOT__", templating.REVEAL_BOOT)
     html = html.replace("__REVEAL_JS__", templating.REVEAL_JS)
-    html = html.replace("__SITE_HEADER__", templating.render_header("guide"))
+    html = html.replace("__SITE_HEADER__",
+                        templating.render_header("guide", currency_control=True))
     html = html.replace("__PRICE_ROWS__", "\n            ".join(rows))
     html = html.replace("__PROMO_BLOCK__", promo_block)
     html = html.replace("__BASE_LABEL__", base_label)
-    html = html.replace("__CW__", numfmt.it_num(pricing.CACHE_WRITE_MULTIPLIER))
-    html = html.replace("__CR__", numfmt.it_num(pricing.CACHE_READ_MULTIPLIER))
+    html = html.replace("__CW__", numfmt.num(pricing.CACHE_WRITE_MULTIPLIER, 2, lang))
+    html = html.replace("__CR__", numfmt.num(pricing.CACHE_READ_MULTIPLIER, 2, lang))
     html = html.replace("__EX_TURNS__", str(GUIDE_EX_TURNS))
-    html = html.replace("__EX_CTX__", numfmt.it_thousands(GUIDE_EX_CONTEXT_TOKENS))
-    html = html.replace("__EX_NOCACHE__", "$" + numfmt.it_num(no_cache))
-    html = html.replace("__EX_CACHE__", "$" + numfmt.it_num(with_cache))
-    html = html.replace("__EX_RATIO__", numfmt.it_num(ratio_cache, 1))
+    html = html.replace("__EX_CTX__", numfmt.thousands(GUIDE_EX_CONTEXT_TOKENS, lang))
+    # I due importi dell'esempio, nella stessa forma dei prezzi in
+    # tabella: valore in dollari nell'attributo, testo di ripiego dentro.
+    # Uno <span> e non la cella perche' qui stanno in mezzo a una frase.
+    # [EN] The example's two amounts, in the same shape as the prices in
+    # the table: dollar value in the attribute, fallback text inside. A
+    # <span> and not a cell because here they sit inside a sentence.
+    def _money_span(value):
+        return '<span data-i18n-money="{:.6f}">${}</span>'.format(
+            value, numfmt.num(value, 2, lang))
 
-    with open(config.OUT_GUIDE_HTML, "w", encoding="utf-8") as f:
+    html = html.replace("__EX_NOCACHE__", _money_span(no_cache))
+    html = html.replace("__EX_CACHE__", _money_span(with_cache))
+    html = html.replace("__EX_RATIO__", numfmt.num(ratio_cache, 1, lang))
+
+    with open(out_path, "w", encoding="utf-8") as f:
         f.write(html)

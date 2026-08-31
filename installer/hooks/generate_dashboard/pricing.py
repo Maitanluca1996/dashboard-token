@@ -122,33 +122,66 @@ CACHE_WRITE_1H_MULTIPLIER = 2.0
 CACHE_READ_MULTIPLIER = 0.1
 
 
-# --- Cambio dollaro -> euro ---------------------------------------------
-# I prezzi Anthropic sono in dollari (sopra), ma il contesto in cui si
-# leggono i costi qui e' in euro: la dashboard mostra quindi entrambi, il
-# valore ufficiale in $ e il suo controvalore in EUR calcolato con questo
-# tasso fisso.
+# --- Cambi dal dollaro -------------------------------------------------
+# I prezzi Anthropic sono in dollari (sopra), e in dollari arrivano tutti i
+# costi calcolati dalla dashboard. Chi legge pero' puo' scegliere in che
+# valuta vederli: questa tabella dice quanto vale un dollaro in ciascuna
+# delle valute offerte.
 #
-# ATTENZIONE: e' una costante scritta a mano, NON un cambio aggiornato in
-# tempo reale. La generazione della dashboard e' completamente offline (non
-# fa nessuna chiamata di rete, vedi il blocco di aiuto in cima alla pagina:
-# "token utilizzati: zero"), quindi non c'e' modo di interrogare un servizio
-# di cambi -- e non lo vogliamo, perche' renderebbe la generazione
+# Il dollaro sta nella tabella con cambio 1.0 anche se e' l'unita' di
+# partenza. Non e' una riga inutile: rende la conversione un'operazione
+# sola per tutte le valute -- si moltiplica sempre -- invece di un caso
+# speciale ("se e' il dollaro non fare niente") ripetuto in ogni punto che
+# formatta un importo.
+#
+# Le chiavi sono le stesse di i18n.CURRENCIES, e devono restarlo: una
+# valuta offerta nella combo ma senza cambio qui verrebbe convertita a 1.0,
+# cioe' mostrerebbe importi in dollari con un altro simbolo sopra -- un
+# errore silenzioso e credibile, il tipo peggiore. Il selftest della CLI
+# controlla che i due elenchi coincidano.
+#
+# ATTENZIONE: sono costanti scritte a mano, NON cambi aggiornati in tempo
+# reale. La generazione della dashboard e' completamente offline (non fa
+# nessuna chiamata di rete, vedi il blocco di aiuto in cima alla pagina:
+# "token utilizzati: zero"), quindi non c'e' modo di interrogare un
+# servizio di cambi -- e non lo vogliamo, perche' renderebbe la generazione
 # dipendente da internet ad ogni singolo turno.
-# Per aggiornarlo: cambia il numero qui sotto e la data accanto, e alla
-# rigenerazione successiva la dashboard usa il nuovo cambio ovunque.
-# [EN] --- Dollar -> euro exchange rate ---
-# Anthropic prices are in dollars (above), but the context in which
-# costs are read here is in euros: the dashboard therefore shows both,
-# the official $ value and its EUR equivalent computed with this fixed
-# rate.
+# Per aggiornarli: cambia i numeri qui sotto e la data, e alla rigenerazione
+# successiva la dashboard usa i nuovi cambi ovunque. La pagina del
+# tariffario li mostra insieme alla data, cosi' chi guarda sa quanto sono
+# vecchi invece di doverli credere sulla parola.
+# [EN] --- Rates from the dollar ---
+# Anthropic prices are in dollars (above), and every cost the dashboard
+# computes arrives in dollars. The reader, however, can choose which
+# currency to see them in: this table says what a dollar is worth in each
+# of the offered currencies.
 #
-# WARNING: it is a hand-written constant, NOT a rate updated in real
-# time. Dashboard generation is fully offline (it makes no network
-# calls, see the help block at the top of the page: "tokens used:
-# zero"), so there is no way to query an exchange-rate service -- and
-# we do not want one, because it would make generation depend on the
-# internet on every single turn.
-# To update it: change the number below and the date next to it, and on
-# the next regeneration the dashboard uses the new rate everywhere.
-USD_TO_EUR = 0.86
-USD_TO_EUR_DATE = "2026-08-26"
+# The dollar is in the table with a rate of 1.0 even though it is the
+# starting unit. It is not a useless row: it makes conversion a single
+# operation for every currency -- always a multiplication -- instead of a
+# special case ("if it is the dollar, do nothing") repeated at every point
+# that formats an amount.
+#
+# The keys are the same as i18n.CURRENCIES, and must stay so: a currency
+# offered in the combo but with no rate here would be converted at 1.0,
+# that is, it would show dollar amounts with another symbol on them -- a
+# silent and believable error, the worst kind. The CLI selftest checks that
+# the two lists match.
+#
+# WARNING: these are hand-written constants, NOT rates updated in real
+# time. Dashboard generation is fully offline (it makes no network calls,
+# see the help block at the top of the page: "tokens used: zero"), so there
+# is no way to query an exchange-rate service -- and we do not want one,
+# because it would make generation depend on the internet on every single
+# turn.
+# To update them: change the numbers below and the date, and on the next
+# regeneration the dashboard uses the new rates everywhere. The price list
+# page shows them together with the date, so whoever looks knows how old
+# they are instead of having to take them on trust.
+USD_RATES = {
+    "usd": 1.0,
+    "eur": 0.86,
+    "gbp": 0.74,
+}
+
+USD_RATES_DATE = "2026-08-26"

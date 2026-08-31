@@ -19,8 +19,71 @@ page is static (it has no interactive filters to run in the browser):
 producing the ready-made HTML once at generation time is enough.
 """
 from . import config
+from . import i18n
 from . import pricing
 from . import templating
+
+
+# La griglia dei cambi: una riga per valuta di partenza, una colonna per
+# valuta di arrivo, e in ogni cella quanto vale una unita' della prima
+# espressa nella seconda.
+#
+# Tutti i cambi che conosciamo partono dal dollaro (pricing.USD_RATES), ma
+# la tabella deve dire anche quanto vale un euro in sterline. Si ricava dai
+# due che abbiamo: passando dal dollaro, un'unita' di "da" vale 1/rate[da]
+# dollari, e quei dollari valgono rate[a] unita' di "a". Quindi il rapporto
+# e' rate[a] / rate[da] -- il dollaro sparisce nel mezzo, ed e' il motivo
+# per cui basta una colonna di cambi e non una matrice da mantenere.
+#
+# La diagonale viene 1.0 da sola, senza doverla scrivere come caso a parte:
+# rate[x] / rate[x]. Le celle diagonali ricevono comunque una classe
+# propria, ma per il colore, non per il calcolo.
+#
+# I numeri restano in forma "1.1628", col punto decimale, come i prezzi in
+# dollari nella tabella qui sopra: la pagina e' un file solo per tutte le
+# lingue, quindi qualunque numero cotto qui dentro dalla generazione non
+# puo' seguire la lingua scelta a runtime. Quattro decimali perche' un
+# cambio a due ("0,86") perde abbastanza da spostare gli importi.
+# [EN] The rate grid: one row per source currency, one column per target
+# currency, and in each cell what one unit of the first is worth expressed
+# in the second.
+#
+# Every rate we know starts from the dollar (pricing.USD_RATES), but the
+# table must also say what a euro is worth in pounds. It follows from the
+# two we have: going through the dollar, one unit of "from" is worth
+# 1/rate[from] dollars, and those dollars are worth rate[to] units of "to".
+# So the ratio is rate[to] / rate[from] -- the dollar cancels in the
+# middle, and that is why one column of rates is enough and no matrix has
+# to be maintained.
+#
+# The diagonal comes out as 1.0 by itself, with no special case to write:
+# rate[x] / rate[x]. Diagonal cells still get their own class, but for the
+# colour, not for the arithmetic.
+#
+# The numbers stay in "1.1628" form, with a dot decimal, like the dollar
+# prices in the table above: the page is a single file for every language,
+# so any number baked in here at generation time cannot follow the
+# language chosen at runtime. Four decimals because a rate at two ("0.86")
+# loses enough to move the amounts.
+def _rate_grid():
+    codes = [c for c in i18n.CURRENCIES if c in pricing.USD_RATES]
+    head = "".join(
+        '        <th class="num">%s</th>' % i18n.CURRENCY_CODES[c]
+        for c in codes
+    )
+    rows = []
+    for src in codes:
+        cells = []
+        for dst in codes:
+            ratio = pricing.USD_RATES[dst] / pricing.USD_RATES[src]
+            klass = "num rate-self" if src == dst else "num"
+            cells.append('<td class="%s">%.4f</td>' % (klass, ratio))
+        rows.append(
+            '        <tr style="--row-i:%d">'
+            '<td class="rate-from">1 %s</td>%s</tr>'
+            % (len(rows), i18n.CURRENCY_CODES[src], "".join(cells))
+        )
+    return head, "\n".join(rows)
 
 
 def render():
@@ -71,13 +134,36 @@ def render():
         # the CSS as a "custom property": the pricing.html stylesheet
         # uses it to stagger the rows' entrance (see the rule on tbody
         # tr in there).
+        # I prezzi vanno in pagina DUE volte: come numero in dollari
+        # nell'attributo data-i18n-money, e come testo gia' scritto dentro
+        # la cella. Il primo e' il dato, il secondo e' il ripiego.
+        # Il motivo e' che il tariffario, come le altre pagine, e' un file
+        # solo per tutte le lingue e tutte le valute: quale valuta voglia
+        # chi guarda si sa solo nel browser, quindi il numero definitivo lo
+        # scrive I18N_APPLY chiamando fmtMoney. Il testo in dollari resta
+        # scritto nel markup per lo stesso motivo per cui ci resta quello
+        # italiano: se il dizionario non si carica, la pagina mostra i
+        # prezzi di listino invece di celle vuote.
+        # [EN] The prices go into the page TWICE: as a number in dollars in
+        # the data-i18n-money attribute, and as text already written inside
+        # the cell. The first is the datum, the second is the fallback.
+        # The reason is that the price list, like the other pages, is a
+        # single file for every language and every currency: which currency
+        # the viewer wants is known only in the browser, so the final
+        # number is written by I18N_APPLY calling fmtMoney. The dollar text
+        # stays in the markup for the same reason the Italian text does: if
+        # the dictionary fails to load, the page shows the list prices
+        # instead of empty cells.
+        def money(value):
+            return f'<td class="num" data-i18n-money="{value:.6f}">${value:.2f}</td>'
+
         rows.append(
             f'<tr style="--row-i:{len(rows)}">'
             f'<td class="model-name">{m["label"]}</td>'
-            f'<td class="num">${m["input"]:.2f}</td>'
-            f'<td class="num">${m["output"]:.2f}</td>'
-            f'<td class="num">${cache_write:.2f}</td>'
-            f'<td class="num">${cache_read:.2f}</td>'
+            f'{money(m["input"])}'
+            f'{money(m["output"])}'
+            f'{money(cache_write)}'
+            f'{money(cache_read)}'
             f'<td><code>{key}</code></td>'
             "</tr>"
         )
@@ -100,9 +186,12 @@ def render():
     # [EN] The two pieces of the reveal-on-scroll animation, shared
     # with the other pages (see header.py): the "starter" in the <head>
     # and the observer at the bottom of the <body>.
+    html = html.replace("__I18N_BOOT__", templating.I18N_BOOT)
+    html = html.replace("__I18N_APPLY__", templating.I18N_APPLY)
     html = html.replace("__REVEAL_BOOT__", templating.REVEAL_BOOT)
     html = html.replace("__REVEAL_JS__", templating.REVEAL_JS)
-    html = html.replace("__SITE_HEADER__", templating.render_header("pricing"))
+    html = html.replace("__SITE_HEADER__",
+                        templating.render_header("pricing", currency_control=True))
     # "\n        ".join(rows) incolla tutte le righe di "rows" in un'unica
     # stringa, mettendo tra una e l'altra un a-capo seguito da 8 spazi (solo
     # per far apparire l'HTML finale ben indentato se qualcuno lo apre e
@@ -114,6 +203,11 @@ def render():
     # someone opens it and looks at the source). It is the "inverse"
     # operation of a split: from a list of pieces to a single string.
     html = html.replace("__ROWS__", "\n        ".join(rows))
+
+    rate_head, rate_rows = _rate_grid()
+    html = html.replace("__RATE_HEAD__", rate_head)
+    html = html.replace("__RATE_ROWS__", rate_rows)
+    html = html.replace("__RATES_DATE__", pricing.USD_RATES_DATE)
 
     with open(config.OUT_PRICING_HTML, "w", encoding="utf-8") as f:
         f.write(html)
