@@ -128,12 +128,49 @@ HEADER_CSS = """
     z-index: 200;
     background: var(--page);
   }
+  /* Tre zone: il logo a sinistra, la data con il bottone Aggiorna al
+     centro, la scelta della lingua a destra.
+     Griglia "1fr auto 1fr" e non flex con space-between: con space-between
+     il gruppo di mezzo finisce al centro solo se i due lati pesano uguale,
+     e non pesano uguale -- il logo con il suo sottotitolo e' largo, la
+     combo della lingua no. Le due colonne 1fr, essendo per definizione
+     larghe uguale, tengono il gruppo di mezzo al centro VERO della riga
+     qualunque cosa ci sia ai lati.
+     [EN] Three zones: the logo on the left, the date with the refresh
+     button in the centre, the language choice on the right.
+     A "1fr auto 1fr" grid and not flex with space-between: with
+     space-between the middle group only ends up centred if the two sides
+     weigh the same, and they do not -- the logo with its subtitle is wide,
+     the language combo is not. The two 1fr columns, being by definition
+     equally wide, hold the middle group at the TRUE centre of the row
+     whatever sits on either side. */
   .site-header-top {
-    display: flex;
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
     align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
     gap: 12px;
+  }
+  .brand-group { justify-self: start; min-width: 0; }
+  .site-header-meta { justify-self: center; }
+  .lang-combo { justify-self: end; }
+  /* Sotto i 700px le tre zone su una riga non ci stanno. La riga va a capo:
+     logo e lingua restano affiancati, la data con il suo bottone scende
+     sotto, sempre centrata. Non e' una "forma compatta" che scatta allo
+     scorrimento: e' la stessa intestazione che si dispone su due righe, e
+     vale identica da ferma e mentre si scorre.
+     [EN] Below 700px the three zones do not fit on one row. The row wraps:
+     logo and language stay side by side, the date with its button drops
+     below, still centred. It is not a "compact form" triggered by
+     scrolling: it is the same header laid out on two rows, and it is
+     identical at rest and while scrolling. */
+  @media (max-width: 699px) {
+    .site-header-top {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .site-header-meta { order: 3; width: 100%; justify-content: center; }
   }
   .brand-group {
     display: flex;
@@ -259,64 +296,136 @@ HEADER_CSS = """
      did take effect even if the browser takes a moment to respond. */
   .meta-refresh.busy .refresh-icon { animation: meta-refresh-spin 0.8s linear infinite; }
   @keyframes meta-refresh-spin { to { transform: rotate(360deg); } }
-  /* Lo switch di lingua. Riusa il vocabolario "a pillola" gia' adoperato
-     qui accanto da .meta-status e .meta-refresh, e NON il controllo
-     segmentato che la dashboard usa per i propri filtri: quello posiziona
-     il suo indicatore scorrevole MISURANDO in JavaScript la larghezza dei
-     bottoni, e questa intestazione si ristruttura da sola allo scorrimento
-     (vedi html.chrome-compact piu' sotto). Sarebbe una misura da rifare ad
-     ogni ristrutturazione, su tre pagine, per un effetto puramente
-     estetico. Qui il bottone attivo si distingue per colore, che il CSS sa
-     fare da solo e non sbaglia mai.
-     [EN] The language switch. It reuses the "pill" vocabulary already
-     used next to it by .meta-status and .meta-refresh, and NOT the
-     segmented control the dashboard uses for its own filters: that one
-     positions its sliding indicator by MEASURING the buttons' width in
-     JavaScript, and this header restructures itself on scroll (see
-     html.chrome-compact below). It would be a measurement to redo at
-     every restructuring, on three pages, for a purely cosmetic effect.
-     Here the active button stands out by colour, which CSS does on its
-     own and never gets wrong. */
-  .meta-lang {
+  /* La scelta della lingua.
+     NON un <select> nativo: dentro un <option> il browser non disegna
+     markup, quindi una bandiera non si potrebbe mostrare. E le bandiere
+     emoji non sono un'alternativa -- Windows non le disegna, le rende come
+     la coppia di lettere che le compone dentro due riquadri (verificato
+     misurando la larghezza resa). Quindi un elenco costruito a mano, con i
+     ruoli ARIA che dicono a un lettore di schermo che si tratta di una
+     scelta fra opzioni, e non un bottone qualsiasi.
+     Il bottone che apre resta nel vocabolario "a pillola" gia' adoperato
+     qui accanto da .meta-status e .meta-refresh: bordo tondo, stesso corpo,
+     stessi colori. Cambia il contenuto, non la forma.
+     [EN] The language choice.
+     NOT a native <select>: inside an <option> the browser draws no markup,
+     so a flag could not be shown. And flag emoji are no alternative --
+     Windows does not draw them, it renders them as the pair of letters
+     composing them inside two boxes (verified by measuring the rendered
+     width). Hence a hand-built list, with the ARIA roles that tell a screen
+     reader this is a choice among options and not just some button.
+     The button that opens it stays in the "pill" vocabulary already used
+     next to it by .meta-status and .meta-refresh: round border, same size,
+     same colours. The content changes, not the shape. */
+  .lang-combo { position: relative; }
+  .lang-trigger {
     display: inline-flex;
     align-items: center;
-    gap: 2px;
-    background: var(--surface-1);
-    border: 1px solid var(--border);
-    border-radius: 999px;
-    padding: 2px;
-  }
-  .meta-lang button {
+    gap: 7px;
     font-family: inherit;
     font-size: 12px;
     font-weight: 600;
-    color: var(--text-muted);
-    background: none;
-    border: 0;
+    color: var(--text-secondary);
+    background: var(--surface-1);
+    border: 1px solid var(--border);
     border-radius: 999px;
-    padding: 3px 10px;
+    padding: 5px 10px 5px 8px;
     cursor: pointer;
     white-space: nowrap;
-    transition: color 0.18s ease, background-color 0.18s ease;
+    transition: color 0.18s ease, border-color 0.18s ease;
   }
-  .meta-lang button:hover { color: var(--text-primary); }
-  .meta-lang button[aria-pressed="true"] {
-    background: var(--series-1);
-    color: #fff;
+  .lang-trigger:hover {
+    color: var(--text-primary);
+    border-color: var(--series-1);
   }
-  .meta-lang button:focus-visible {
+  .lang-trigger:focus-visible {
     outline: 2px solid var(--series-1);
     outline-offset: 2px;
   }
-  /* Forma lunga ("Italiano") di riposo, forma corta ("IT") solo dove lo
-     spazio manca davvero (vedi la media query in fondo). Lo scambio e'
-     puro CSS: nessuna misura, nessun JavaScript, e quindi niente da
-     rifare quando l'etichetta cambia lingua.
-     [EN] Long form ("Italiano") at rest, short form ("IT") only where
-     space is genuinely lacking (see the media query at the bottom). The
-     swap is pure CSS: no measurement, no JavaScript, and therefore
-     nothing to redo when the label changes language. */
-  .meta-lang .lang-short { display: none; }
+  .lang-current { display: inline-flex; align-items: center; gap: 7px; }
+  /* La bandiera e' un rettangolo pieno: senza un filo di contorno, la banda
+     bianca dell'italiana sparirebbe nello sfondo chiaro della pillola. Il
+     contorno lo mette il CSS e non l'SVG, ed e' un grigio medio
+     semitrasparente: un nero trasparente sarebbe invisibile sul tema scuro,
+     un bianco trasparente sul tema chiaro. Un grigio a meta' strada si vede
+     su entrambi, e questo CSS serve le due varianti di tutte e tre le
+     pagine.
+     box-shadow inset e non border: un bordo spingerebbe il contenuto
+     dell'SVG verso l'interno, restringendo le bande di un pixel per lato;
+     l'ombra interna si disegna sopra senza toccare il disegno.
+     [EN] The flag is a solid rectangle: without a hairline outline, the
+     white band of the Italian one would vanish into the pill's light
+     background. The outline is done in CSS and not in the SVG, and it is a
+     semi-transparent mid grey: a transparent black would be invisible on
+     the dark theme, a transparent white on the light one. A grey halfway
+     between shows on both, and this CSS serves both variants of all three
+     pages.
+     box-shadow inset and not border: a border would push the SVG's
+     contents inwards, narrowing the bands by a pixel a side; the inner
+     shadow paints on top without touching the drawing. */
+  .lang-flag {
+    display: block;
+    flex-shrink: 0;
+    border-radius: 2px;
+    box-shadow: inset 0 0 0 1px rgba(128, 128, 128, 0.45);
+  }
+  .lang-caret {
+    font-size: 9px;
+    color: var(--text-muted);
+    transition: transform 0.18s ease;
+  }
+  .lang-combo.open .lang-caret { transform: rotate(180deg); }
+  /* L'elenco si apre ancorato al bordo DESTRO del bottone, perche' la combo
+     sta all'estremita' destra dell'intestazione: ancorandolo a sinistra
+     uscirebbe dallo schermo.
+     [EN] The list opens anchored to the button's RIGHT edge, because the
+     combo sits at the far right of the header: anchored left it would run
+     off the screen. */
+  .lang-menu {
+    position: absolute;
+    top: calc(100% + 6px);
+    right: 0;
+    min-width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    background: var(--surface-1);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 4px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    z-index: 300;
+  }
+  .lang-menu[hidden] { display: none; }
+  .lang-option {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    background: none;
+    border: 0;
+    border-radius: 7px;
+    padding: 6px 10px;
+    cursor: pointer;
+    white-space: nowrap;
+    text-align: left;
+  }
+  /* --gridline e non una tinta d'accento: e' l'unica variabile di sfondo
+     tenue definita da tutte e tre le pagine, e questo CSS le serve tutte.
+     [EN] --gridline and not an accent tint: it is the only soft background
+     variable defined by all three pages, and this CSS serves all three. */
+  .lang-option:hover {
+    background: var(--gridline);
+    color: var(--text-primary);
+  }
+  .lang-option[aria-selected="true"] { color: var(--text-primary); }
+  .lang-option:focus-visible {
+    outline: 2px solid var(--series-1);
+    outline-offset: -2px;
+  }
   .site-nav {
     display: flex;
     width: 100%;
@@ -412,77 +521,27 @@ HEADER_CSS = """
     line-height: 1.5;
   }
 
-  /* --- Forma compatta durante lo scorrimento -------------------------------
-     Da ferma l'intestazione resta quella di sempre: logo, sottotitolo, data
-     e schede su due righe. Appena la pagina scorre si stringe su una riga
-     sola. Serve perche' agganciata in cima, sommata alla barra dei filtri,
-     arrivava a coprire un terzo dello schermo -- in una pagina che esiste
-     per leggere una tabella lunga.
-     "display: contents" su .site-header-top toglie di mezzo il contenitore
-     senza toccare il markup: logo, data e schede diventano fratelli sulla
-     stessa riga. Nel sorgente la data viene prima delle schede (perche' a
-     due righe sta in alto a destra); "order" le rimette nell'ordine giusto
-     per una riga sola, senza duplicare markup ne' spostare nodi da JS.
-     La classe la accende lo script in fondo a questo file.
-     [EN] --- Compact form while scrolling ---
-     At rest the header stays as always: logo, subtitle, date and tabs on
-     two rows. As soon as the page scrolls it tightens onto a single row.
-     Needed because, pinned to the top and added to the filter bar, it
-     came to cover a third of the screen -- on a page that exists to read
-     a long table.
-     "display: contents" on .site-header-top removes the container
-     without touching the markup: logo, date and tabs become siblings on
-     the same row. In the source the date comes before the tabs (because
-     on two rows it sits top right); "order" puts them back in the right
-     order for a single row, without duplicating markup or moving nodes
-     via JS. The class is switched on by the script at the end of this
-     file. */
-  html.chrome-compact .site-header {
-    padding-top: 10px;
-    padding-bottom: 10px;
-    gap: 10px;
-  }
-  html.chrome-compact .brand-tag { display: none; }
-  /* Su schermo stretto ci si ferma qui, e in piu' si toglie la data: logo,
-     data e tre schede su una riga sola a 375px non ci stanno: le schede
-     finirebbero fuori dallo schermo e la pagina prenderebbe a scorrere in
-     orizzontale. La data torna appena si risale in cima.
-     Sparisce la DATA, non tutto il gruppo che la contiene: accanto a lei
-     vive anche lo switch di lingua, e nasconderlo lo renderebbe
-     irraggiungibile su un telefono a chiunque abbia scorso di un dito --
-     mentre la data che se ne va non toglie niente a nessuno, e il
-     ricaricamento per dati vecchi si arma comunque da solo. L'elemento
-     largo, del resto, e' sempre stata lei: una riga intera di testo senza
-     a-capo. Lo switch, in forma corta, sono due sigle.
-     [EN] On narrow screens we stop here, and the date goes away too:
-     logo, date and three tabs on one row do not fit at 375px -- the tabs
-     would overflow the screen and the page would start scrolling
-     horizontally. The date comes back as soon as you scroll back to the
-     top.
-     It is the DATE that disappears, not the whole group containing it:
-     the language switch lives next to it, and hiding that would make it
-     unreachable on a phone for anyone who has scrolled a finger --
-     whereas the date leaving takes nothing away from anyone, and the
-     stale-data reload arms itself anyway. The wide element, after all,
-     was always the date: a whole line of text with no wrapping. The
-     switch, in short form, is two abbreviations. */
-  @media (max-width: 699px) {
-    html.chrome-compact .meta-status { display: none; }
-    html.chrome-compact .meta-lang .lang-long { display: none; }
-    html.chrome-compact .meta-lang .lang-short { display: inline; }
-  }
-  @media (min-width: 700px) {
-    html.chrome-compact .site-header {
-      flex-direction: row;
-      align-items: center;
-      gap: 16px;
-    }
-    html.chrome-compact .site-header-top { display: contents; }
-    html.chrome-compact .brand-group { order: 1; flex-shrink: 0; }
-    html.chrome-compact .site-nav { order: 2; flex: 1; min-width: 0; }
-    html.chrome-compact .site-header-meta { order: 3; flex-shrink: 0; }
-    html.chrome-compact .nav-tab { padding: 6px 12px; min-width: 92px; }
-  }
+  /* L'intestazione agganciata in cima resta IDENTICA a quella ferma: due
+     righe, logo con sottotitolo, data, lingua e schede tutti al loro posto.
+     Prima si stringeva su una riga sola appena la pagina si muoveva. Serviva
+     a recuperare spazio verticale su una pagina che esiste per leggere una
+     tabella lunga, ma il prezzo era che l'intestazione cambiava forma sotto
+     gli occhi mentre si scorreva -- e il suo contenuto si spostava di
+     conseguenza. Adesso non cambia: quel che si vede fermi e' quel che si
+     vede scorrendo.
+     Il costo dichiarato: sulla dashboard l'intestazione, sommata alla
+     colonna dei filtri agganciata, occupa mentre si scorre lo spazio che
+     occupa da ferma.
+     [EN] The header pinned to the top stays IDENTICAL to the one at rest:
+     two rows, logo with subtitle, date, language and tabs all in place.
+     It used to tighten onto a single row as soon as the page moved. That
+     bought back vertical space on a page that exists to read a long table,
+     but the price was that the header changed shape under your eyes while
+     scrolling -- and its contents moved accordingly. Now it does not
+     change: what you see at rest is what you see while scrolling.
+     The stated cost: on the dashboard the header, added to the pinned
+     filters column, takes up while scrolling the room it takes up at rest.
+  */
   /* Niente transizione sulle misure: il passaggio da due righe a una non e'
      animabile (flex-direction non lo e') e scatta comunque. Animare intanto
      il padding darebbe un ibrido -- meta' scatto e meta' scivolamento -- e
@@ -617,7 +676,8 @@ HEADER_CSS = """
     .meta-refresh:hover { transform: none; }
     .meta-refresh:hover .refresh-icon { transform: none; }
     .meta-refresh.busy .refresh-icon { animation: none; }
-    .meta-lang button { transition: none; }
+    .lang-trigger { transition: none; }
+    .lang-caret { transition: none; }
   }
 """
 
@@ -730,47 +790,6 @@ HEADER_SCRIPT = """  <script>
       window.addEventListener('resize', publish);
       window.addEventListener('load', publish);
     }
-
-    /* Forma compatta dell'intestazione una volta che la pagina si e' mossa:
-       le regole stanno nel CSS, sotto html.chrome-compact.
-       Due soglie invece di una: si stringe oltre i 100px e si riapre sotto
-       i 60. Con una soglia sola, fermarsi giusto sul valore limite farebbe
-       rimbalzare la classe avanti e indietro ad ogni pixel -- e qui il
-       cambio e' vistoso, perche' l'intestazione passa da due righe a una.
-       La fascia morta tra le due soglie lo impedisce.
-       --header-h viene ripubblicata SUBITO dopo il cambio di classe, e non
-       lasciata al ResizeObserver: quello notifica al giro di rendering
-       successivo, e per quel fotogramma la barra dei filtri resterebbe
-       agganciata a un'altezza che l'intestazione non ha piu', scoprendo
-       una striscia di contenuto in movimento. Qui la lettura di
-       offsetHeight forza il calcolo e la misura e' gia' quella nuova.
-       L'osservatore resta comunque, per i riflow che non passano di qui
-       (schede che vanno a capo, zoom, caricamento dei font).
-       [EN] Compact form of the header once the page has moved: the rules
-       live in the CSS, under html.chrome-compact.
-       Two thresholds instead of one: it tightens past 100px and reopens
-       below 60. With a single threshold, stopping right on the limit
-       would bounce the class back and forth at every pixel -- and here
-       the change is conspicuous, since the header goes from two rows to
-       one. The dead band between the two thresholds prevents it.
-       --header-h is re-published IMMEDIATELY after the class change, not
-       left to the ResizeObserver: that one notifies on the next
-       rendering pass, and for that frame the filter bar would stay
-       pinned to a height the header no longer has, uncovering a strip of
-       moving content. Here the offsetHeight read forces the layout and
-       the measurement is already the new one. The observer stays anyway,
-       for reflows that do not come through here (tabs wrapping, zoom,
-       font loading). */
-    function check() {
-      var y = window.scrollY || window.pageYOffset || 0;
-      var compatta = root.classList.contains('chrome-compact');
-      var vuole = y > 100 ? true : (y < 60 ? false : compatta);
-      if (vuole === compatta) return;
-      root.classList.toggle('chrome-compact', vuole);
-      publish();
-    }
-    window.addEventListener('scroll', check, { passive: true });
-    check();
   })();
   </script>"""
 
@@ -894,59 +913,72 @@ def render_header(active_id, refresh_control=False):
             '<span data-i18n="header.refresh">Aggiorna</span></button>'
         )
 
-    # Lo switch di lingua, costruito SCORRENDO IL REGISTRO invece di
-    # essere scritto a mano. E' la differenza fra una fattorizzazione vera
-    # e una a meta': con i bottoni scritti a mano, aggiungere una lingua
+    # La scelta della lingua, costruita SCORRENDO IL REGISTRO invece di
+    # essere scritta a mano. E' la differenza fra una fattorizzazione vera e
+    # una a meta': con le voci scritte a mano, aggiungere una lingua
     # costringerebbe comunque a tornare qui, e il registro in i18n.py
     # sarebbe solo meta' della verita'.
     #
-    # Ogni bottone porta il nome della lingua in DUE forme, lunga e corta
-    # ("Italiano" e "IT"): quale delle due si veda lo decide il CSS in base
-    # allo spazio disponibile, senza che nessuno debba misurare niente. I
-    # nomi sono endonimi e non passano da t(): "Italiano" resta "Italiano"
-    # anche mentre la pagina e' in inglese, altrimenti chi cerca la propria
-    # lingua leggerebbe il nome che le da' un'altra.
+    # Ogni voce porta la bandiera e il nome della lingua nella lingua stessa
+    # ("Italiano", non "Italian"). I due insieme e non la bandiera da sola:
+    # una bandiera indica un paese, e una lingua non appartiene a un paese
+    # solo -- aiuta a trovare la voce con la coda dell'occhio, ma e' il nome
+    # a dire quale sia. Il nome non passa da tr(): resta "Italiano" anche
+    # mentre la pagina e' in inglese, altrimenti chi cerca la propria lingua
+    # leggerebbe il nome che le da' un'altra.
     #
-    # lang="xx" su ciascun bottone serve a chi usa un lettore di schermo:
-    # dice al sintetizzatore vocale di pronunciare quella parola con la
-    # fonetica della sua lingua, invece di leggere "English" all'italiana.
-    # aria-pressed nasce a "false" su tutti e viene acceso a runtime da
-    # I18N_APPLY: quale lingua sia attiva qui non si sa ancora, e cuocerlo
+    # lang="xx" su ciascuna voce serve a chi usa un lettore di schermo: dice
+    # al sintetizzatore vocale di pronunciare quella parola con la fonetica
+    # della sua lingua, invece di leggere "English" all'italiana.
+    # I ruoli listbox/option dicono che questa e' una scelta fra alternative
+    # e non una fila di bottoni qualsiasi. aria-selected nasce "false" su
+    # tutte e viene acceso a runtime da I18N_APPLY, che riempie anche il
+    # bottone: quale lingua sia attiva qui non si sa ancora, e cuocerlo
     # nell'HTML vorrebbe dire generare pagine diverse per ogni lingua.
-    # [EN] The language switch, built by WALKING THE REGISTRY instead of
+    # [EN] The language choice, built by WALKING THE REGISTRY instead of
     # being written out by hand. It is the difference between a real
-    # factorisation and a half one: with hand-written buttons, adding a
-    # language would still force a return here, and the registry in
+    # factorisation and a half one: with the entries written by hand, adding
+    # a language would still force a return here, and the registry in
     # i18n.py would be only half the truth.
     #
-    # Every button carries the language name in TWO forms, long and short
-    # ("Italiano" and "IT"): which of the two is visible is decided by the
-    # CSS according to the available space, without anyone having to
-    # measure anything. The names are endonyms and do not go through t():
-    # "Italiano" stays "Italiano" even while the page is in English,
+    # Every entry carries the flag and the language's name in that language
+    # ("Italiano", not "Italian"). The two together and not the flag alone:
+    # a flag denotes a country, and a language does not belong to a single
+    # country -- it helps to spot the entry out of the corner of the eye,
+    # but it is the name that says which one it is. The name does not go
+    # through tr(): it stays "Italiano" even while the page is in English,
     # otherwise someone looking for their own language would read the name
     # another language gives it.
     #
-    # lang="xx" on each button serves screen-reader users: it tells the
+    # lang="xx" on each entry serves screen-reader users: it tells the
     # speech synthesiser to pronounce that word with its own language's
     # phonetics, instead of reading "English" the Italian way.
-    # aria-pressed is born "false" on all of them and is lit at runtime by
-    # I18N_APPLY: which language is active is not known here yet, and
-    # baking it into the HTML would mean generating different pages per
-    # language.
-    lang_buttons = "".join(
-        f'<button type="button" data-lang="{code}" lang="{code}"'
-        f' aria-pressed="false">'
-        f'<span class="lang-long">{i18n.ENDONYMS[code]}</span>'
-        f'<span class="lang-short">{i18n.SHORT[code]}</span>'
+    # The listbox/option roles say this is a choice among alternatives and
+    # not just a row of buttons. aria-selected is born "false" on all of
+    # them and is lit at runtime by I18N_APPLY, which also fills the button:
+    # which language is active is not known here yet, and baking it into the
+    # HTML would mean generating different pages per language.
+    lang_options = "".join(
+        f'<button type="button" role="option" class="lang-option"'
+        f' data-lang="{code}" lang="{code}" aria-selected="false">'
+        f"{i18n.FLAGS[code]}"
+        f'<span class="lang-name">{i18n.ENDONYMS[code]}</span>'
         "</button>"
         for code in i18n.LANGS
     )
     lang_html = (
-        '<div class="meta-lang" role="group"'
+        '<div class="lang-combo" id="lang-combo">'
+        '<button type="button" class="lang-trigger" id="lang-trigger"'
+        ' aria-haspopup="listbox" aria-expanded="false"'
         ' data-i18n-aria-label="header.langSwitch"'
         ' aria-label="Lingua della pagina">'
-        f"{lang_buttons}</div>"
+        '<span class="lang-current"></span>'
+        '<span class="lang-caret" aria-hidden="true">&#9662;</span>'
+        "</button>"
+        '<div class="lang-menu" id="lang-menu" role="listbox"'
+        ' data-i18n-aria-label="header.langSwitch"'
+        ' aria-label="Lingua della pagina" hidden>'
+        f"{lang_options}</div></div>"
     )
 
     # Il "return f\"\"\" ... \"\"\"" restituisce l'HTML completo
@@ -974,9 +1006,9 @@ def render_header(active_id, refresh_control=False):
           <span class="status-indicator" aria-hidden="true"></span>
           <span class="meta-label" data-i18n="header.updated">Aggiornato</span>
           <span class="meta-timestamp" id="meta-timestamp"></span>
-        </div>
-        {lang_html}{refresh_html}
+        </div>{refresh_html}
       </div>
+      {lang_html}
     </div>
     <nav class="site-nav" data-i18n-aria-label="header.nav" aria-label="Navigazione principale">
       <div class="nav-tabs">
@@ -1325,13 +1357,15 @@ I18N_APPLY = r"""  <script>
         }
       }
 
-      /* Lo switch: si accende il bottone della lingua attiva e si
-         collegano i click. aria-pressed viene messo qui e non nell'HTML
-         generato perche' quale lingua sia attiva si sa solo adesso:
-         cuocerlo nel markup vorrebbe dire generare tre pagine diverse per
-         ogni lingua, che e' esattamente cio' che questo disegno evita.
-         [EN] The switch: light up the active language's button and wire
-         the clicks. aria-pressed is set here and not in the generated HTML
+      /* La combo della lingua: si marca la voce attiva, la si copia dentro
+         il bottone che apre, e si collegano apertura, scelta e chiusura.
+         aria-selected viene messo qui e non nell'HTML generato perche'
+         quale lingua sia attiva si sa solo adesso: cuocerlo nel markup
+         vorrebbe dire generare tre pagine diverse per ogni lingua, che e'
+         esattamente cio' che questo disegno evita.
+         [EN] The language combo: mark the active entry, copy it into the
+         button that opens the list, and wire opening, choosing and
+         closing. aria-selected is set here and not in the generated HTML
          because which language is active is known only now: baking it into
          the markup would mean generating three different pages per
          language, which is exactly what this design avoids. */
@@ -1341,17 +1375,70 @@ I18N_APPLY = r"""  <script>
         if (restore) sessionStorage.removeItem('focusAfterLangSwitch');
       } catch (e) {}
 
-      var buttons = document.querySelectorAll('.meta-lang button[data-lang]');
+      var combo = document.getElementById('lang-combo');
       var current = null;
-      for (i = 0; i < buttons.length; i++) {
-        (function (btn) {
-          var active = btn.getAttribute('data-lang') === window.LANG;
-          btn.setAttribute('aria-pressed', active ? 'true' : 'false');
-          if (active) current = btn;
-          btn.addEventListener('click', function () {
-            switchLanguage(btn.getAttribute('data-lang'));
-          });
-        })(buttons[i]);
+      if (combo) {
+        var trigger = document.getElementById('lang-trigger');
+        var menu = document.getElementById('lang-menu');
+        var options = menu.querySelectorAll('.lang-option[data-lang]');
+        var attiva = null;
+
+        for (i = 0; i < options.length; i++) {
+          (function (opt) {
+            var active = opt.getAttribute('data-lang') === window.LANG;
+            opt.setAttribute('aria-selected', active ? 'true' : 'false');
+            if (active) attiva = opt;
+            opt.addEventListener('click', function () {
+              switchLanguage(opt.getAttribute('data-lang'));
+            });
+          })(options[i]);
+        }
+
+        /* Il bottone mostra la voce attiva copiandone il contenuto invece
+           di ricostruirlo: bandiera e nome sono gia' nel documento,
+           generati una volta sola da render_header, e una seconda copia
+           sarebbe una seconda cosa da tenere allineata alla prima.
+           [EN] The button shows the active entry by copying its content
+           rather than rebuilding it: flag and name are already in the
+           document, generated once by render_header, and a second copy
+           would be a second thing to keep in step with the first. */
+        if (attiva) {
+          trigger.querySelector('.lang-current').innerHTML = attiva.innerHTML;
+        }
+        current = trigger;
+
+        function apri(si) {
+          combo.classList.toggle('open', si);
+          menu.hidden = !si;
+          trigger.setAttribute('aria-expanded', si ? 'true' : 'false');
+        }
+
+        trigger.addEventListener('click', function (e) {
+          /* Senza fermare l'evento, il click che apre l'elenco arriverebbe
+             subito dopo al documento, che lo leggerebbe come "click fuori"
+             e lo richiuderebbe all'istante.
+             [EN] Without stopping the event, the click that opens the list
+             would immediately reach the document, which would read it as a
+             "click outside" and close it again at once. */
+          e.stopPropagation();
+          apri(menu.hidden);
+        });
+
+        document.addEventListener('click', function (e) {
+          if (!menu.hidden && !combo.contains(e.target)) apri(false);
+        });
+
+        /* Esc chiude e riporta il fuoco sul bottone: chi ha aperto l'elenco
+           da tastiera deve ritrovarsi dov'era, non in cima al documento.
+           [EN] Esc closes and returns focus to the button: whoever opened
+           the list from the keyboard must end up where they were, not at
+           the top of the document. */
+        document.addEventListener('keydown', function (e) {
+          if (e.key === 'Escape' && !menu.hidden) {
+            apri(false);
+            trigger.focus();
+          }
+        });
       }
 
       /* Il fuoco e' l'unica cosa qui dentro che NON va fatta subito.

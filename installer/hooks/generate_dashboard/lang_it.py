@@ -325,6 +325,7 @@ UI = {
         "shortAccounts": "Account",
         "noProject": "Nessun progetto",
         "allProjects": "Tutti i progetti",
+        "excludedAlways": "Esclusi sempre",
         "excludeProject": "Escludi sempre questo progetto",
         "restoreProject": "Rimetti questo progetto fra quelli visibili",
         "excludeAria": "Escludi sempre {name}",

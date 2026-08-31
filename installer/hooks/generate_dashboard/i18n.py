@@ -210,26 +210,63 @@ DEFAULT = "en"
 # mai: nello switch un francese deve poter riconoscere "Francais" anche
 # mentre la pagina e' in italiano -- se fosse tradotto leggerebbe
 # "Francese", che a chi cerca la propria lingua non serve a niente.
-# Niente bandierine, per la stessa ragione per cui non si usano altrove:
-# una bandiera e' un paese, non una lingua.
 # [EN] The name of each language IN that language (endonym). It is
 # never translated: in the switch a French speaker must be able to
 # recognise "Francais" even while the page is in Italian -- translated
 # it would read "Francese", which is no help to someone looking for
-# their own language. No flags, for the same reason they are not used
-# elsewhere: a flag is a country, not a language.
+# their own language.
 ENDONYMS = {
     "it": "Italiano",
     "en": "English",
 }
 
-# Forma corta, per lo switch su schermo stretto (vedi .lang-short in
-# header.py). Due lettere entrano dove il nome intero no.
-# [EN] Short form, for the switch on narrow screens (see .lang-short in
-# header.py). Two letters fit where the full name does not.
-SHORT = {
-    "it": "IT",
-    "en": "EN",
+# La bandiera che accompagna ogni lingua nella combo. E' un'associazione
+# imprecisa per natura -- una bandiera indica un paese, e una lingua non
+# appartiene a un paese solo -- quindi non viaggia mai da sola: nella combo
+# sta sempre accanto all'endonimo, che e' il dato che identifica davvero la
+# lingua. La bandiera aiuta a trovarla con la coda dell'occhio, il nome dice
+# quale sia.
+#
+# SVG e non emoji, e non per gusto: Windows non disegna le bandiere emoji,
+# le mostra come la coppia di lettere che le compone dentro due riquadri
+# (verificato misurando la larghezza resa). Su Windows una combo "con le
+# bandiere" fatta di emoji non mostrerebbe nessuna bandiera.
+#
+# Il markup viene incollato nell'HTML da render_header al momento della
+# generazione, quindi qui le entita' e i tag ci stanno: e' l'unico posto del
+# registro in cui questo vale.
+# [EN] The flag accompanying each language in the combo. It is an imprecise
+# association by nature -- a flag denotes a country, and a language does not
+# belong to a single country -- so it never travels alone: in the combo it
+# always sits next to the endonym, which is the datum that really identifies
+# the language. The flag helps to spot it out of the corner of the eye, the
+# name says which one it is.
+#
+# SVG and not emoji, and not out of taste: Windows does not draw flag emoji,
+# it shows them as the pair of letters composing them inside two boxes
+# (verified by measuring the rendered width). On Windows a combo "with
+# flags" made of emoji would show no flag at all.
+#
+# The markup is pasted into the HTML by render_header at generation time, so
+# tags and entities belong here: it is the only place in the registry where
+# that holds.
+FLAGS = {
+    "it": (
+        '<svg class="lang-flag" viewBox="0 0 24 16" width="19" height="13" aria-hidden="true" focusable="false">'
+        '<rect width="8" height="16" fill="#008C45"/>'
+        '<rect x="8" width="8" height="16" fill="#F4F5F0"/>'
+        '<rect x="16" width="8" height="16" fill="#CD212A"/>'
+        '</svg>'
+    ),
+    "en": (
+        '<svg class="lang-flag" viewBox="0 0 24 16" width="19" height="13" aria-hidden="true" focusable="false">'
+        '<rect width="24" height="16" fill="#012169"/>'
+        '<path d="M0,0 L24,16 M24,0 L0,16" stroke="#FFF" stroke-width="3.4"/>'
+        '<path d="M0,0 L24,16 M24,0 L0,16" stroke="#C8102E" stroke-width="1.7"/>'
+        '<path d="M12,0 V16 M0,8 H24" stroke="#FFF" stroke-width="5.4"/>'
+        '<path d="M12,0 V16 M0,8 H24" stroke="#C8102E" stroke-width="3.2"/>'
+        '</svg>'
+    ),
 }
 
 
@@ -479,7 +516,7 @@ def js_payload():
         # diverge.
         "fallback": DEFAULT,
         "endonyms": ENDONYMS,
-        "short": SHORT,
+        "flags": FLAGS,
         "strings": {code: _bundle(code, "UI") for code in LANGS},
         "fmt": {code: _bundle(code, "FMT") for code in LANGS},
     }

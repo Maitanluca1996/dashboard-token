@@ -3514,17 +3514,16 @@ __I18N_APPLY__
     var label = document.createElement('span');
     label.className = 'dropdown-trigger-label';
     label.textContent = title;
-    // Forma breve per la barra compatta, dove il filtro e' largo quanto la
-    // colonna che filtra e "Tutti gli account" non ci sta. La scrive il CSS
-    // (attr(data-short)) solo sotto html.chrome-compact: non serve
-    // ricostruire i trigger ad ogni cambio di forma, e chi non ha una forma
-    // breve -- un nome di progetto, un titolo di sessione -- resta com'e'.
-    // [EN] Short form for the compact bar, where the filter is as wide as
-    // [EN] the column it filters and "Tutti gli account" does not fit. The
-    // [EN] CSS writes it (attr(data-short)) only under html.chrome-compact:
-    // [EN] no need to rebuild the triggers on every shape change, and
-    // [EN] whatever has no short form -- a project name, a session title --
-    // [EN] stays as it is.
+    // Forma breve del trigger, tenuta sull'elemento e non usata da nessuno
+    // in questo momento: la scriveva il CSS quando i filtri erano una barra
+    // orizzontale che si stringeva, e quella barra non c'e' piu' da quando
+    // sono passati in colonna. Resta perche' e' un dato, non una regola --
+    // se un domani serve di nuovo una forma corta, e' gia' li'.
+    // [EN] The trigger's short form, kept on the element and used by nobody
+    // right now: the CSS wrote it when the filters were a horizontal bar
+    // that tightened, and that bar is gone since they moved into a column.
+    // It stays because it is data, not a rule -- if a short form is ever
+    // needed again, it is already there.
     if (short) label.setAttribute('data-short', short);
     trigger.appendChild(label);
     var icon = document.createElement('span');
@@ -4010,7 +4009,7 @@ __I18N_APPLY__
     if (banned.length) {
       html += '<button type="button" class="check-divider check-toggle" aria-expanded="false">' +
         '<span class="check-toggle-icon">&#9656;</span>' +
-        '<span class="check-toggle-label">Esclusi sempre</span>' +
+        '<span class="check-toggle-label">' + esc(tr('dd.excludedAlways')) + '</span>' +
         '<span class="check-toggle-count">' + banned.length + '</span></button>';
       // Il doppio <div> non e' di troppo: quello fuori anima l'altezza
       // (grid-template-rows), quello dentro e' cio' che viene ritagliato
@@ -4941,7 +4940,7 @@ __I18N_APPLY__
       el.innerHTML = '<p class="empty">' + esc(tr('bar.singleBar')) + '</p>';
       return;
     }
-    if (!keys.length) { el.innerHTML = '<p class="empty">Nessun dato ancora.</p>'; return; }
+    if (!keys.length) { el.innerHTML = '<p class="empty">' + esc(tr('bar.noData')) + '</p>'; return; }
 
     // Le etichette inclinate scendono in diagonale sotto l'asse e vogliono
     // piu' spazio in basso. Cresce il riquadro, non si comprime il disegno:

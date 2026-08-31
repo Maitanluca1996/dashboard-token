@@ -204,6 +204,7 @@ UI = {
         "shortAccounts": "Accounts",
         "noProject": "No project",
         "allProjects": "All projects",
+        "excludedAlways": "Always excluded",
         "excludeProject": "Always exclude this project",
         "restoreProject": "Put this project back among the visible ones",
         "excludeAria": "Always exclude {name}",
