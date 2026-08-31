@@ -180,11 +180,10 @@ __HEADER_CSS__
      "chrome-compact" della barra, che stringeva i sei filtri su una riga
      sola allineandoli alle colonne della tabella: in colonna non c'e'
      niente da stringere e nessuna colonna da inseguire.
-     La larghezza della pagina cresce esattamente di quanto occupa la
-     colonna (248 + 24 di gap), cosi' il contenuto resta largo i 900px di
-     sempre invece di stringersi per far posto ai filtri. L'aumento vale
-     solo qui: .wrap e' definita in header.py per tutte e tre le pagine, e
-     guida e tariffario non hanno una barra laterale.
+     La colonna e il suo scarto (248 + 24) sono gia' compresi nella
+     larghezza di .wrap, che sta in header.py ed e' la stessa per tutte e
+     tre le pagine: il contenuto resta largo i 900px di sempre senza che
+     questo template debba allargare niente.
      [EN] --- The filters column ---
      Global filters are no longer a horizontal bar above the content but a
      left-hand column, stuck below the header (--header-h is published by
@@ -198,12 +197,10 @@ __HEADER_CSS__
      of the bar, which squeezed the six filters onto a single row aligned
      with the table columns -- in a column there is nothing to squeeze and
      no column to follow.
-     The page width grows by exactly what the column takes (248 + 24 of
-     gap), so the content stays the usual 900px instead of shrinking to
-     make room. The increase applies here only: .wrap is defined in
-     header.py for all three pages, and the guide and price list have no
-     sidebar. */
-  .wrap { max-width: 1172px; }
+     The column and its gap (248 + 24) are already part of .wrap's width,
+     which lives in header.py and is the same for all three pages: the
+     content stays the usual 900px without this template having to widen
+     anything. */
   .layout { display: grid; grid-template-columns: 248px minmax(0, 1fr); gap: 24px; align-items: start; }
   .sidebar {
     position: sticky;

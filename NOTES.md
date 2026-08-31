@@ -69,7 +69,7 @@ The generator is organized into dedicated modules:
   - Semantic SVG icons for each menu entry (`currentColor`).
   - Automatic detection and highlighted styling of the active tab (`.nav-tab.active` with `--control-bg` background, dedicated border, shadow and `aria-current="page"`).
   - Smooth hover transitions and keyboard navigation support (`:focus-visible`).
-- **Alignment and width**: `.wrap` container with uniform width (`max-width: 900px`) on all pages to prevent visual jumps while navigating.
+- **Alignment and width**: `.wrap` container with uniform width (`max-width: 1172px`) on all pages, with no exceptions, to prevent visual jumps while navigating. The value is what the most demanding page needs: 900px of content plus the dashboard's filters column (248px) and its gap (24px).
 
 #### Filter System (`dashboard.html`)
 - **Custom dropdown controls**: the dropdown menus (`.custom-dropdown`) wrap a hidden `<select>` element (`display:none`) to preserve the underlying JS logic.
@@ -299,7 +299,7 @@ Il generatore è organizzato in moduli dedicati:
   - Icone SVG semantiche per ciascuna voce di menu (`currentColor`).
   - Riconoscimento automatico e stile evidenziato per la scheda attiva (`.nav-tab.active` con background `--control-bg`, bordo dedicato, ombra e `aria-current="page"`).
   - Transizioni fluide di hover e compatibilità con navigazione da tastiera (`:focus-visible`).
-- **Allineamento e Larghezza**: Contenitore `.wrap` a larghezza uniforme (`max-width: 900px`) su tutte le pagine per prevenire salti visivi durante la navigazione.
+- **Allineamento e Larghezza**: Contenitore `.wrap` a larghezza uniforme (`max-width: 1172px`) su tutte le pagine, senza eccezioni, per prevenire salti visivi durante la navigazione. Il valore è quello che serve alla pagina più esigente: 900px di contenuto più la colonna dei filtri della dashboard (248px) e il suo scarto (24px).
 
 #### Sistema di Filtri (`dashboard.html`)
 - **Controlli Custom Dropdown**: I menu a tendina (`.custom-dropdown`) incapsulano un elemento `<select>` nascosto (`display:none`) per preservare la logica JS sottostante.

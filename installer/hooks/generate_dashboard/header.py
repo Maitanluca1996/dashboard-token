@@ -78,18 +78,31 @@ HEADER_CSS = """
   }
 
   /* Larghezza del contenuto: UNA sola definizione per tutte e tre le
-     pagine. Prima ogni template aveva la sua (900px dashboard e
-     tariffario, 860px guida) e l'intestazione, che e' identica ovunque,
-     si ritrovava larga 40px in meno su una pagina delle tre. Se domani
-     va cambiata, si cambia qui e vale per tutte -- che e' lo stesso
-     motivo per cui il resto dell'intestazione vive in questo file.
-     [EN] Content width: ONE single definition for all three pages. Each
-     template used to have its own (900px dashboard and price list, 860px
-     guide) and the header, identical everywhere, ended up 40px narrower
-     on one page out of three. If it ever needs changing, change it here
-     and it applies to all -- the same reason the rest of the header
-     lives in this file. */
-  .wrap { max-width: 900px; margin: 0 auto; }
+     pagine, e nessuna eccezione. Prima ogni template aveva la sua (900px
+     dashboard e tariffario, 860px guida) e l'intestazione, che e'
+     identica ovunque, si ritrovava larga 40px in meno su una pagina
+     delle tre; poi la dashboard ha rialzato la propria a 1172px per far
+     posto alla colonna dei filtri, ed e' tornato lo stesso difetto al
+     contrario -- passando da una scheda all'altra la cornice si
+     restringeva sotto gli occhi.
+     Il valore e' quello che serve alla pagina piu' esigente: 900px di
+     contenuto piu' la colonna dei filtri della dashboard (248px) e il
+     suo scarto (24px). Le altre due pagine non hanno una colonna e
+     usano tutto lo spazio per il contenuto: e' una riga di testo lunga
+     sulla guida, ed e' il prezzo di una cornice che non si muove.
+     [EN] Content width: ONE single definition for all three pages, and
+     no exceptions. Each template used to have its own (900px dashboard
+     and price list, 860px guide) and the header, identical everywhere,
+     ended up 40px narrower on one page out of three; then the dashboard
+     raised its own to 1172px to make room for the filters column, and
+     the same flaw came back the other way round -- moving from one tab
+     to the next, the frame narrowed before your eyes.
+     The value is what the most demanding page needs: 900px of content
+     plus the dashboard's filters column (248px) and its gap (24px). The
+     other two pages have no column and spend it all on content: that is
+     a long line of text on the guide, and it is the price of a frame
+     that does not move. */
+  .wrap { max-width: 1172px; margin: 0 auto; }
   /* Il respiro superiore della pagina passa dal body all'intestazione.
      Serve perche' l'intestazione e' agganciata in cima: il padding del
      body scorre via col resto della pagina, e senza questo spostamento il
@@ -205,16 +218,21 @@ HEADER_CSS = """
     align-items: center;
     gap: 8px;
   }
+  /* La data non e' una pillola come il bottone accanto: non si preme, non
+     si apre, non ha stati. Il bordo tondo la faceva sembrare un controllo
+     e le dava un peso che una didascalia non deve avere. Restano il
+     pallino e il testo, che sono l'informazione.
+     [EN] The date is not a pill like the button next to it: it is not
+     pressed, does not open, has no states. The round border made it look
+     like a control and gave it a weight a caption should not have. The
+     dot and the text remain, which are the information. */
   .meta-status {
     display: inline-flex;
     align-items: center;
     gap: 6px;
     font-size: 12px;
     color: var(--text-secondary);
-    background: var(--surface-1);
-    border: 1px solid var(--border);
-    border-radius: 999px;
-    padding: 5px 12px;
+    padding: 5px 2px;
     font-variant-numeric: tabular-nums;
     white-space: nowrap;
   }
