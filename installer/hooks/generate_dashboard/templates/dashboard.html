@@ -1703,26 +1703,26 @@ __REVEAL_BOOT__
 __SITE_HEADER__
 
   <div class="page-title-block">
-    <h1>Utilizzo token &mdash; Claude Code</h1>
-    <p class="page-desc">Monitoraggio dettagliato dei consumi, costi stimati e interazioni per sessione</p>
+    <h1 data-i18n="dash.h1">Utilizzo token &mdash; Claude Code</h1>
+    <p class="page-desc" data-i18n="dash.desc">Monitoraggio dettagliato dei consumi, costi stimati e interazioni per sessione</p>
   </div>
 
   <details class="help-block" data-reveal>
-    <summary>Quanti token utilizza questo sistema di monitoraggio?</summary>
+    <summary data-i18n="help.summary">Quanti token utilizza questo sistema di monitoraggio?</summary>
     <div class="help-body"><div class="help-body-inner">
-    <p>Il logging (gli hook che scrivono <code>tokens.csv</code> e <code>operations.csv</code>, piu' la rigenerazione di questa pagina) non chiama mai l'API di Claude: legge solo file gia' salvati in locale e scrive file locali. <strong>Token utilizzati: zero.</strong></p>
-    <p>Gli hook non restituiscono mai messaggi che finiscono nel contesto della conversazione (nessun <code>systemMessage</code> o <code>additionalContext</code>), quindi non aggiungono nemmeno un token nei turni futuri, ne' in questa sessione ne' in quelle successive.</p>
-    <p>L'unico costo e' locale e non monetario: ad ogni tool call e ad ogni fine turno gli script rileggono il transcript della sessione per calcolare i delta di utilizzo. Cresce leggermente con la lunghezza della sessione, ma resta nell'ordine di millisecondi &mdash; un'attesa impercettibile, non un impatto sul portafoglio.</p>
+    <p data-i18n-html="help.p1">Il logging (gli hook che scrivono <code>tokens.csv</code> e <code>operations.csv</code>, piu' la rigenerazione di questa pagina) non chiama mai l'API di Claude: legge solo file gia' salvati in locale e scrive file locali. <strong>Token utilizzati: zero.</strong></p>
+    <p data-i18n-html="help.p2">Gli hook non restituiscono mai messaggi che finiscono nel contesto della conversazione (nessun <code>systemMessage</code> o <code>additionalContext</code>), quindi non aggiungono nemmeno un token nei turni futuri, ne' in questa sessione ne' in quelle successive.</p>
+    <p data-i18n-html="help.p3">L'unico costo e' locale e non monetario: ad ogni tool call e ad ogni fine turno gli script rileggono il transcript della sessione per calcolare i delta di utilizzo. Cresce leggermente con la lunghezza della sessione, ma resta nell'ordine di millisecondi &mdash; un'attesa impercettibile, non un impatto sul portafoglio.</p>
     </div></div>
   </details>
 
   <div class="layout">
   <aside class="sidebar">
     <div class="side-section">
-      <div class="side-title">Filtri</div>
+      <div class="side-title" data-i18n="side.filters">Filtri</div>
       <div class="filter-row" id="filters-bar" data-reveal>
     <div class="filter-item" id="fi-project">
-      <label>Progetti:</label>
+      <label data-i18n="filters.projects">Progetti:</label>
       <!-- Una lista di caselle e non una tendina: i progetti si scelgono
            anche a piu' d'uno per volta, e una tendina a scelta multipla
            nasconde dietro un clic proprio cio' che serve sapere sempre --
@@ -1739,37 +1739,37 @@ __SITE_HEADER__
       <select id="project-filter" multiple style="display:none"></select>
     </div>
     <div class="filter-item" id="fi-session">
-      <label>Sessione:</label>
+      <label data-i18n="filters.session">Sessione:</label>
       <div id="session-filter-custom" class="custom-dropdown"></div>
       <select id="session-filter" style="display:none"></select>
     </div>
     <div class="filter-item" id="fi-account">
-      <label>Account:</label>
+      <label data-i18n="filters.account">Account:</label>
       <div id="account-filter-custom" class="custom-dropdown"></div>
       <select id="account-filter" style="display:none"></select>
     </div>
     <div class="filter-item" id="fi-period">
-      <label>Periodo:</label>
+      <label data-i18n="filters.period">Periodo:</label>
       <div id="period-filter-custom" class="custom-dropdown"></div>
       <select id="period-filter" style="display:none"></select>
     </div>
     <div class="filter-item" id="fi-model">
-      <label>Modello:</label>
+      <label data-i18n="filters.model">Modello:</label>
       <div id="model-filter-custom" class="custom-dropdown"></div>
       <select id="model-filter" style="display:none"></select>
     </div>
     <div class="filter-item" id="fi-search">
-      <label for="search-filter">Cerca nella richiesta:</label>
+      <label for="search-filter" data-i18n="filters.search">Cerca nella richiesta:</label>
       <div class="search-box">
-        <input type="search" id="search-filter" class="search-input" placeholder="Testo della richiesta&hellip;"
+        <input type="search" id="search-filter" class="search-input" data-i18n-placeholder="filters.searchPlaceholder" placeholder="Testo della richiesta&hellip;"
                autocomplete="off" spellcheck="false">
-        <button type="button" class="search-clear" id="search-clear" hidden aria-label="Cancella la ricerca">&times;</button>
+        <button type="button" class="search-clear" id="search-clear" hidden data-i18n-aria-label="filters.searchClear" aria-label="Cancella la ricerca">&times;</button>
       </div>
     </div>
       </div>
     </div>
     <div class="side-section">
-      <div class="side-title">Unità</div>
+      <div class="side-title" data-i18n="side.unit">Unità</div>
       <!-- L'unita' di misura degli importi. Stava sopra il primo
            grafico, che era il primo punto in cui la si incontrava
            scorrendo: ora che c'e' una colonna per le scelte che
@@ -1782,14 +1782,14 @@ __SITE_HEADER__
            applies to ALL charts, not just one. -->
       <div class="segmented-control unit-control" id="unit-filter-custom">
         <div class="indicator"></div>
-        <button type="button" data-value="usd" class="active">Dollari</button>
-        <button type="button" data-value="eur">Euro</button>
-        <button type="button" data-value="tokens">Token</button>
+        <button type="button" data-value="usd" class="active" data-i18n="unit.usd">Dollari</button>
+        <button type="button" data-value="eur" data-i18n="unit.eur">Euro</button>
+        <button type="button" data-value="tokens" data-i18n="unit.tokens">Token</button>
       </div>
       <select id="unit-filter" style="display:none">
-        <option value="usd" selected>Dollari</option>
-        <option value="eur">Euro</option>
-        <option value="tokens">Token</option>
+        <option value="usd" selected data-i18n="unit.usd">Dollari</option>
+        <option value="eur" data-i18n="unit.eur">Euro</option>
+        <option value="tokens" data-i18n="unit.tokens">Token</option>
       </select>
     </div>
   </aside>
@@ -1815,15 +1815,15 @@ __SITE_HEADER__
              concerns ONLY this chart, which is why it sits here and not
              in the filter bar at the top. -->
         <div class="filter-row chart-control">
-          <label>Raggruppa:</label>
+          <label data-i18n="chart.groupBy">Raggruppa:</label>
           <div class="segmented-control" id="bar-group-filter-custom">
             <div class="indicator"></div>
-            <button type="button" data-value="day" class="active">Per giorno</button>
-            <button type="button" data-value="month">Per mese</button>
+            <button type="button" data-value="day" class="active" data-i18n="chart.byDay">Per giorno</button>
+            <button type="button" data-value="month" data-i18n="chart.byMonth">Per mese</button>
           </div>
           <select id="bar-group-filter" style="display:none">
-            <option value="day" selected>Per giorno</option>
-            <option value="month">Per mese</option>
+            <option value="day" selected data-i18n="chart.byDay">Per giorno</option>
+            <option value="month" data-i18n="chart.byMonth">Per mese</option>
           </select>
         </div>
       </div>
@@ -1849,15 +1849,15 @@ __SITE_HEADER__
       <h2 id="bar2-chart-title">Costo totale per sessione (tutto lo storico)</h2>
       <div class="chart-controls">
         <div class="filter-row chart-control">
-          <label>Raggruppa:</label>
+          <label data-i18n="chart.groupBy">Raggruppa:</label>
           <div class="segmented-control" id="bar2-group-filter-custom">
             <div class="indicator"></div>
-            <button type="button" data-value="session" class="active">Per sessione</button>
-            <button type="button" data-value="project">Per progetto</button>
+            <button type="button" data-value="session" class="active" data-i18n="chart.bySession">Per sessione</button>
+            <button type="button" data-value="project" data-i18n="chart.byProject">Per progetto</button>
           </div>
           <select id="bar2-group-filter" style="display:none">
-            <option value="session" selected>Per sessione</option>
-            <option value="project">Per progetto</option>
+            <option value="session" selected data-i18n="chart.bySession">Per sessione</option>
+            <option value="project" data-i18n="chart.byProject">Per progetto</option>
           </select>
         </div>
       </div>
@@ -1886,19 +1886,19 @@ __SITE_HEADER__
     </div>
     <div class="chart-controls chart-controls-own-row">
       <div class="filter-row chart-control">
-        <label>Modalità:</label>
+        <label data-i18n="chart.mode">Modalità:</label>
         <div class="segmented-control" id="mode-filter-custom">
           <div class="indicator"></div>
-          <button type="button" data-value="aggregate">Aggregato</button>
-          <button type="button" data-value="session" class="active">Per sessione</button>
-          <button type="button" data-value="model">Per modello</button>
-          <button type="button" data-value="project">Per progetto</button>
+          <button type="button" data-value="aggregate" data-i18n="chart.aggregate">Aggregato</button>
+          <button type="button" data-value="session" class="active" data-i18n="chart.bySession">Per sessione</button>
+          <button type="button" data-value="model" data-i18n="chart.byModel">Per modello</button>
+          <button type="button" data-value="project" data-i18n="chart.byProject">Per progetto</button>
         </div>
         <select id="mode-filter" style="display:none">
-          <option value="aggregate">Aggregato</option>
-          <option value="session" selected>Per sessione</option>
-          <option value="model">Per modello</option>
-          <option value="project">Per progetto</option>
+          <option value="aggregate" data-i18n="chart.aggregate">Aggregato</option>
+          <option value="session" selected data-i18n="chart.bySession">Per sessione</option>
+          <option value="model" data-i18n="chart.byModel">Per modello</option>
+          <option value="project" data-i18n="chart.byProject">Per progetto</option>
         </select>
       </div>
       <!-- Un controllo a segmenti e non una casella da spuntare: in tutta la
@@ -1910,7 +1910,7 @@ __SITE_HEADER__
            for a single entry would add a new control language for
            nothing. -->
       <div class="filter-row chart-control scale-control">
-        <label>Scala:</label>
+        <label data-i18n="chart.scale">Scala:</label>
         <div class="segmented-control" id="scale-filter-custom">
           <div class="indicator"></div>
           <button type="button" data-value="linear" class="active">Lineare</button>
@@ -1932,10 +1932,10 @@ __SITE_HEADER__
            instead would leave it alone at the bottom looking like it ended up
            there by mistake. -->
       <div class="filter-row chart-control range-control">
-        <label for="range-filter">Periodo:</label>
+        <label for="range-filter" data-i18n="chart.period">Periodo:</label>
         <div class="range-track">
           <input type="range" id="range-filter" min="0" max="0" step="1" value="0"
-                 list="range-ticks" aria-label="Ampiezza della finestra di tempo">
+                 list="range-ticks" data-i18n-aria-label="chart.rangeAria" aria-label="Ampiezza della finestra di tempo">
           <div class="range-blocked" id="range-blocked" hidden></div>
         </div>
         <datalist id="range-ticks"></datalist>
@@ -1960,7 +1960,7 @@ __SITE_HEADER__
   </div>
 
   <div class="panel" data-reveal>
-    <h2>Interazioni recenti</h2>
+    <h2 data-i18n="turns.recent">Interazioni recenti</h2>
     <div class="table-scroll">
       <table class="turns-table">
         <colgroup>
@@ -1971,20 +1971,20 @@ __SITE_HEADER__
         </colgroup>
         <thead id="turns-thead"><tr>
           <th class="expand-col"></th>
-          <th class="sortable" data-sort="ts">Data e ora<span class="sort-arrow"></span></th>
-          <th class="sortable" data-sort="session">Sessione<span class="sort-arrow"></span></th>
-          <th class="sortable" data-sort="summary">Richiesta<span class="sort-arrow"></span></th>
-          <th class="sortable" data-sort="model">Modello<span class="sort-arrow"></span></th>
-          <th class="num sortable" data-sort="total">Totale<span class="sort-arrow"></span></th>
-          <th class="num sortable" data-sort="cost">Costo<span class="sort-arrow"></span></th>
+          <th class="sortable" data-sort="ts"><span data-i18n="turns.colTs">Data e ora</span><span class="sort-arrow"></span></th>
+          <th class="sortable" data-sort="session"><span data-i18n="turns.colSession">Sessione</span><span class="sort-arrow"></span></th>
+          <th class="sortable" data-sort="summary"><span data-i18n="turns.colRequest">Richiesta</span><span class="sort-arrow"></span></th>
+          <th class="sortable" data-sort="model"><span data-i18n="turns.colModel">Modello</span><span class="sort-arrow"></span></th>
+          <th class="num sortable" data-sort="total"><span data-i18n="turns.colTotal">Totale</span><span class="sort-arrow"></span></th>
+          <th class="num sortable" data-sort="cost"><span data-i18n="turns.colCost">Costo</span><span class="sort-arrow"></span></th>
         </tr></thead>
         <tbody id="turns-tbody"></tbody>
       </table>
     </div>
-    <nav class="pagination" id="turns-pagination" aria-label="Paginazione interazioni" hidden>
+    <nav class="pagination" id="turns-pagination" data-i18n-aria-label="turns.paginationAria" aria-label="Paginazione interazioni" hidden>
       <div class="pagination-left">
         <label class="pagination-size">
-          <span>Righe:</span>
+          <span data-i18n="turns.rows">Righe:</span>
           <select id="page-size-filter">
             <option value="10">10</option>
             <option value="20" selected>20</option>
@@ -1996,7 +1996,7 @@ __SITE_HEADER__
       </div>
       <div class="pagination-pages" id="turns-pagination-pages"></div>
     </nav>
-    <footer>File generato da ~/.claude/hooks/generate_dashboard/, richiamato dall'hook Stop.</footer>
+    <footer data-i18n="footer.generated">File generato da ~/.claude/hooks/generate_dashboard/, richiamato dall'hook Stop.</footer>
   </div>
   </main>
   </div>
@@ -6523,14 +6523,22 @@ __I18N_APPLY__
     return map;
   }
 
-  // Celle della tabella turni: devono restare identiche al <thead> statico
-  // nell'HTML (vedi TEMPLATE Python) -- riusate qui per la riga di
-  // intestazione ripetuta sotto ogni turno espanso.
+  // Celle della tabella turni: leggono le stesse chiavi del <thead>
+  // statico nell'HTML (vedi TEMPLATE Python) -- riusate qui per la riga di
+  // intestazione ripetuta sotto ogni turno espanso. Le chiavi condivise
+  // sono cio' che le tiene allineate: una traduzione che manca, manca in
+  // tutti e due i posti insieme, invece di farli divergere in una lingua
+  // sola -- che sarebbe il caso peggiore, perche' invisibile nell'altra.
   // [EN] Turns table cells: they must stay identical to the static <thead>
   // [EN] in the HTML (see the Python TEMPLATE) -- reused here for the
   // [EN] repeated header row under each expanded turn.
-  var TURNS_HEADER_CELLS_HTML = '<th class="expand-col"></th><th>Data e ora</th><th>Sessione</th><th>Richiesta</th>' +
-    '<th>Modello</th><th class="num">Totale</th><th class="num">Costo</th>';
+  var TURNS_HEADER_CELLS_HTML = '<th class="expand-col"></th>' +
+    '<th>' + t('turns.colTs') + '</th>' +
+    '<th>' + t('turns.colSession') + '</th>' +
+    '<th>' + t('turns.colRequest') + '</th>' +
+    '<th>' + t('turns.colModel') + '</th>' +
+    '<th class="num">' + t('turns.colTotal') + '</th>' +
+    '<th class="num">' + t('turns.colCost') + '</th>';
 
   // Dettaglio Input/Output/Cache write/Cache read non occupa piu' colonne
   // proprie (rendeva la riga illeggibile): resta consultabile al passaggio

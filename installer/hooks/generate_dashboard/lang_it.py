@@ -82,6 +82,128 @@ UI = {
         "langSwitch": "Lingua della pagina",
     },
 
+    # La pagina della dashboard: titolo e sottotitolo in cima.
+    # [EN] The dashboard page: title and subtitle at the top.
+    "dash": {
+        "h1": "Utilizzo token — Claude Code",
+        "desc": "Monitoraggio dettagliato dei consumi, costi stimati e "
+                "interazioni per sessione",
+    },
+
+    # Il riquadro a scomparsa che spiega quanto costa il monitoraggio.
+    # I tre paragrafi contengono markup (<code>, <strong>) e per questo
+    # viaggiano su data-i18n-html invece che su data-i18n: sono l'eccezione
+    # dichiarata alla regola "solo testo", e le entita' HTML qui dentro ci
+    # stanno perche' finiscono in innerHTML.
+    # [EN] The collapsible box explaining how much the monitoring costs.
+    # The three paragraphs contain markup (<code>, <strong>) and therefore
+    # travel on data-i18n-html rather than data-i18n: they are the declared
+    # exception to the "text only" rule, and the HTML entities in here
+    # belong because they end up in innerHTML.
+    "help": {
+        "summary": "Quanti token utilizza questo sistema di monitoraggio?",
+        "p1": "Il logging (gli hook che scrivono <code>tokens.csv</code> e "
+              "<code>operations.csv</code>, piu' la rigenerazione di questa "
+              "pagina) non chiama mai l'API di Claude: legge solo file gia' "
+              "salvati in locale e scrive file locali. <strong>Token "
+              "utilizzati: zero.</strong>",
+        "p2": "Gli hook non restituiscono mai messaggi che finiscono nel "
+              "contesto della conversazione (nessun <code>systemMessage</code> "
+              "o <code>additionalContext</code>), quindi non aggiungono "
+              "nemmeno un token nei turni futuri, ne' in questa sessione ne' "
+              "in quelle successive.",
+        "p3": "L'unico costo e' locale e non monetario: ad ogni tool call e "
+              "ad ogni fine turno gli script rileggono il transcript della "
+              "sessione per calcolare i delta di utilizzo. Cresce leggermente "
+              "con la lunghezza della sessione, ma resta nell'ordine di "
+              "millisecondi &mdash; un'attesa impercettibile, non un impatto "
+              "sul portafoglio.",
+    },
+
+    # I titoli delle due sezioni della colonna di sinistra.
+    # [EN] The titles of the two sections in the left-hand column.
+    "side": {
+        "filters": "Filtri",
+        "unit": "Unità",
+    },
+
+    # Le etichette dei filtri. I due punti finali fanno parte del testo:
+    # non tutte le lingue li usano allo stesso modo, quindi la punteggiatura
+    # sta nella traduzione e non incollata nel markup.
+    # [EN] The filter labels. The trailing colon is part of the text: not
+    # every language uses it the same way, so the punctuation lives in the
+    # translation and is not glued on in the markup.
+    "filters": {
+        "projects": "Progetti:",
+        "session": "Sessione:",
+        "account": "Account:",
+        "period": "Periodo:",
+        "model": "Modello:",
+        "search": "Cerca nella richiesta:",
+        "searchPlaceholder": "Testo della richiesta…",
+        "searchClear": "Cancella la ricerca",
+    },
+
+    # L'unita' di misura degli importi.
+    # [EN] The unit of measure for amounts.
+    "unit": {
+        "usd": "Dollari",
+        "eur": "Euro",
+        "tokens": "Token",
+    },
+
+    # I controlli sopra i grafici. Ogni etichetta compare DUE volte nel
+    # markup: sul bottone che si vede e sull'<option> del <select> nascosto
+    # che fa da deposito del valore. Quel testo non lo legge nessuno, ma
+    # viene tradotto lo stesso: lasciare meta' di due liste identiche in
+    # italiano e' l'asimmetria che fa sospettare un errore a chi leggera'.
+    # [EN] The controls above the charts. Every label appears TWICE in the
+    # markup: on the visible button and on the <option> of the hidden
+    # <select> that stores the value. Nobody reads that text, but it is
+    # translated all the same: leaving half of two identical lists in
+    # Italian is the asymmetry that makes a future reader suspect a bug.
+    "chart": {
+        "groupBy": "Raggruppa:",
+        "byDay": "Per giorno",
+        "byMonth": "Per mese",
+        "bySession": "Per sessione",
+        "byProject": "Per progetto",
+        "byModel": "Per modello",
+        "aggregate": "Aggregato",
+        "mode": "Modalità:",
+        "scale": "Scala:",
+        "linear": "Lineare",
+        "log": "Log",
+        "period": "Periodo:",
+        "rangeAria": "Ampiezza della finestra di tempo",
+    },
+
+    # La tabella delle interazioni. Le sei intestazioni di colonna sono
+    # scritte in due posti -- il <thead> del markup e la riga che si ripete
+    # sotto ogni turno espanso, costruita dal JavaScript -- e leggono le
+    # STESSE chiavi: cosi' una traduzione mancante manca in tutti e due i
+    # punti insieme, invece di farli divergere in una lingua sola.
+    # [EN] The interactions table. The six column headers are written in two
+    # places -- the markup's <thead> and the row repeated under every
+    # expanded turn, built by the JavaScript -- and they read the SAME keys:
+    # this way a missing translation is missing in both places at once,
+    # instead of making them diverge in one language only.
+    "turns": {
+        "recent": "Interazioni recenti",
+        "colTs": "Data e ora",
+        "colSession": "Sessione",
+        "colRequest": "Richiesta",
+        "colModel": "Modello",
+        "colTotal": "Totale",
+        "colCost": "Costo",
+        "paginationAria": "Paginazione interazioni",
+        "rows": "Righe:",
+    },
+
+    "footer": {
+        "generated": "File generato da ~/.claude/hooks/generate_dashboard/, "
+                     "richiamato dall'hook Stop.",
+    },
     # Le tre schede della barra di navigazione.
     # [EN] The three tabs of the navigation bar.
     "nav": {
