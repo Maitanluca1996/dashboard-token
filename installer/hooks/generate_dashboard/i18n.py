@@ -9,7 +9,7 @@ raggiungerli. E' una divisione voluta -- il file che si legge per capire
 --------------------------------------------------------------------
 IL DISEGNO, TUTTO IN UN POSTO
 --------------------------------------------------------------------
-Chi legge un punto di chiamata (un data-i18n nel markup, una t() nel
+Chi legge un punto di chiamata (un data-i18n nel markup, una tr() nel
 JavaScript, una T() in backfill.py) trova una riga corta e nessuna
 spiegazione. La spiegazione e' questa, ed e' l'unica: da li' si torna
 sempre qui.
@@ -98,7 +98,7 @@ it works" stays small, and adding a language does not touch it.
 --------------------------------------------------------------------
 THE DESIGN, ALL IN ONE PLACE
 --------------------------------------------------------------------
-Whoever reads a call site (a data-i18n in the markup, a t() in the
+Whoever reads a call site (a data-i18n in the markup, a tr() in the
 JavaScript, a T() in backfill.py) finds a short line and no
 explanation. This is the explanation, and it is the only one: from
 there you always come back here.

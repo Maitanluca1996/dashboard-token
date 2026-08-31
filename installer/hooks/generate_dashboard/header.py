@@ -1093,7 +1093,18 @@ I18N_BOOT = r"""  <script src="site-i18n.js"></script>
     window.LANG = LANG;
     window.FMT = I18N.fmt[LANG] || {};
 
-    /* t('sezione.chiave') restituisce il testo tradotto.
+    /* tr('sezione.chiave') restituisce il testo tradotto.
+
+       Si chiama tr e non t perche' in dashboard.html "t" e' gia' il nome
+       della variabile "turno" in una trentina di callback: un traduttore
+       chiamato t sarebbe irraggiungibile proprio dentro le funzioni che
+       disegnano le righe della tabella, e chi ci provasse otterrebbe un
+       "t is not a function" invece di una traduzione.
+       [EN] It is called tr and not t because in dashboard.html "t" is
+       already the name of the "turn" variable in some thirty callbacks: a
+       translator called t would be unreachable precisely inside the
+       functions that draw the table rows, and whoever tried would get a
+       "t is not a function" instead of a translation.
        Il secondo argomento e' opzionale e ha due forme: un NUMERO, per le
        chiavi che hanno singolare e plurale (finisce anche in {n}), oppure
        un OGGETTO di valori da mettere nei segnaposto {cosi'}.
@@ -1102,7 +1113,7 @@ I18N_BOOT = r"""  <script src="site-i18n.js"></script>
        chiunque riconosce, mentre un ripiego silenzioso sull'italiano
        sarebbe un errore che viene spedito senza che nessuno se ne accorga.
        Il perche' di tutto questo, per esteso, e' nel docstring di i18n.py.
-       [EN] t('section.key') returns the translated text.
+       [EN] tr('section.key') returns the translated text.
        The second argument is optional and has two shapes: a NUMBER, for
        keys having a singular and a plural (it also lands in {n}), or an
        OBJECT of values to put into the {like_this} placeholders.
@@ -1110,7 +1121,7 @@ I18N_BOOT = r"""  <script src="site-i18n.js"></script>
        "chart.avgOthers" on the page is a report anyone recognises, whereas
        a silent fallback to Italian would be a bug that ships unnoticed.
        The full reasoning is in i18n.py's docstring. */
-    window.t = function (key, arg) {
+    window.tr = function (key, arg) {
       var node = DICT;
       var parts = key.split('.');
       for (var i = 0; i < parts.length; i++) {
@@ -1213,7 +1224,7 @@ I18N_APPLY = r"""  <script>
   (function () {
     var root = document.documentElement;
     try {
-      if (typeof window.t !== 'function') return;
+      if (typeof window.tr !== 'function') return;
 
       /* Gli attributi che non sono testo visibile. Una tabella e non una
          catena di if: aggiungere un attributo traducibile e' una riga qui,
@@ -1238,7 +1249,7 @@ I18N_APPLY = r"""  <script>
          works on the tab <title> too. */
       els = document.querySelectorAll('[data-i18n]');
       for (i = 0; i < els.length; i++) {
-        els[i].textContent = t(els[i].getAttribute('data-i18n'));
+        els[i].textContent = tr(els[i].getAttribute('data-i18n'));
       }
 
       /* L'eccezione: le poche stringhe che contengono markup (un <code>,
@@ -1249,14 +1260,14 @@ I18N_APPLY = r"""  <script>
          one can see at a glance, reading the markup, which ones they are. */
       els = document.querySelectorAll('[data-i18n-html]');
       for (i = 0; i < els.length; i++) {
-        els[i].innerHTML = t(els[i].getAttribute('data-i18n-html'));
+        els[i].innerHTML = tr(els[i].getAttribute('data-i18n-html'));
       }
 
       for (var data in ATTRS) {
         if (!Object.prototype.hasOwnProperty.call(ATTRS, data)) continue;
         els = document.querySelectorAll('[' + data + ']');
         for (i = 0; i < els.length; i++) {
-          els[i].setAttribute(ATTRS[data], t(els[i].getAttribute(data)));
+          els[i].setAttribute(ATTRS[data], tr(els[i].getAttribute(data)));
         }
       }
 

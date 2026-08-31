@@ -2115,7 +2115,7 @@ __I18N_APPLY__
   function actionCostCell(a) {
     if (a.model === 'n/d') {
       var tip = tooltipAttr(simpleTooltipData([
-        seg('Costo non determinabile: azione eseguita da un sotto-agente delegato (Task/Agent). Il suo consumo token non compare nel transcript della sessione principale, quindi non e’ stimabile qui -- non e’ zero, e’ sconosciuto.')
+        seg(tr('tt.subAgentCost'))
       ]));
       return '<span class="cost-na" data-tooltip="' + tip + '">n/d</span>';
     }
@@ -2340,7 +2340,7 @@ __I18N_APPLY__
   // [EN] grouping key, and a group key cannot be null -- when the session
   // [EN] has no project (or is missing from the list) it lands in its own,
   // [EN] declared group instead of vanishing from the count.
-  var SENZA_PROGETTO = '(senza progetto)';
+  var SENZA_PROGETTO = tr('common.noProject');
   function projectOf(t) { return projectById[t.sid] || SENZA_PROGETTO; }
 
   function esc(s) {
@@ -2422,7 +2422,7 @@ __I18N_APPLY__
 
     var scope = document.createElement('div');
     scope.className = 'tt-sub';
-    scope.textContent = data.scope + ' · ' + data.count + (data.count === 1 ? ' interazione' : ' interazioni');
+    scope.textContent = data.scope + ' · ' + tr('common.turns', data.count);
     container.appendChild(scope);
 
     var span = document.createElement('div');
@@ -2440,7 +2440,7 @@ __I18N_APPLY__
 
     var totalsTokens = document.createElement('div');
     totalsTokens.className = 'tt-sub';
-    totalsTokens.textContent = data.tot + ' token';
+    totalsTokens.textContent = tr('common.tokensStr', { n: data.tot });
     container.appendChild(totalsTokens);
 
     var breakdown = document.createElement('div');
@@ -2480,7 +2480,9 @@ __I18N_APPLY__
         : document.getElementById(CHART_FILTER_SELECTS[data.filter.kind]).value === data.filter.value;
       var action = document.createElement('div');
       action.className = 'tt-action';
-      action.textContent = (already ? '\u25b8 Togli il filtro su ' : '\u25b8 Filtra su ') + data.filter.label;
+      action.textContent = '\u25b8 ' + (already
+        ? tr('tt.unfilterOn', { what: data.filter.label })
+        : tr('tt.filterOn', { what: data.filter.label }));
       // Lo spec viaggia sull'elemento e non in un attributo: il tooltip e'
       // ricostruito ad ogni disegno, quindi non sopravvive a nessun
       // ridisegno e non ha bisogno di essere leggibile dal markup.
@@ -2493,7 +2495,7 @@ __I18N_APPLY__
 
     var dismiss = document.createElement('div');
     dismiss.className = 'tt-dismiss';
-    dismiss.textContent = 'Clicca fuori o premi Esc per chiudere.';
+    dismiss.textContent = tr('tt.dismiss');
     container.appendChild(dismiss);
   }
 
@@ -2506,7 +2508,7 @@ __I18N_APPLY__
 
     var sub = document.createElement('div');
     sub.className = 'tt-sub';
-    sub.textContent = data.start + '–' + data.end + ' · ' + data.count + (data.count === 1 ? ' interazione' : ' interazioni');
+    sub.textContent = data.start + '–' + data.end + ' · ' + tr('common.turns', data.count);
     container.appendChild(sub);
 
     // Il costo passa in testa (e' il dato che conta di piu' qui dentro),
@@ -2528,7 +2530,7 @@ __I18N_APPLY__
 
     var totalsTokens = document.createElement('div');
     totalsTokens.className = 'tt-sub';
-    totalsTokens.textContent = data.tot + ' token';
+    totalsTokens.textContent = tr('common.tokensStr', { n: data.tot });
     container.appendChild(totalsTokens);
 
     var breakdown = document.createElement('div');
@@ -2546,7 +2548,7 @@ __I18N_APPLY__
 
     var toggle = document.createElement('div');
     toggle.className = 'tt-toggle';
-    toggle.textContent = '▸ Mostra le iterazioni';
+    toggle.textContent = '▸ ' + tr('tt.showIterations');
     container.appendChild(toggle);
 
     var details = document.createElement('div');
@@ -2580,7 +2582,8 @@ __I18N_APPLY__
       e.stopPropagation();
       var open = details.style.display !== 'none';
       details.style.display = open ? 'none' : 'block';
-      toggle.textContent = (open ? '▸ Mostra' : '▾ Nascondi') + ' le iterazioni';
+      toggle.textContent = open ? ('▸ ' + tr('tt.showIterations'))
+                                : ('▾ ' + tr('tt.hideIterations'));
       positionTooltip(tooltipTarget);
     });
   }
@@ -2861,7 +2864,7 @@ __I18N_APPLY__
     return pad2(d.getHours()) + ':' + pad2(d.getMinutes()) + ':' + pad2(d.getSeconds()) + '.' + pad3(d.getMilliseconds());
   }
   function sessionLabel(sid) {
-    return titleById[sid] || ('Sessione ' + String(sid || '').slice(0, 8));
+    return titleById[sid] || tr('common.sessionFallback', { id: String(sid || '').slice(0, 8) });
   }
   function sessionCellHtml(sid, acc) {
     var project = projectById[sid];
@@ -3262,7 +3265,7 @@ __I18N_APPLY__
     { kind: 'model', selectId: 'model-filter', tint: '--series-5' }
   ];
 
-  function chipLabel(kind) { return t('chip.' + kind); }
+  function chipLabel(kind) { return tr('chip.' + kind); }
 
   var FILTER_CHIP_HOSTS = ['bar-chart-chips', 'bar2-chart-chips', 'line-chart-chips'];
 
@@ -3339,12 +3342,12 @@ __I18N_APPLY__
         // [EN] Only projects have a value to switch off one at a time: the
         // other filters have at most one chip each, and the x turns it off.
         (chip.value ? (' data-clear-value="' + esc(chip.value) + '"') : '') +
-        ' title="' + esc(t('chip.remove')) + '"' +
-        ' aria-label="' + esc(t('chip.removeAria', { kind: chipLabel(chip.kind) })) + '">&times;</button>' +
+        ' title="' + esc(tr('chip.remove')) + '"' +
+        ' aria-label="' + esc(tr('chip.removeAria', { kind: chipLabel(chip.kind) })) + '">&times;</button>' +
         '</span>';
     }).join('');
     if (chips.length > 1) {
-      html += '<button type="button" class="chip chip-all" data-clear-filter="all">' + esc(t('chip.clearAll')) + '</button>';
+      html += '<button type="button" class="chip chip-all" data-clear-filter="all">' + esc(tr('chip.clearAll')) + '</button>';
     }
     FILTER_CHIP_HOSTS.forEach(function (id) {
       var host = document.getElementById(id);
@@ -3548,14 +3551,14 @@ __I18N_APPLY__
       ? includedSessions.filter(function (s) { return projs.indexOf(s.project) >= 0; })
       : includedSessions;
 
-    var html = '<div class="dropdown-trigger" title="' + esc(t('dd.allSessions')) + '"><span class="dropdown-trigger-label" data-short="' + esc(t('dd.shortSessions')) + '">' + esc(t('dd.allSessions')) + '</span><span class="dropdown-icon">▼</span></div>';
+    var html = '<div class="dropdown-trigger" title="' + esc(tr('dd.allSessions')) + '"><span class="dropdown-trigger-label" data-short="' + esc(tr('dd.shortSessions')) + '">' + esc(tr('dd.allSessions')) + '</span><span class="dropdown-icon">▼</span></div>';
     html += '<div class="dropdown-menu">';
 
     // Opzione "Tutte le sessioni" come pill speciale
     // [EN] "Tutte le sessioni" option as a special pill
-    html += '<div class="dropdown-item all-sessions" data-value="" data-short="' + esc(t('dd.shortSessions')) + '">';
-    html += '<div class="item-title">' + esc(t('dd.allSessions')) + '</div>';
-    html += '<div class="item-meta">' + esc(t('dd.sessionCount', visibleSessions.length)) + '</div>';
+    html += '<div class="dropdown-item all-sessions" data-value="" data-short="' + esc(tr('dd.shortSessions')) + '">';
+    html += '<div class="item-title">' + esc(tr('dd.allSessions')) + '</div>';
+    html += '<div class="item-meta">' + esc(tr('dd.sessionCount', visibleSessions.length)) + '</div>';
     html += '</div>';
 
     // Popola il select nascosto
@@ -3563,7 +3566,7 @@ __I18N_APPLY__
     select.options.length = 0;
     var opt = document.createElement('option');
     opt.value = '';
-    opt.textContent = t('dd.allSessions');
+    opt.textContent = tr('dd.allSessions');
     select.appendChild(opt);
 
     // Sessioni ordinate per ultima attività (il Python le passa già ordinate)
@@ -3582,7 +3585,7 @@ __I18N_APPLY__
       // [EN] markup (same bug already avoided in populateProjectList).
       html += '<div class="dropdown-item" data-value="' + esc(s.id) + '">';
       html += '<div class="item-title" title="' + esc(s.title) + '">' + esc(s.title) + '</div>';
-      html += '<div class="item-meta">' + s.count + ' interazioni • ' + timeStr + '</div>';
+      html += '<div class="item-meta">' + esc(tr('common.turns', s.count)) + ' • ' + timeStr + '</div>';
       html += '</div>';
 
       // Aggiungi anche al select nascosto
@@ -3699,12 +3702,12 @@ __I18N_APPLY__
      month". The value '' means "no limit". */
   var PERIODS = {
     today: {
-      label: 'Oggi',
+      label: tr('period.today'),
       from: function () { var d = new Date(); d.setHours(0, 0, 0, 0); return d; }
     },
     week: {
-      label: 'Questa settimana',
-      short: 'Settimana',
+      label: tr('period.week'),
+      short: tr('period.weekShort'),
       from: function () {
         var d = new Date();
         d.setHours(0, 0, 0, 0);
@@ -3718,13 +3721,13 @@ __I18N_APPLY__
       }
     },
     month: {
-      label: 'Questo mese',
-      short: 'Mese',
+      label: tr('period.month'),
+      short: tr('period.monthShort'),
       from: function () { var d = new Date(); d.setHours(0, 0, 0, 0); d.setDate(1); return d; }
     },
     year: {
-      label: "Quest'anno",
-      short: 'Anno',
+      label: tr('period.year'),
+      short: tr('period.yearShort'),
       from: function () { var d = new Date(); d.setHours(0, 0, 0, 0); d.setMonth(0, 1); return d; }
     }
   };
@@ -3818,7 +3821,7 @@ __I18N_APPLY__
     // [EN] Tutte le sessioni, ...), and in compact form the whole row reads
     // [EN] with the same scheme -- Periodi, Sessioni, Modelli, Progetti,
     // [EN] Account. "Sempre" was the only entry out of tune.
-    var items = [{ value: '', label: t('dd.allPeriods'), short: t('dd.shortPeriods') }];
+    var items = [{ value: '', label: tr('dd.allPeriods'), short: tr('dd.shortPeriods') }];
     periodKeysOrdered().forEach(function (k) {
       items.push({ value: k, label: PERIODS[k].label, short: PERIODS[k].short });
     });
@@ -3837,7 +3840,7 @@ __I18N_APPLY__
     models.sort(function (a, b) {
       return modelShortLabel(a).localeCompare(modelShortLabel(b));
     });
-    var items = [{ value: '', label: t('dd.allModels'), short: t('dd.shortModels') }];
+    var items = [{ value: '', label: tr('dd.allModels'), short: tr('dd.shortModels') }];
     models.forEach(function (m) { items.push({ value: m, label: modelShortLabel(m) }); });
     buildSimpleDropdown('model-filter-custom', 'model-filter', items);
   }
@@ -3860,13 +3863,13 @@ __I18N_APPLY__
     });
     accounts.sort();
 
-    var html = '<div class="dropdown-trigger" title="' + esc(t('dd.allAccounts')) + '"><span class="dropdown-trigger-label" data-short="' + esc(t('dd.shortAccounts')) + '">' + esc(t('dd.allAccounts')) + '</span><span class="dropdown-icon">▼</span></div>';
+    var html = '<div class="dropdown-trigger" title="' + esc(tr('dd.allAccounts')) + '"><span class="dropdown-trigger-label" data-short="' + esc(tr('dd.shortAccounts')) + '">' + esc(tr('dd.allAccounts')) + '</span><span class="dropdown-icon">▼</span></div>';
     html += '<div class="dropdown-menu">';
 
     // Opzione "Tutti gli account"
     // [EN] "Tutti gli account" option
-    html += '<div class="dropdown-item all-sessions" data-value="" data-short="' + esc(t('dd.shortAccounts')) + '">';
-    html += '<div class="item-title">' + esc(t('dd.allAccounts')) + '</div>';
+    html += '<div class="dropdown-item all-sessions" data-value="" data-short="' + esc(tr('dd.shortAccounts')) + '">';
+    html += '<div class="item-title">' + esc(tr('dd.allAccounts')) + '</div>';
     html += '</div>';
 
     // Popola il select nascosto
@@ -3874,7 +3877,7 @@ __I18N_APPLY__
     select.options.length = 0;
     var opt = document.createElement('option');
     opt.value = '';
-    opt.textContent = t('dd.allAccounts');
+    opt.textContent = tr('dd.allAccounts');
     select.appendChild(opt);
 
     accounts.forEach(function (acc) {
@@ -3981,7 +3984,7 @@ __I18N_APPLY__
     });
 
     if (!projects.length) {
-      list.innerHTML = '<div class="check-empty">' + esc(t('dd.noProject')) + '</div>';
+      list.innerHTML = '<div class="check-empty">' + esc(tr('dd.noProject')) + '</div>';
       return;
     }
 
@@ -3993,15 +3996,15 @@ __I18N_APPLY__
         '<span class="check-count">' + esc(fmtCompactTokens(tokens[p] || 0)) + '</span>' +
         '</label>' +
         '<button type="button" class="check-ban" data-exclude="' + esc(p) + '" title="' +
-        esc(isBanned ? t('dd.restoreProject') : t('dd.excludeProject')) +
-        '" aria-label="' + esc(isBanned ? t('dd.restoreAria', { name: p })
-                                        : t('dd.excludeAria', { name: p })) + '">' +
+        esc(isBanned ? tr('dd.restoreProject') : tr('dd.excludeProject')) +
+        '" aria-label="' + esc(isBanned ? tr('dd.restoreAria', { name: p })
+                                        : tr('dd.excludeAria', { name: p })) + '">' +
         (isBanned ? '&#8634;' : '&#8856;') + '</button>' +
         '</div>';
     }
 
     var html = '<button type="button" class="check-row check-all active">' +
-      '<span class="check-name">' + esc(t('dd.allProjects')) + '</span>' +
+      '<span class="check-name">' + esc(tr('dd.allProjects')) + '</span>' +
       '<span class="check-count">' + choosable.length + '</span></button>';
     choosable.forEach(function (p) { html += rowHtml(p, false); });
     if (banned.length) {
@@ -4203,28 +4206,28 @@ __I18N_APPLY__
     // [EN] measure: the cost card shows the 4 dollar amounts, the token
     // [EN] card shows the 4 counts.
     var costBreakdown = [
-      { label: t('stats.input'), val: fmtUsd(costI), pct: fmtPct(costI, costAll) },
-      { label: t('stats.output'), val: fmtUsd(costO), pct: fmtPct(costO, costAll) },
-      { label: t('stats.cacheWrite'), val: fmtUsd(costCw), pct: fmtPct(costCw, costAll) },
-      { label: t('stats.cacheRead'), val: fmtUsd(costCr), pct: fmtPct(costCr, costAll) }
+      { label: tr('stats.input'), val: fmtUsd(costI), pct: fmtPct(costI, costAll) },
+      { label: tr('stats.output'), val: fmtUsd(costO), pct: fmtPct(costO, costAll) },
+      { label: tr('stats.cacheWrite'), val: fmtUsd(costCw), pct: fmtPct(costCw, costAll) },
+      { label: tr('stats.cacheRead'), val: fmtUsd(costCr), pct: fmtPct(costCr, costAll) }
     ];
     var tokenBreakdown = [
-      { label: t('stats.input'), val: fmtInt(totI), pct: fmtPct(totI, totalAll) },
-      { label: t('stats.output'), val: fmtInt(totO), pct: fmtPct(totO, totalAll) },
-      { label: t('stats.cacheWrite'), val: fmtInt(totCw), pct: fmtPct(totCw, totalAll) },
-      { label: t('stats.cacheRead'), val: fmtInt(totCr), pct: fmtPct(totCr, totalAll) }
+      { label: tr('stats.input'), val: fmtInt(totI), pct: fmtPct(totI, totalAll) },
+      { label: tr('stats.output'), val: fmtInt(totO), pct: fmtPct(totO, totalAll) },
+      { label: tr('stats.cacheWrite'), val: fmtInt(totCw), pct: fmtPct(totCw, totalAll) },
+      { label: tr('stats.cacheRead'), val: fmtInt(totCr), pct: fmtPct(totCr, totalAll) }
     ];
     var heroCards = [
-      [t('stats.estCost'), fmtUsd(costAll), costBreakdown],
-      [t('stats.freshTokens'), fmtInt(freshAll), tokenBreakdown]
+      [tr('stats.estCost'), fmtUsd(costAll), costBreakdown],
+      [tr('stats.freshTokens'), fmtInt(freshAll), tokenBreakdown]
     ];
     var miniCards = [
-      [t('stats.costToday'), fmtUsd(todayCost)],
-      [t('stats.tokensToday'), fmtInt(todayTotal)],
-      [t('stats.turns'), fmtInt(nTurns)],
-      [t('stats.sessions'), fmtInt(nSessions)],
-      [t('stats.avgFresh'), fmtInt(avgFresh)],
-      [t('stats.totalTokens'), fmtInt(totalAll)]
+      [tr('stats.costToday'), fmtUsd(todayCost)],
+      [tr('stats.tokensToday'), fmtInt(todayTotal)],
+      [tr('stats.turns'), fmtInt(nTurns)],
+      [tr('stats.sessions'), fmtInt(nSessions)],
+      [tr('stats.avgFresh'), fmtInt(avgFresh)],
+      [tr('stats.totalTokens'), fmtInt(totalAll)]
     ];
 
     // baseDelay: ritardo di partenza dell'intero gruppo, in secondi. Serve
@@ -4275,9 +4278,9 @@ __I18N_APPLY__
     usd: {
       valueOf: function (d) { return d.cost; },
       axis: function (v, scale) { return fmtMoneyAxis(v, scale, MONEY_PRE, MONEY_USD); },
-      barNoun: t('unitMode.barUsd'),
-      lineTitle: t('unitMode.lineUsd'),
-      aria: t('unitMode.ariaUsd')
+      barNoun: tr('unitMode.barUsd'),
+      lineTitle: tr('unitMode.lineUsd'),
+      aria: tr('unitMode.ariaUsd')
     },
     eur: {
       // .cost e' in dollari: la conversione avviene qui, una volta sola,
@@ -4288,16 +4291,16 @@ __I18N_APPLY__
       // [EN] the drawing stays identical to the other units.
       valueOf: function (d) { return d.cost * USD_TO_EUR; },
       axis: function (v, scale) { return fmtMoneyAxis(v, scale, MONEY_PRE, MONEY_EUR); },
-      barNoun: t('unitMode.barEur'),
-      lineTitle: t('unitMode.lineEur'),
-      aria: t('unitMode.ariaEur')
+      barNoun: tr('unitMode.barEur'),
+      lineTitle: tr('unitMode.lineEur'),
+      aria: tr('unitMode.ariaEur')
     },
     tokens: {
       valueOf: function (d) { return d.tot; },
       axis: function (v) { return fmtInt(v); },
-      barNoun: t('unitMode.barTokens'),
-      lineTitle: t('unitMode.lineTokens'),
-      aria: t('unitMode.ariaTokens')
+      barNoun: tr('unitMode.barTokens'),
+      lineTitle: tr('unitMode.lineTokens'),
+      aria: tr('unitMode.ariaTokens')
     }
   };
 
@@ -4475,9 +4478,9 @@ __I18N_APPLY__
   // [EN] groups that ended up in the tail.
   function altriTooltipHead(g, nounPlural) {
     return [
-      segB('Media di ' + g.altri + ' ' + nounPlural), segBr(),
-      seg('In totale: '), segB(fmtUsdEur(g.altriCost)),
-      seg(' \u00b7 ' + fmtInt(g.altriTot) + ' token'), segBr()
+      segB(tr('bar.avgOf', { n: g.altri, noun: nounPlural })), segBr(),
+      seg(tr('bar.inTotal')), segB(fmtUsdEur(g.altriCost)),
+      seg(' \u00b7 ' + tr('common.tokensStr', { n: fmtInt(g.altriTot) })), segBr()
     ];
   }
 
@@ -4494,7 +4497,7 @@ __I18N_APPLY__
   // [EN] kind of thing.
   var BAR_GROUPS = {
     day: {
-      noun: 'per giorno',
+      noun: tr('bar.perDay'),
       keyFn: function (t) { return dayKey(t.ts); },
       // Giorno e mese in cifre ("27/08"): k e' gia' "AAAA-MM-GG" con
       // entrambi a due cifre, quindi bastano le due parti in ordine
@@ -4536,7 +4539,7 @@ __I18N_APPLY__
         var sorted = keys.slice().sort();
         return {
           keys: sorted.slice(-maxBars),
-          truncLabel: sorted.length > maxBars ? ('ultimi ' + maxBars + ' giorni') : null
+          truncLabel: sorted.length > maxBars ? tr('bar.lastDays', { n: maxBars }) : null
         };
       },
       // Il giorno non e' una voce fissa della tendina Periodo: la chiave
@@ -4547,7 +4550,7 @@ __I18N_APPLY__
       tooltipHead: function (label) { return [segB(label), segBr()]; }
     },
     month: {
-      noun: 'per mese',
+      noun: tr('bar.perMonth'),
       keyFn: function (t) { return monthKey(t.ts); },
       label: function (k) { return fmtMonthShort(k); },
       rotateLabels: false,
@@ -4564,23 +4567,22 @@ __I18N_APPLY__
         var sorted = keys.slice().sort();
         return {
           keys: sorted.slice(-maxBars),
-          truncLabel: sorted.length > maxBars ? ('ultimi ' + maxBars + ' mesi') : null
+          truncLabel: sorted.length > maxBars ? tr('bar.lastMonths', { n: maxBars }) : null
         };
       },
       filterFor: function (k) { return { kind: 'period', month: k }; },
       tooltipHead: function (label, g) {
         return [
           segB(label), segBr(),
-          seg(g.nSids + (g.nSids === 1 ? ' sessione' : ' sessioni') + ' · ' +
-              g.count + (g.count === 1 ? ' interazione' : ' interazioni')), segBr()
+          seg(tr('common.sessions', g.nSids) + ' · ' + tr('common.turns', g.count)), segBr()
         ];
       }
     },
     project: {
-      noun: 'per progetto',
+      noun: tr('bar.perProject'),
       keyFn: projectOf,
       label: function (k, g) {
-        if (g.altri) { return 'Media altri (' + g.altri + ')'; }
+        if (g.altri) { return tr('bar.avgOthersProjects', { n: g.altri }); }
         return ellipsize(k, 14);
       },
       // I nomi di progetto sono lunghi e spesso si somigliano
@@ -4597,7 +4599,7 @@ __I18N_APPLY__
       // [EN] on the chosen period, and beyond a dozen the bars thin out
       // [EN] until they say nothing anymore.
       maxBars: function () { return BAR_MAX_PROJECTS; },
-      arrange: makeRankArrange(function (n) { return 'primi ' + n + ' progetti'; }),
+      arrange: makeRankArrange(function (n) { return tr('bar.topProjects', { n: n }); }),
       // La coda e' la media di piu' progetti e "(senza progetto)" non e' un
       // progetto: nessuno dei due ha una voce nella tendina Progetto, e una
       // barra che non sa dove portare non si clicca.
@@ -4609,16 +4611,15 @@ __I18N_APPLY__
         return (g.altri || k === SENZA_PROGETTO) ? null : { kind: 'project', value: k };
       },
       tooltipHead: function (label, g, key) {
-        if (g.altri) { return altriTooltipHead(g, 'altri progetti'); }
+        if (g.altri) { return altriTooltipHead(g, tr('bar.otherProjects')); }
         return [
           segB(key), segBr(),
-          seg(g.nSids + (g.nSids === 1 ? ' sessione' : ' sessioni') + ' · ' +
-              g.count + (g.count === 1 ? ' interazione' : ' interazioni')), segBr()
+          seg(tr('common.sessions', g.nSids) + ' · ' + tr('common.turns', g.count)), segBr()
         ];
       }
     },
     session: {
-      noun: 'per sessione',
+      noun: tr('bar.perSession'),
       keyFn: function (t) { return t.sid; },
       // Il titolo della sessione, non il suo UUID: sull'asse un id grezzo
       // non direbbe niente. sessionLabel ripiega comunque su "Sessione
@@ -4627,7 +4628,7 @@ __I18N_APPLY__
       // [EN] say nothing. sessionLabel still falls back to "Sessione <first
       // [EN] 8 chars>" when there is no title.
       label: function (k, g) {
-        if (g.altri) { return 'Media altre (' + g.altri + ')'; }
+        if (g.altri) { return tr('bar.avgOthersSessions', { n: g.altri }); }
         return ellipsize(sessionLabel(k), 14);
       },
       // Come i progetti: i titoli sono lunghi e dritti si accavallerebbero.
@@ -4648,15 +4649,15 @@ __I18N_APPLY__
       colorKeyFn: function (k, g) {
         return g.altri ? null : (projectById[k] || SENZA_PROGETTO);
       },
-      legendOtherLabel: function (n) { return 'altri ' + n + ' progetti'; },
+      legendOtherLabel: function (n) { return tr('bar.legendOtherProjects', { n: n }); },
       maxBars: function () { return BAR_MAX_SESSIONS; },
-      arrange: makeRankArrange(function (n) { return 'prime ' + n + ' sessioni'; }),
+      arrange: makeRankArrange(function (n) { return tr('bar.topSessions', { n: n }); }),
       // Come per i progetti: la coda e' la media di tante sessioni, non una.
       // [EN] As for projects: the tail is the average of many sessions, not
       // [EN] one of them.
       filterFor: function (k, g) { return g.altri ? null : { kind: 'session', value: k }; },
       tooltipHead: function (label, g, key) {
-        if (g.altri) { return altriTooltipHead(g, 'altre sessioni'); }
+        if (g.altri) { return altriTooltipHead(g, tr('bar.otherSessions')); }
         // Il progetto sotto il titolo: due sessioni possono chiamarsi allo
         // stesso modo, ed e' il progetto a dire quale delle due si sta
         // guardando. nSids qui e' sempre 1, quindi non lo si stampa.
@@ -4666,7 +4667,7 @@ __I18N_APPLY__
         var head = [segB(sessionLabel(key)), segBr()];
         var proj = projectById[key];
         if (proj) { head.push(seg(proj), segBr()); }
-        head.push(seg(g.count + (g.count === 1 ? ' interazione' : ' interazioni')), segBr());
+        head.push(seg(tr('common.turns', g.count)), segBr());
         return head;
       }
     }
@@ -4926,7 +4927,7 @@ __I18N_APPLY__
       var periodLabel;
       if (arranged.truncLabel) periodLabel = arranged.truncLabel;
       else if (periodKey) periodLabel = PERIODS[periodKey].label.toLowerCase();
-      else periodLabel = 'tutto lo storico';
+      else periodLabel = tr('bar.allHistory');
       titleEl.textContent = unit.barNoun + ' ' + group.noun + ' (' + periodLabel + ')';
     }
     var el = document.getElementById(cfg.chartId);
@@ -4937,8 +4938,7 @@ __I18N_APPLY__
     // and where the number that drawing would have shown is. The title and
     // the controls stay: they are the way back.
     if (barChartDead[cfg.chartId]) {
-      el.innerHTML = '<p class="empty">Con questo filtro ogni raggruppamento darebbe una barra sola: ' +
-        'il totale è nelle schede in cima alla pagina.</p>';
+      el.innerHTML = '<p class="empty">' + esc(tr('bar.singleBar')) + '</p>';
       return;
     }
     if (!keys.length) { el.innerHTML = '<p class="empty">Nessun dato ancora.</p>'; return; }
@@ -4990,11 +4990,11 @@ __I18N_APPLY__
       var label = group.label(k, g);
       var tooltipData = simpleTooltipData(group.tooltipHead(label, g, k).concat([
         segB(fmtUsdEur(g.cost)), segBr(),
-        seg(fmtInt(g.tot) + ' token'), segBr(),
-        seg('Input: '), segB(fmtInt(g.i)), seg(' (' + fmtUsd(g.costI) + ')'), segBr(),
-        seg('Output: '), segB(fmtInt(g.o)), seg(' (' + fmtUsd(g.costO) + ')'), segBr(),
-        seg('Cache write: '), segB(fmtInt(g.cw)), seg(' (' + fmtUsd(g.costCw) + ')'), segBr(),
-        seg('Cache read: '), segB(fmtInt(g.cr)), seg(' (' + fmtUsd(g.costCr) + ')')
+        seg(tr('common.tokensStr', { n: fmtInt(g.tot) })), segBr(),
+        seg(tr('stats.input') + ': '), segB(fmtInt(g.i)), seg(' (' + fmtUsd(g.costI) + ')'), segBr(),
+        seg(tr('stats.output') + ': '), segB(fmtInt(g.o)), seg(' (' + fmtUsd(g.costO) + ')'), segBr(),
+        seg(tr('stats.cacheWrite') + ': '), segB(fmtInt(g.cw)), seg(' (' + fmtUsd(g.costCw) + ')'), segBr(),
+        seg(tr('stats.cacheRead') + ': '), segB(fmtInt(g.cr)), seg(' (' + fmtUsd(g.costCr) + ')')
       ]));
       // Il fill va in stile inline, non in una classe: i colori arrivano
       // dalla palette a run time, una classe per tonalita' vorrebbe dire
@@ -5221,8 +5221,8 @@ __I18N_APPLY__
   function labelledStep(st) {
     return {
       hours: st.hours,
-      label: t('range.last' + st.unit, { n: st.n }),
-      short: t('range.short' + st.unit, { n: st.n })
+      label: tr('range.last' + st.unit, { n: st.n }),
+      short: tr('range.short' + st.unit, { n: st.n })
     };
   }
   var RANGE_DEFAULT_HOURS = 24;
@@ -5253,8 +5253,8 @@ __I18N_APPLY__
                             .map(labelledStep);
     steps.push({
       hours: Math.max(spanHours, 1),
-      label: t('range.all'),
-      short: t('range.shortAll')
+      label: tr('range.all'),
+      short: tr('range.shortAll')
     });
     return steps;
   }
@@ -5735,15 +5735,15 @@ __I18N_APPLY__
       start: fmtWindowTs(b.start, windowHours), end: fmtWindowTs(b.end, windowHours),
       count: b.count, tot: fmtInt(b.tot), cost: fmtUsd(b.cost), costEur: fmtEur(b.cost),
       breakdown: [
-        { label: 'Input', val: fmtInt(b.i), cost: fmtUsd(b.costI) },
-        { label: 'Output', val: fmtInt(b.o), cost: fmtUsd(b.costO) },
-        { label: 'Cache write', val: fmtInt(b.cw), cost: fmtUsd(b.costCw) },
-        { label: 'Cache read', val: fmtInt(b.cr), cost: fmtUsd(b.costCr) }
+        { label: tr('stats.input'), val: fmtInt(b.i), cost: fmtUsd(b.costI) },
+        { label: tr('stats.output'), val: fmtInt(b.o), cost: fmtUsd(b.costO) },
+        { label: tr('stats.cacheWrite'), val: fmtInt(b.cw), cost: fmtUsd(b.costCw) },
+        { label: tr('stats.cacheRead'), val: fmtInt(b.cr), cost: fmtUsd(b.costCr) }
       ],
       turns: b.turns.map(function (t) {
         return {
           ts: fmtTurnTs(parseTs(t.ts), windowHours),
-          req: t.sum || '(nessuna richiesta registrata)',
+          req: t.sum || tr('tt.noRequest'),
           cost: fmtUsd(turnCostUsd(t))
         };
       })
@@ -5791,7 +5791,7 @@ __I18N_APPLY__
     session: {
       keyFn: function (t) { return t.sid; },
       titleFn: function (b) { return sessionLabel(b.groupId); },
-      scopeLabel: 'Totale dell’intera sessione',
+      scopeLabel: tr('line.scopeSession'),
       // Nella legenda serve un nome leggibile: l'id di una sessione e' un
       // uuid. Il taglio non serve a farci stare le voci (la legenda va a
       // capo da sola) ma a impedire che un titolo lunghissimo si prenda una
@@ -5801,8 +5801,8 @@ __I18N_APPLY__
       // [EN] its own) but to keep a very long title from taking a whole row
       // [EN] to itself; the full name stays in the native "title".
       legendLabel: function (gid) { return ellipsize(sessionLabel(gid), 28); },
-      legendOtherLabel: function (n) { return 'altre ' + n + ' sessioni'; },
-      filterFor: function (gid) { return { kind: 'session', value: gid, label: 'questa sessione' }; },
+      legendOtherLabel: function (n) { return tr('bar.legendOtherSessions', { n: n }); },
+      filterFor: function (gid) { return { kind: 'session', value: gid, label: tr('line.thisSession') }; },
       // Solo qui: su finestre larghe le sessioni non hanno abbastanza
       // intervalli per essere linee (vedi seriesAreDegenerate). Modelli e
       // progetti sono pochi valori distinti che coprono tutta la finestra, e
@@ -5818,9 +5818,9 @@ __I18N_APPLY__
       titleFn: function (b) {
         var seen = {}; var n = 0;
         b.turns.forEach(function (t) { if (!seen[t.sid]) { seen[t.sid] = true; n++; } });
-        return n === 1 ? sessionLabel(b.turns[0].sid) : (n + ' sessioni');
+        return n === 1 ? sessionLabel(b.turns[0].sid) : tr('common.sessions', n);
       },
-      scopeLabel: 'Totale complessivo'
+      scopeLabel: tr('line.scopeAll')
     },
     model: {
       // Nome leggibile (stesso helper usato dalla tabella interazioni),
@@ -5831,12 +5831,12 @@ __I18N_APPLY__
       // [EN] future multiple raw keys appear for the same model.
       keyFn: function (t) { return modelShortLabel(t.model); },
       titleFn: function (b) { return b.groupId; },
-      scopeLabel: 'Totale per questo modello',
+      scopeLabel: tr('line.scopeModel'),
       legendLabel: function (gid) { return ellipsize(gid, 28); },
-      legendOtherLabel: function (n) { return 'altri ' + n + ' modelli'; },
+      legendOtherLabel: function (n) { return tr('bar.legendOtherModels', { n: n }); },
       filterFor: function (gid) {
         var key = modelKeyForLabel(gid);
-        return key ? { kind: 'model', value: key, label: 'questo modello' } : null;
+        return key ? { kind: 'model', value: key, label: tr('line.thisModel') } : null;
       }
     },
     project: {
@@ -5850,15 +5850,15 @@ __I18N_APPLY__
       // [EN] while the bar chart above gives its total.
       keyFn: projectOf,
       titleFn: function (b) { return b.groupId; },
-      scopeLabel: 'Totale dell’intero progetto',
+      scopeLabel: tr('line.scopeProject'),
       legendLabel: function (gid) { return ellipsize(gid, 28); },
-      legendOtherLabel: function (n) { return 'altri ' + n + ' progetti'; },
+      legendOtherLabel: function (n) { return tr('bar.legendOtherProjects', { n: n }); },
       // "(senza progetto)" non e' un progetto e non ha una voce nella
       // tendina: come per il grafico a barre, li' non si filtra.
       // [EN] "(senza progetto)" is not a project and has no entry in the
       // [EN] dropdown: as for the bar chart, there is nothing to filter on.
       filterFor: function (gid) {
-        return gid === SENZA_PROGETTO ? null : { kind: 'project', value: gid, label: 'questo progetto' };
+        return gid === SENZA_PROGETTO ? null : { kind: 'project', value: gid, label: tr('line.thisProject') };
       }
     }
   };
@@ -5953,23 +5953,26 @@ __I18N_APPLY__
     // [EN] say the same thing twice).
     var windowNote = null;
     if (totals.cost - windowCost > 0.005 || totals.count !== windowCount) {
-      windowNote = 'Nel periodo mostrato (' + windowLabel.toLowerCase() + '): ' + fmtUsd(windowCost) +
-        ' su ' + windowCount + (windowCount === 1 ? ' interazione' : ' interazioni') + '.';
+      windowNote = tr('tt.windowNote', {
+        period: windowLabel.toLowerCase(),
+        cost: fmtUsd(windowCost),
+        turns: tr('common.turns', windowCount)
+      });
     }
     return {
       type: 'group',
       title: title,
       scope: scopeLabel,
       count: totals.count,
-      span: totals.count ? ('dal ' + fmtTs(totals.firstTs) + ' al ' + fmtTs(totals.lastTs)) : '',
+      span: totals.count ? tr('tt.span', { from: fmtTs(totals.firstTs), to: fmtTs(totals.lastTs) }) : '',
       cost: fmtUsd(totals.cost),
       costEur: fmtEur(totals.cost),
       tot: fmtInt(totals.tot),
       breakdown: [
-        { label: 'Input', val: fmtInt(totals.i), cost: fmtUsd(totals.costI) },
-        { label: 'Output', val: fmtInt(totals.o), cost: fmtUsd(totals.costO) },
-        { label: 'Cache write', val: fmtInt(totals.cw), cost: fmtUsd(totals.costCw) },
-        { label: 'Cache read', val: fmtInt(totals.cr), cost: fmtUsd(totals.costCr) }
+        { label: tr('stats.input'), val: fmtInt(totals.i), cost: fmtUsd(totals.costI) },
+        { label: tr('stats.output'), val: fmtInt(totals.o), cost: fmtUsd(totals.costO) },
+        { label: tr('stats.cacheWrite'), val: fmtInt(totals.cw), cost: fmtUsd(totals.costCw) },
+        { label: tr('stats.cacheRead'), val: fmtInt(totals.cr), cost: fmtUsd(totals.costCr) }
       ],
       windowNote: windowNote,
       // Su cosa filtrare la pagina se si sceglie l'azione in fondo al
@@ -6104,7 +6107,7 @@ __I18N_APPLY__
     // [EN] groups from a previous drawing.
     groupTooltips = [];
     if (buckets.length < 2) {
-      el.innerHTML = '<p class="empty">Nessuna interazione a sufficienza per il grafico (' +
+      el.innerHTML = '<p class="empty">' + esc(tr('line.notEnough')) + ' (' +
         esc(rangeStep.label.toLowerCase()) + ').</p>';
       return;
     }
@@ -6294,10 +6297,10 @@ __I18N_APPLY__
     }
 
     function tailLabelOf(m) {
-      return m.legendOtherLabel ? m.legendOtherLabel(nTail) : ('altri ' + nTail);
+      return m.legendOtherLabel ? m.legendOtherLabel(nTail) : tr('bar.legendOtherGeneric', { n: nTail });
     }
 
-    var svg = '<svg viewBox="0 0 ' + width + ' ' + height + '" class="chart" role="img" aria-label="' + esc(unit.aria) + ' nel tempo">';
+    var svg = '<svg viewBox="0 0 ' + width + ' ' + height + '" class="chart" role="img" aria-label="' + esc(tr('line.ariaOverTime', { what: unit.aria })) + '">';
     // Le tacche le decide l'asse: quattro equispaziate in lineare, una per
     // decade in logaritmica. Come nel grafico a barre, niente Math.round,
     // che azzererebbe tutte le tacche di un asse in valuta da pochi
@@ -6354,7 +6357,7 @@ __I18N_APPLY__
       var isTail = gid === LINE_TAIL_KEY;
       var totals = isTail ? totalsFromBuckets(pts) : (allTotals[gid] || newGroupAcc());
       var title = isTail ? tailLabelOf(mode) : mode.titleFn({ groupId: gid, turns: totals.turns });
-      var scope = isTail ? 'Totale nel periodo mostrato' : mode.scopeLabel;
+      var scope = isTail ? tr('line.scopeTail') : mode.scopeLabel;
       groupTooltips.push(groupTooltipData(totals, title, scope,
         isTail ? totals.cost : windowCost,
         isTail ? totals.count : windowCount, rangeStep.label,
@@ -6638,12 +6641,12 @@ __I18N_APPLY__
   // [EN] in the HTML (see the Python TEMPLATE) -- reused here for the
   // [EN] repeated header row under each expanded turn.
   var TURNS_HEADER_CELLS_HTML = '<th class="expand-col"></th>' +
-    '<th>' + t('turns.colTs') + '</th>' +
-    '<th>' + t('turns.colSession') + '</th>' +
-    '<th>' + t('turns.colRequest') + '</th>' +
-    '<th>' + t('turns.colModel') + '</th>' +
-    '<th class="num">' + t('turns.colTotal') + '</th>' +
-    '<th class="num">' + t('turns.colCost') + '</th>';
+    '<th>' + tr('turns.colTs') + '</th>' +
+    '<th>' + tr('turns.colSession') + '</th>' +
+    '<th>' + tr('turns.colRequest') + '</th>' +
+    '<th>' + tr('turns.colModel') + '</th>' +
+    '<th class="num">' + tr('turns.colTotal') + '</th>' +
+    '<th class="num">' + tr('turns.colCost') + '</th>';
 
   // Dettaglio Input/Output/Cache write/Cache read non occupa piu' colonne
   // proprie (rendeva la riga illeggibile): resta consultabile al passaggio
@@ -6658,10 +6661,10 @@ __I18N_APPLY__
     var costCw = cacheWriteCostUsd(t, p);
     var costCr = (t.cr / 1e6) * p.cacheRead;
     return simpleTooltipData([
-      seg('Input: '), segB(fmtInt(t.i)), seg(' (' + fmtUsd(costI) + ')'), segBr(),
-      seg('Output: '), segB(fmtInt(t.o)), seg(' (' + fmtUsd(costO) + ')'), segBr(),
-      seg('Cache write: '), segB(fmtInt(t.cw)), seg(' (' + fmtUsd(costCw) + ')'), segBr(),
-      seg('Cache read: '), segB(fmtInt(t.cr)), seg(' (' + fmtUsd(costCr) + ')')
+      seg(tr('stats.input') + ': '), segB(fmtInt(t.i)), seg(' (' + fmtUsd(costI) + ')'), segBr(),
+      seg(tr('stats.output') + ': '), segB(fmtInt(t.o)), seg(' (' + fmtUsd(costO) + ')'), segBr(),
+      seg(tr('stats.cacheWrite') + ': '), segB(fmtInt(t.cw)), seg(' (' + fmtUsd(costCw) + ')'), segBr(),
+      seg(tr('stats.cacheRead') + ': '), segB(fmtInt(t.cr)), seg(' (' + fmtUsd(costCr) + ')')
     ]);
   }
 
@@ -6735,8 +6738,8 @@ __I18N_APPLY__
       // [EN] alarming.
       tbody.innerHTML = '<tr><td colspan="7" class="empty">' +
         (turns.length
-          ? 'Nessuna interazione corrisponde ai filtri scelti.'
-          : 'Nessuna interazione registrata ancora.') +
+          ? tr('turns.emptyFiltered')
+          : tr('turns.emptyNone')) +
         '</td></tr>';
       if (pager) pager.hidden = true;
       return;
@@ -6801,12 +6804,14 @@ __I18N_APPLY__
 
     var from = turnsState.page * TURNS_PAGE_SIZE + 1;
     var to = Math.min(from + TURNS_PAGE_SIZE - 1, total);
-    info.textContent = from + '–' + to + ' di ' + total +
-      (totalPages > 1 ? '  ·  pagina ' + (turnsState.page + 1) + ' di ' + totalPages : '');
+    info.textContent = tr('turns.pageInfo', { from: from, to: to, total: total }) +
+      (totalPages > 1
+        ? tr('turns.pageOf', { page: turnsState.page + 1, total: totalPages })
+        : '');
 
     if (totalPages < 2) { pages.innerHTML = ''; return; }
 
-    var html = '<button type="button" class="page-btn" data-goto="prev" aria-label="Pagina precedente"' +
+    var html = '<button type="button" class="page-btn" data-goto="prev" aria-label="' + esc(tr('turns.prevPage')) + '"' +
       (turnsState.page === 0 ? ' disabled' : '') + '>‹</button>';
     pageButtonsModel(turnsState.page, totalPages).forEach(function (item) {
       if (item.gap) { html += '<span class="page-gap">…</span>'; return; }
@@ -6815,7 +6820,7 @@ __I18N_APPLY__
         '" data-goto="' + item.page + '"' + (isCurrent ? ' aria-current="page"' : '') +
         '>' + (item.page + 1) + '</button>';
     });
-    html += '<button type="button" class="page-btn" data-goto="next" aria-label="Pagina successiva"' +
+    html += '<button type="button" class="page-btn" data-goto="next" aria-label="' + esc(tr('turns.nextPage')) + '"' +
       (turnsState.page >= totalPages - 1 ? ' disabled' : '') + '>›</button>';
     pages.innerHTML = html;
   }
@@ -6854,7 +6859,7 @@ __I18N_APPLY__
       html += '<tr class="' + rowCls + '"' + rowStyle + ' data-target="' + rowId + '">' +
         '<td class="expand-toggle">&#9654;</td>' +
         '<td class="ts">' + esc(fmtTs(t.ts)) + '</td>' +
-        '<td class="session" data-tooltip="' + tooltipAttr(simpleTooltipData([segB(sessionLabel(t.sid)), { br: true }, seg('Sessione: '), seg(t.sid)])) + '">' + sessionCellHtml(t.sid, t.acc) + '</td>' +
+        '<td class="session" data-tooltip="' + tooltipAttr(simpleTooltipData([segB(sessionLabel(t.sid)), { br: true }, seg(tr('tt.sessionId')), seg(t.sid)])) + '">' + sessionCellHtml(t.sid, t.acc) + '</td>' +
         '<td class="summary" data-tooltip="' + tooltipAttr(simpleTooltipData([seg(summaryText)])) + '">' + esc(summaryText) + '</td>' +
         '<td class="model">' + esc(modelShortLabel(t.model)) + '</td>' +
         '<td class="num total" data-tooltip="' + tooltipAttr(totaleTooltipData(t)) + '">' + fmtInt(t.tot) + '</td>' +
@@ -6862,13 +6867,15 @@ __I18N_APPLY__
       html += '<tr class="actions-row" id="' + rowId + '"><td colspan="7"><div class="actions-reveal">';
       if (actions.length) {
         html += '<div class="actions-nested"><table><colgroup><col style="width:92px"><col style="width:190px"><col><col style="width:64px"></colgroup>' +
-          '<thead><tr><th>Timestamp</th><th>Tool</th><th>Target</th><th>Costo</th></tr></thead><tbody>' +
+          '<thead><tr><th>' + esc(tr('turns.actTimestamp')) + '</th><th>' +
+          esc(tr('turns.actTool')) + '</th><th>' + esc(tr('turns.actTarget')) +
+          '</th><th>' + esc(tr('turns.actCost')) + '</th></tr></thead><tbody>' +
           actions.map(function (a) {
             return '<tr><td class="ts">' + esc(fmtTimeFull(a.ts)) + '</td><td>' + esc(a.tool) + '</td><td class="target">' + esc(a.target) +
               '</td><td>' + actionCostCell(a) + '</td></tr>';
           }).join('') + '</tbody></table></div>';
       } else {
-        html += '<div class="actions-empty">Nessuna azione registrata per questa interazione.</div>';
+        html += '<div class="actions-empty">' + esc(tr('turns.noActions')) + '</div>';
       }
       html += '</div></td></tr>';
       // Intestazione ripetuta, visibile solo insieme al dettaglio espanso:
@@ -7626,8 +7633,7 @@ __I18N_APPLY__
   function markStale() {
     if (statusPill) {
       statusPill.classList.add('stale');
-      statusPill.title = "Questi numeri sono quelli letti all'ora indicata: "
-        + 'nel frattempo potrebbero essercene di nuovi. Premi Aggiorna per rileggerli.';
+      statusPill.title = tr('misc.stale', { refresh: tr('header.refresh') });
     }
     if (refreshBtn) refreshBtn.hidden = false;
   }

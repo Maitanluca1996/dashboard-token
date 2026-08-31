@@ -117,6 +117,18 @@ UI = {
         "colTotal": "Total",
         "colCost": "Cost",
         "paginationAria": "Interactions pagination",
+        "emptyFiltered": "No interaction matches the chosen filters.",
+        "emptyNone": "No interaction recorded yet.",
+        "pageInfo": "{from}–{to} of {total}",
+        "pageOf": "  ·  page {page} of {total}",
+        "prevPage": "Previous page",
+        "nextPage": "Next page",
+        "actTimestamp": "Timestamp",
+        "actTool": "Tool",
+        "actTarget": "Target",
+        "actCost": "Cost",
+        "noActions": "No action recorded for this interaction.",
+        "filterOnSession": "Filter on this session",
         "rows": "Rows:",
     },
 
@@ -196,6 +208,91 @@ UI = {
         "restoreProject": "Put this project back among the visible ones",
         "excludeAria": "Always exclude {name}",
         "restoreAria": "Put {name} back",
+    },
+
+    "common": {
+        "turns": {"one": "{n} interaction", "other": "{n} interactions"},
+        "sessions": {"one": "{n} session", "other": "{n} sessions"},
+        "tokensStr": "{n} tokens",
+        "sessionFallback": "Session {id}",
+        "noProject": "(no project)",
+    },
+
+    "tt": {
+        "filterOn": "Filter on {what}",
+        "unfilterOn": "Remove the filter on {what}",
+        "dismiss": "Click outside or press Esc to close.",
+        "showIterations": "Show the iterations",
+        "hideIterations": "Hide the iterations",
+        "noRequest": "(no request recorded)",
+        "sessionId": "Session: ",
+        "subAgentCost": "Cost cannot be determined: this action was carried "
+                        "out by a delegated sub-agent (Task/Agent). Its token "
+                        "usage does not appear in the main session's "
+                        "transcript, so it cannot be estimated here -- it is "
+                        "not zero, it is unknown.",
+        "windowNote": "In the period shown ({period}): {cost} out of {turns}.",
+        "span": "from {from} to {to}",
+    },
+
+    # Vedi lang_it.py: le due chiavi avgOthers* dicono la stessa cosa in
+    # inglese ma non in italiano, e restano due perche' i due file devono
+    # avere le stesse chiavi.
+    # [EN] See lang_it.py: the two avgOthers* keys say the same thing in
+    # English but not in Italian, and stay two because the two files must
+    # carry the same keys.
+    "bar": {
+        "perDay": "per day",
+        "perMonth": "per month",
+        "perProject": "per project",
+        "perSession": "per session",
+        "lastDays": "last {n} days",
+        "lastMonths": "last {n} months",
+        "topProjects": "top {n} projects",
+        "topSessions": "top {n} sessions",
+        "allHistory": "all history",
+        "avgOthersProjects": "Others avg ({n})",
+        "avgOthersSessions": "Others avg ({n})",
+        "otherProjects": "other projects",
+        "otherSessions": "other sessions",
+        "legendOtherProjects": "{n} other projects",
+        "legendOtherSessions": "{n} other sessions",
+        "legendOtherModels": "{n} other models",
+        "legendOtherGeneric": "{n} others",
+        "avgOf": "Average of {n} {noun}",
+        "inTotal": "In total: ",
+        "singleBar": "With this filter every grouping would give a single "
+                     "bar: the total is in the cards at the top of the page.",
+        "noData": "No data yet.",
+    },
+
+    "line": {
+        "scopeSession": "Total for the whole session",
+        "scopeAll": "Grand total",
+        "scopeModel": "Total for this model",
+        "scopeProject": "Total for the whole project",
+        "scopeTail": "Total in the period shown",
+        "thisSession": "this session",
+        "thisModel": "this model",
+        "thisProject": "this project",
+        "ariaOverTime": "{what} over time",
+        "notEnough": "Not enough interactions for the chart",
+    },
+
+    "period": {
+        "today": "Today",
+        "week": "This week",
+        "weekShort": "Week",
+        "month": "This month",
+        "monthShort": "Month",
+        "year": "This year",
+        "yearShort": "Year",
+    },
+
+    "misc": {
+        "stale": "These numbers are the ones read at the time shown: there "
+                 "may be new ones by now. Press {refresh} to read them "
+                 "again.",
     },
 
     "footer": {

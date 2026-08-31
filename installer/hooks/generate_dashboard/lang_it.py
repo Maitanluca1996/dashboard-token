@@ -197,6 +197,18 @@ UI = {
         "colTotal": "Totale",
         "colCost": "Costo",
         "paginationAria": "Paginazione interazioni",
+        "emptyFiltered": "Nessuna interazione corrisponde ai filtri scelti.",
+        "emptyNone": "Nessuna interazione registrata ancora.",
+        "pageInfo": "{from}–{to} di {total}",
+        "pageOf": "  ·  pagina {page} di {total}",
+        "prevPage": "Pagina precedente",
+        "nextPage": "Pagina successiva",
+        "actTimestamp": "Timestamp",
+        "actTool": "Tool",
+        "actTarget": "Target",
+        "actCost": "Costo",
+        "noActions": "Nessuna azione registrata per questa interazione.",
+        "filterOnSession": "Filtra su questa sessione",
         "rows": "Righe:",
     },
 
@@ -317,6 +329,134 @@ UI = {
         "restoreProject": "Rimetti questo progetto fra quelli visibili",
         "excludeAria": "Escludi sempre {name}",
         "restoreAria": "Rimetti {name}",
+    },
+
+    # Frammenti che compaiono in piu' punti diversi. Il conteggio delle
+    # interazioni e delle sessioni ha due forme, singolare e plurale, e il
+    # numero e' dentro la frase: in italiano va davanti al nome, ma non e'
+    # detto che sia cosi' in ogni lingua, e chi traduce deve poterlo
+    # spostare.
+    # [EN] Fragments appearing in several different places. The interaction
+    # and session counts have two forms, singular and plural, and the number
+    # is inside the sentence: in Italian it goes before the noun, but that
+    # need not hold in every language, and whoever translates must be able
+    # to move it.
+    "common": {
+        "turns": {"one": "{n} interazione", "other": "{n} interazioni"},
+        "sessions": {"one": "{n} sessione", "other": "{n} sessioni"},
+        # Qui il numero arriva gia' formattato (con i separatori delle
+        # migliaia), quindi non e' un conteggio da declinare ma un testo da
+        # incastrare: niente forma singolare.
+        # [EN] Here the number arrives already formatted (with thousands
+        # separators), so it is not a count to decline but a text to slot
+        # in: no singular form.
+        "tokensStr": "{n} token",
+        "sessionFallback": "Sessione {id}",
+        "noProject": "(senza progetto)",
+    },
+
+    # I riquadri che si aprono passando sopra un grafico.
+    # [EN] The boxes that open when hovering over a chart.
+    "tt": {
+        "filterOn": "Filtra su {what}",
+        "unfilterOn": "Togli il filtro su {what}",
+        "dismiss": "Clicca fuori o premi Esc per chiudere.",
+        "showIterations": "Mostra le iterazioni",
+        "hideIterations": "Nascondi le iterazioni",
+        "noRequest": "(nessuna richiesta registrata)",
+        "sessionId": "Sessione: ",
+        "subAgentCost": "Costo non determinabile: azione eseguita da un "
+                        "sotto-agente delegato (Task/Agent). Il suo consumo "
+                        "token non compare nel transcript della sessione "
+                        "principale, quindi non e’ stimabile qui -- non e’ "
+                        "zero, e’ sconosciuto.",
+        "windowNote": "Nel periodo mostrato ({period}): {cost} su {turns}.",
+        "span": "dal {from} al {to}",
+    },
+
+    # I grafici a barre: come si chiama il raggruppamento, cosa dice il
+    # titolo quando le barre sono state tagliate, e la barra di coda.
+    # avgOthersProjects e avgOthersSessions dicono la stessa cosa in
+    # inglese, ma NON in italiano: "Media altri" concorda con "progetti",
+    # "Media altre" con "sessioni". Non e' un plurale, e' un accordo di
+    # genere con un nome sottinteso -- due frasi diverse, quindi due chiavi.
+    # [EN] The bar charts: what the grouping is called, what the title says
+    # when the bars have been cut, and the tail bar.
+    # avgOthersProjects and avgOthersSessions say the same thing in English,
+    # but NOT in Italian: "Media altri" agrees with "progetti", "Media
+    # altre" with "sessioni". It is not a plural, it is gender agreement
+    # with an elided noun -- two different sentences, hence two keys.
+    "bar": {
+        "perDay": "per giorno",
+        "perMonth": "per mese",
+        "perProject": "per progetto",
+        "perSession": "per sessione",
+        "lastDays": "ultimi {n} giorni",
+        "lastMonths": "ultimi {n} mesi",
+        "topProjects": "primi {n} progetti",
+        "topSessions": "prime {n} sessioni",
+        "allHistory": "tutto lo storico",
+        "avgOthersProjects": "Media altri ({n})",
+        "avgOthersSessions": "Media altre ({n})",
+        "otherProjects": "altri progetti",
+        "otherSessions": "altre sessioni",
+        "legendOtherProjects": "altri {n} progetti",
+        "legendOtherSessions": "altre {n} sessioni",
+        "legendOtherModels": "altri {n} modelli",
+        # Quando la coda raggruppa cose senza un nome collettivo.
+        # [EN] When the tail groups things with no collective noun.
+        "legendOtherGeneric": "altri {n}",
+        "avgOf": "Media di {n} {noun}",
+        "inTotal": "In totale: ",
+        "singleBar": "Con questo filtro ogni raggruppamento darebbe una "
+                     "barra sola: il totale è nelle schede in cima alla "
+                     "pagina.",
+        "noData": "Nessun dato ancora.",
+    },
+
+    # Il grafico a linee: di che cosa e' il totale che si sta guardando, e
+    # su che cosa porta il clic.
+    # [EN] The line chart: what the total being looked at is a total of, and
+    # what the click leads to.
+    "line": {
+        "scopeSession": "Totale dell’intera sessione",
+        "scopeAll": "Totale complessivo",
+        "scopeModel": "Totale per questo modello",
+        "scopeProject": "Totale dell’intero progetto",
+        "scopeTail": "Totale nel periodo mostrato",
+        "thisSession": "questa sessione",
+        "thisModel": "questo modello",
+        "thisProject": "questo progetto",
+        "ariaOverTime": "{what} nel tempo",
+        "notEnough": "Nessuna interazione a sufficienza per il grafico",
+    },
+
+    # I periodi a calendario della tendina. La forma corta e' quella che
+    # resta scritta quando la barra dei filtri si stringe.
+    # [EN] The calendar periods of the dropdown. The short form is what
+    # stays written when the filter bar narrows.
+    "period": {
+        "today": "Oggi",
+        "week": "Questa settimana",
+        "weekShort": "Settimana",
+        "month": "Questo mese",
+        "monthShort": "Mese",
+        "year": "Quest'anno",
+        "yearShort": "Anno",
+    },
+
+    # Messaggi che non appartengono a nessuna delle famiglie qui sopra.
+    # "stale" cita il bottone Aggiorna per nome: il nome arriva come
+    # parametro invece di essere riscritto, cosi' se un giorno il bottone
+    # cambia etichetta il messaggio la segue da solo.
+    # [EN] Messages belonging to none of the families above. "stale" names
+    # the refresh button: the name arrives as a parameter instead of being
+    # rewritten, so if one day the button changes label the message follows
+    # on its own.
+    "misc": {
+        "stale": "Questi numeri sono quelli letti all'ora indicata: nel "
+                 "frattempo potrebbero essercene di nuovi. Premi {refresh} "
+                 "per rileggerli.",
     },
 
     "footer": {
