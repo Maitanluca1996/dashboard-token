@@ -4631,48 +4631,100 @@ __SITE_HEADER__
 
   /* Un raggruppamento che darebbe UNA barra sola non e' un grafico: e' il
      totale gia' scritto nelle schede in cima, disegnato piu' in grande.
-     Succede nel secondo grafico quando il filtro tiene un progetto solo
-     ("per progetto") o una sessione sola ("per sessione").
+     Non serve un elenco di casi -- un progetto solo spuntato, una sessione
+     sola, un giorno circoscritto: basta contare le barre che verrebbero
+     fuori, e il raggruppamento che ne da' una si spegne da se'. Cosi'
+     valgono anche i casi che nessuno ha enumerato (una ricerca che lascia
+     un giorno solo di dati, per dirne una).
      Il segmento resta dov'e' e si spegne, invece di sparire: un controllo
      che perde e riacquista voci ad ogni cambio di filtro cambia larghezza
      sotto il dito, e chi ha imparato dove sta "Per progetto" non lo
      ritrova piu'. Spento dice la stessa cosa -- di li' non si passa --
      restando al suo posto.
+     Quando SI SPENGONO TUTTI, a sparire e' il disegno e non il pannello:
+     titolo e controlli restano dove sono, e al posto del grafico una riga
+     dice cos'e' successo. Portando via tutto, chi guarda si troverebbe la
+     pagina piu' corta di prima senza sapere perche' -- ed e' successo per
+     una sua scelta, che merita una risposta e non un buco.
+     Zero barre non e' lo stesso di una: li' il filtro non ha lasciato
+     niente, e il grafico ha gia' il suo modo di dirlo.
      [EN] A grouping that would give ONE single bar is not a chart: it is
-     the total already written in the cards at the top, drawn larger. It
-     happens in the second chart when the filter holds a single project
-     ("per progetto") or a single session ("per sessione").
+     the total already written in the cards at the top, drawn larger. No
+     list of cases is needed -- a single ticked project, a single session,
+     a single day circumscribed: counting the bars that would come out is
+     enough, and the grouping giving one switches itself off. This way the
+     cases nobody enumerated hold too (a search leaving a single day of
+     data, to name one).
      The segment stays where it is and switches off, instead of
      disappearing: a control losing and regaining entries at every filter
      change shifts width under one's finger, and whoever learned where
      "Per progetto" sits no longer finds it. Switched off says the same
-     thing -- there is no way through -- while staying put. */
-  function syncBar2Groups() {
-    var container = document.getElementById('bar2-group-filter-custom');
-    var select = document.getElementById('bar2-group-filter');
-    if (!container || !select) { return; }
-    var off = {
-      project: selectedProjects().length === 1,
-      session: !!document.getElementById('session-filter').value
-    };
-    var stillOn = '';
-    container.querySelectorAll('button').forEach(function (btn) {
-      var v = btn.getAttribute('data-value');
-      btn.disabled = !!off[v];
-      if (!off[v] && !stillOn) { stillOn = v; }
+     thing -- there is no way through -- while staying put.
+     When they ALL switch off, the panel has nothing left to show and
+     closes: that is the case of a single circumscribed day (by day and by
+     month would give the same single bar) or of a single session (the
+     session is one, and so is the project it belongs to).
+     When they ALL switch off, what disappears is the drawing and not the
+     panel: title and controls stay where they are, and in the chart's
+     place a line says what happened. Taking everything away, the viewer
+     would find the page shorter than before with no idea why -- and it
+     happened because of a choice of theirs, which deserves an answer and
+     not a hole.
+     Zero bars is not the same as one: there the filter left nothing, and
+     the chart already has its own way of saying so. */
+  // Quali grafici a barre sono rimasti senza un raggruppamento buono. Lo
+  // decide syncBarGroups e lo legge renderBarChart: contare le barre due
+  // volte per disegno, una per spegnere i segmenti e una per sapere se
+  // disegnare, sarebbe lo stesso lavoro fatto due volte.
+  // [EN] Which bar charts are left with no usable grouping. syncBarGroups
+  // decides it and renderBarChart reads it: counting the bars twice per
+  // drawing, once to switch the segments off and once to know whether to
+  // draw, would be the same work done twice.
+  var barChartDead = {};
+
+  function syncBarGroups(filteredTurns) {
+    BAR_CHARTS.forEach(function (cfg) {
+      var container = document.getElementById(cfg.customId);
+      var select = document.getElementById(cfg.selectId);
+      if (!container || !select) { return; }
+      var stillOn = '';
+      container.querySelectorAll('button').forEach(function (btn) {
+        var v = btn.getAttribute('data-value');
+        var group = BAR_GROUPS[v];
+        var off = !!group && distinctAtMostTwo(filteredTurns, group.keyFn) === 1;
+        btn.disabled = off;
+        if (!off && !stillOn) { stillOn = v; }
+      });
+      barChartDead[cfg.chartId] = !stillOn;
+      // Se ad essere spento e' proprio il raggruppamento attivo, il grafico
+      // passa a quello rimasto.
+      // [EN] If the one switched off is the active grouping, the chart moves
+      // to the one left.
+      var active = container.querySelector('button[data-value="' + select.value + '"]');
+      if (stillOn && active && active.disabled) {
+        select.value = stillOn;
+        setSegmentedControl(cfg.customId, stillOn);
+      }
     });
-    // Se ad essere spento e' proprio il raggruppamento attivo, il grafico
-    // passa all'altro. Se sono spenti entrambi (un progetto solo E una
-    // sessione sola) non c'e' dove andare: resta dov'e', con la sua unica
-    // barra, che e' comunque meglio di un pannello vuoto.
-    // [EN] If the one switched off is the active grouping, the chart moves
-    // to the other. If both are off (a single project AND a single
-    // session) there is nowhere to go: it stays where it is, with its
-    // single bar, which is still better than an empty panel.
-    if (off[select.value] && stillOn) {
-      select.value = stillOn;
-      setSegmentedControl('bar2-group-filter-custom', stillOn);
+  }
+
+  /* Quante barre distinte darebbe questo raggruppamento su questi turni.
+     Si ferma a due: la domanda non e' "quante", e' "piu' di una?", e su
+     uno storico lungo contarle tutte quattro volte per disegno sarebbe
+     lavoro buttato.
+     [EN] How many distinct bars this grouping would give on these turns.
+     It stops at two: the question is not "how many", it is "more than
+     one?", and on a long history counting them all four times per drawing
+     would be wasted work. */
+  function distinctAtMostTwo(list, keyFn) {
+    var first = null;
+    var n = 0;
+    for (var i = 0; i < list.length; i++) {
+      var k = keyFn(list[i]);
+      if (!n) { first = k; n = 1; }
+      else if (k !== first) { return 2; }
     }
+    return n;
   }
 
   function currentBarGroup(cfg) {
@@ -4812,6 +4864,17 @@ __SITE_HEADER__
       titleEl.textContent = unit.barNoun + ' ' + group.noun + ' (' + periodLabel + ')';
     }
     var el = document.getElementById(cfg.chartId);
+    // Nessun raggruppamento utile: al posto del disegno una riga che dice
+    // perche', e dove sta il numero che quel disegno avrebbe mostrato. Il
+    // titolo e i controlli restano: sono il modo di tornare indietro.
+    // [EN] No usable grouping: in the drawing's place a line saying why,
+    // and where the number that drawing would have shown is. The title and
+    // the controls stay: they are the way back.
+    if (barChartDead[cfg.chartId]) {
+      el.innerHTML = '<p class="empty">Con questo filtro ogni raggruppamento darebbe una barra sola: ' +
+        'il totale è nelle schede in cima alla pagina.</p>';
+      return;
+    }
     if (!keys.length) { el.innerHTML = '<p class="empty">Nessun dato ancora.</p>'; return; }
 
     // Le etichette inclinate scendono in diagonale sotto l'asse e vogliono
@@ -6790,7 +6853,7 @@ __SITE_HEADER__
     // [EN] Before drawing, not after: the grouping can change here, and the
     // chart must be born already on the new one instead of being redrawn
     // right afterwards.
-    syncBar2Groups();
+    syncBarGroups(ft);
     syncRangeToPeriod();
     BAR_CHARTS.forEach(function (cfg) { renderBarChart(ft, cfg); });
     renderLineChart(ft);
