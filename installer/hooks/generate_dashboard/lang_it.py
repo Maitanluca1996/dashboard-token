@@ -495,7 +495,8 @@ UI = {
     "pricingPage": {
         "h1": "Tariffario prezzi — Claude Code",
         "desc": "Prezzi di listino Anthropic come configurati nel tariffario "
-                "locale, in $ per milione di token (input, output, cache)",
+                "locale, per milione di token (input, output, cache), "
+                "nella valuta scelta in alto a destra",
         "colModel": "Modello",
         "colIdNote": "ID / note",
 

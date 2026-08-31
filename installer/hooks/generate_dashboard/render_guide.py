@@ -124,14 +124,35 @@ def _price_rows(base_in, base_label, lang, T):
             # "verdict = verdict + ...").
             verdict += '<span class="cell-note">{}</span>'.format(note)
 
+        # I due prezzi portano il valore in dollari in data-i18n-money e
+        # il testo gia' scritto come ripiego: e' la stessa coppia usata
+        # dal tariffario, e per lo stesso motivo. La guida esiste in un
+        # file per lingua ma non in un file per valuta, quindi il numero
+        # definitivo lo scrive il browser (I18N_APPLY, vedi header.py)
+        # nella valuta scelta nell'intestazione.
+        # Il rapporto fra i modelli NON passa di li': e' un numero puro,
+        # e un rapporto non cambia cambiando valuta -- convertirlo
+        # vorrebbe dire moltiplicarlo per il cambio, cioe' sbagliarlo.
+        # [EN] The two prices carry the dollar value in data-i18n-money
+        # and the already-written text as a fallback: it is the same pair
+        # the price list uses, and for the same reason. The guide exists
+        # as one file per language but not as one file per currency, so
+        # the final number is written by the browser (I18N_APPLY, see
+        # header.py) in the currency chosen in the header.
+        # The ratio between models does NOT go through there: it is a
+        # pure number, and a ratio does not change when the currency
+        # changes -- converting it would mean multiplying it by the rate,
+        # that is, getting it wrong.
         rows.append(
             '<tr{hi}>'
             '<td class="model-name">{label}</td>'
-            '<td class="num">${inp}</td>'
-            '<td class="num">${out}</td>'
+            '<td class="num" data-i18n-money="{inRaw:.6f}">${inp}</td>'
+            '<td class="num" data-i18n-money="{outRaw:.6f}">${out}</td>'
             '<td class="num">{ratio}&times;</td>'
             '<td>{verdict}</td>'
             "</tr>".format(
+                inRaw=m["input"],
+                outRaw=m["output"],
                 # Se questo e' il modello di riferimento, aggiunge
                 # class="row-hi" alla riga per evidenziarla graficamente;
                 # altrimenti nessun attributo extra (stringa vuota).
@@ -272,7 +293,8 @@ def render(lang="it"):
     html = html.replace("__I18N_APPLY__", templating.I18N_APPLY)
     html = html.replace("__REVEAL_BOOT__", templating.REVEAL_BOOT)
     html = html.replace("__REVEAL_JS__", templating.REVEAL_JS)
-    html = html.replace("__SITE_HEADER__", templating.render_header("guide"))
+    html = html.replace("__SITE_HEADER__",
+                        templating.render_header("guide", currency_control=True))
     html = html.replace("__PRICE_ROWS__", "\n            ".join(rows))
     html = html.replace("__PROMO_BLOCK__", promo_block)
     html = html.replace("__BASE_LABEL__", base_label)
@@ -280,8 +302,18 @@ def render(lang="it"):
     html = html.replace("__CR__", numfmt.num(pricing.CACHE_READ_MULTIPLIER, 2, lang))
     html = html.replace("__EX_TURNS__", str(GUIDE_EX_TURNS))
     html = html.replace("__EX_CTX__", numfmt.thousands(GUIDE_EX_CONTEXT_TOKENS, lang))
-    html = html.replace("__EX_NOCACHE__", "$" + numfmt.num(no_cache, 2, lang))
-    html = html.replace("__EX_CACHE__", "$" + numfmt.num(with_cache, 2, lang))
+    # I due importi dell'esempio, nella stessa forma dei prezzi in
+    # tabella: valore in dollari nell'attributo, testo di ripiego dentro.
+    # Uno <span> e non la cella perche' qui stanno in mezzo a una frase.
+    # [EN] The example's two amounts, in the same shape as the prices in
+    # the table: dollar value in the attribute, fallback text inside. A
+    # <span> and not a cell because here they sit inside a sentence.
+    def _money_span(value):
+        return '<span data-i18n-money="{:.6f}">${}</span>'.format(
+            value, numfmt.num(value, 2, lang))
+
+    html = html.replace("__EX_NOCACHE__", _money_span(no_cache))
+    html = html.replace("__EX_CACHE__", _money_span(with_cache))
     html = html.replace("__EX_RATIO__", numfmt.num(ratio_cache, 1, lang))
 
     with open(out_path, "w", encoding="utf-8") as f:

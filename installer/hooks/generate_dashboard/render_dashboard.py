@@ -250,24 +250,6 @@ def _build_payload(tokens, ops, sessions_sorted, session_info, last_seen, sessio
         "modelPricing": pricing.MODEL_PRICING,
         "cacheWrite1hMultiplier": pricing.CACHE_WRITE_1H_MULTIPLIER,
         "defaultModelKey": pricing.DEFAULT_MODEL_KEY,
-        # I cambi dal dollaro (costanti scritte a mano in pricing.py, vedi
-        # il commento li'): servono al JavaScript per mostrare gli importi
-        # nella valuta scelta nell'intestazione. Passa la tabella intera e
-        # non il singolo cambio: quale valuta sia attiva si sa solo nel
-        # browser, e una valuta in piu' non deve tornare a toccare questo
-        # file. Passiamo anche la data dell'ultimo aggiornamento, cosi' il
-        # tariffario puo' dichiarare quanto sono vecchi i cambi invece di
-        # farli sembrare un dato in tempo reale.
-        # [EN] The rates from the dollar (hand-written constants in
-        # pricing.py, see the comment there): the JavaScript needs them to
-        # show amounts in the currency chosen in the header. It passes the
-        # whole table and not the single rate: which currency is active is
-        # known only in the browser, and one more currency must not come
-        # back to touch this file. We also pass the date of the last
-        # update, so the price list can state how old the rates are
-        # instead of making them look like real-time data.
-        "usdRates": pricing.USD_RATES,
-        "usdRatesDate": pricing.USD_RATES_DATE,
     }
 
 

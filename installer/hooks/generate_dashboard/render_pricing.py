@@ -134,13 +134,36 @@ def render():
         # the CSS as a "custom property": the pricing.html stylesheet
         # uses it to stagger the rows' entrance (see the rule on tbody
         # tr in there).
+        # I prezzi vanno in pagina DUE volte: come numero in dollari
+        # nell'attributo data-i18n-money, e come testo gia' scritto dentro
+        # la cella. Il primo e' il dato, il secondo e' il ripiego.
+        # Il motivo e' che il tariffario, come le altre pagine, e' un file
+        # solo per tutte le lingue e tutte le valute: quale valuta voglia
+        # chi guarda si sa solo nel browser, quindi il numero definitivo lo
+        # scrive I18N_APPLY chiamando fmtMoney. Il testo in dollari resta
+        # scritto nel markup per lo stesso motivo per cui ci resta quello
+        # italiano: se il dizionario non si carica, la pagina mostra i
+        # prezzi di listino invece di celle vuote.
+        # [EN] The prices go into the page TWICE: as a number in dollars in
+        # the data-i18n-money attribute, and as text already written inside
+        # the cell. The first is the datum, the second is the fallback.
+        # The reason is that the price list, like the other pages, is a
+        # single file for every language and every currency: which currency
+        # the viewer wants is known only in the browser, so the final
+        # number is written by I18N_APPLY calling fmtMoney. The dollar text
+        # stays in the markup for the same reason the Italian text does: if
+        # the dictionary fails to load, the page shows the list prices
+        # instead of empty cells.
+        def money(value):
+            return f'<td class="num" data-i18n-money="{value:.6f}">${value:.2f}</td>'
+
         rows.append(
             f'<tr style="--row-i:{len(rows)}">'
             f'<td class="model-name">{m["label"]}</td>'
-            f'<td class="num">${m["input"]:.2f}</td>'
-            f'<td class="num">${m["output"]:.2f}</td>'
-            f'<td class="num">${cache_write:.2f}</td>'
-            f'<td class="num">${cache_read:.2f}</td>'
+            f'{money(m["input"])}'
+            f'{money(m["output"])}'
+            f'{money(cache_write)}'
+            f'{money(cache_read)}'
             f'<td><code>{key}</code></td>'
             "</tr>"
         )
@@ -167,7 +190,8 @@ def render():
     html = html.replace("__I18N_APPLY__", templating.I18N_APPLY)
     html = html.replace("__REVEAL_BOOT__", templating.REVEAL_BOOT)
     html = html.replace("__REVEAL_JS__", templating.REVEAL_JS)
-    html = html.replace("__SITE_HEADER__", templating.render_header("pricing"))
+    html = html.replace("__SITE_HEADER__",
+                        templating.render_header("pricing", currency_control=True))
     # "\n        ".join(rows) incolla tutte le righe di "rows" in un'unica
     # stringa, mettendo tra una e l'altra un a-capo seguito da 8 spazi (solo
     # per far apparire l'HTML finale ben indentato se qualcuno lo apre e

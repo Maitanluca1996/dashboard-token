@@ -178,6 +178,7 @@ import locale
 import os
 
 from . import config
+from . import pricing
 from . import lang_en
 from . import lang_it
 
@@ -586,6 +587,24 @@ def js_payload():
         "currencies": CURRENCIES,
         "currencyFallback": CURRENCY_DEFAULT,
         "currencySymbols": CURRENCY_SYMBOLS,
+        # I cambi viaggiano qui e non nel payload dei dati della
+        # dashboard, perche' li' sarebbero arrivati alla sola dashboard.
+        # Anche il tariffario mostra importi, e chi guarda un listino
+        # per decidere quale modello usare vuole leggerlo nella propria
+        # valuta, non in quella in cui e' scritto il listino.
+        # In piu' questo file sta nell'<head>, prima di tutto il resto:
+        # il formattatore degli importi (window.fmtMoney, definito in
+        # header.py) e' pronto da subito e non deve aspettare nessuno.
+        # [EN] The rates travel here and not in the dashboard's data
+        # payload, because there they would have reached the dashboard
+        # alone. The price list shows amounts too, and someone looking at
+        # a tariff to decide which model to use wants to read it in their
+        # own currency, not in the one the tariff is written in.
+        # On top of that this file sits in the <head>, before everything
+        # else: the amount formatter (window.fmtMoney, defined in
+        # header.py) is ready at once and has nobody to wait for.
+        "rates": pricing.USD_RATES,
+        "ratesDate": pricing.USD_RATES_DATE,
         "strings": {code: _bundle(code, "UI") for code in LANGS},
         "fmt": {code: _bundle(code, "FMT") for code in LANGS},
     }

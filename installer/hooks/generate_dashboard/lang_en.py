@@ -306,7 +306,8 @@ UI = {
     "pricingPage": {
         "h1": "Price list — Claude Code",
         "desc": "Anthropic list prices as configured in the local price "
-                "table, in $ per million tokens (input, output, cache)",
+                "table, per million tokens (input, output, cache), in "
+                "the currency chosen at the top right",
         "colModel": "Model",
         "colIdNote": "ID / notes",
 

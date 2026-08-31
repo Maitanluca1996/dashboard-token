@@ -1104,17 +1104,26 @@ def render_header(active_id, refresh_control=False, currency_control=False):
             f" hidden>{options}</div></div>"
         )
 
-    # La valuta solo dove ci sono importi da mostrare. Il tariffario e la
-    # guida riportano il listino ufficiale, che e' in dollari: una combo li'
-    # o non farebbe niente (e sarebbe un controllo morto) o convertirebbe
-    # un listino, facendo passare per prezzo una conversione a cambio
-    # fisso. La lingua invece vale ovunque, e la sua combo c'e' sempre.
-    # [EN] The currency only where there are amounts to show. The price
-    # list and the guide report the official tariff, which is in dollars: a
-    # combo there would either do nothing (and be a dead control) or
-    # convert a tariff, passing a fixed-rate conversion off as a price. The
-    # language, on the other hand, applies everywhere, and its combo is
-    # always there.
+    # La valuta dove ci sono importi da mostrare, che oggi vuol dire tutte
+    # e tre le pagine. Non solo la dashboard: chi guarda il tariffario o la
+    # tabella dei modelli nella guida lo fa per decidere quale modello
+    # usare, e una cifra in una valuta che non e' la propria e' una cifra
+    # da convertire a mente prima di poterci ragionare.
+    # Il listino resta scritto in dollari perche' in dollari e': la sezione
+    # dei cambi nel tariffario dice a che rapporto sono convertite le altre
+    # valute, e la data a cui quel rapporto risale. Il parametro resta
+    # perche' una pagina senza importi -- se un domani ce ne fosse una --
+    # non deve mostrare un controllo che non cambia niente.
+    # [EN] The currency where there are amounts to show, which today means
+    # all three pages. Not the dashboard alone: whoever looks at the price
+    # list, or at the model table in the guide, does so to decide which
+    # model to use, and a figure in a currency that is not theirs is a
+    # figure to convert in their head before they can reason about it.
+    # The tariff stays written in dollars because in dollars is what it is:
+    # the rates section on the price list says at what ratio the other
+    # currencies are converted, and the date that ratio dates from. The
+    # parameter stays because a page with no amounts -- should there ever
+    # be one -- must not show a control that changes nothing.
     combos = ""
     if currency_control:
         combos += combo("currency", "header.currencySwitch",
@@ -1318,6 +1327,93 @@ I18N_BOOT = r"""  <script src="site-i18n.js"></script>
        [EN] The symbol travels already resolved: whoever formats amounts
        need not know a currency registry exists, they need the character. */
     window.CURRENCY_SYMBOL = (I18N.currencySymbols || {})[CURRENCY] || '';
+
+    /* --- Come si scrive un importo ---
+       Sta qui, e non nel JavaScript della dashboard, perche' di pagine che
+       mostrano importi ce ne sono due: la dashboard e il tariffario. Il
+       secondo ha prezzi di listino, che sono in dollari, ma chi li legge
+       per decidere quale modello usare vuole vederli nella valuta in cui
+       ragiona -- ed e' esattamente la stessa domanda a cui risponde la
+       combo in alto.
+       Il POSTO del simbolo lo decide la lingua (in italiano dopo con uno
+       spazio, in inglese prima e attaccato), il simbolo lo decide la
+       valuta, il cambio lo decide la tabella in pricing.py. Tre registri
+       diversi per tre domande diverse, e un solo punto che li mette
+       insieme.
+       Il dollaro sta nella tabella dei cambi con 1.0: convertire e' sempre
+       una moltiplicazione, e non esiste un caso "questa valuta non si
+       converte" da ricordarsi.
+       [EN] --- How an amount is written ---
+       It lives here, and not in the dashboard's JavaScript, because there
+       are two pages showing amounts: the dashboard and the price list. The
+       second one has list prices, which are in dollars, but whoever reads
+       them to decide which model to use wants to see them in the currency
+       they think in -- and that is exactly the question the combo at the
+       top answers.
+       The symbol's PLACE is decided by the language (in Italian after,
+       with a space; in English before and attached), the symbol by the
+       currency, the rate by the table in pricing.py. Three different
+       registries for three different questions, and a single point putting
+       them together.
+       The dollar is in the rates table at 1.0: converting is always a
+       multiplication, and there is no "this currency does not convert"
+       case to remember. */
+    var FMT = I18N.fmt[LANG] || {};
+    function fmtOpt(name, fallback) {
+      return FMT[name] === undefined ? fallback : FMT[name];
+    }
+    var DEC = fmtOpt('dec', ',');
+    var THOU = fmtOpt('thou', '.');
+    var SYMBOL_BEFORE = fmtOpt('moneySymbolBefore', false);
+    var GAP = fmtOpt('moneyGap', ' ');
+    var SYM = window.CURRENCY_SYMBOL;
+
+    window.CUR_RATE = (I18N.rates || {})[CURRENCY] || 1;
+    window.MONEY_PRE = SYMBOL_BEFORE ? SYM + GAP : '';
+    window.MONEY_POST = SYMBOL_BEFORE ? '' : GAP + SYM;
+
+    window.groupThousands = function (intStr) {
+      return intStr.replace(/\B(?=(\d{3})+(?!\d))/g, THOU);
+    };
+
+    /* Numero con 2 decimali e separatore delle migliaia, senza simbolo e
+       senza cambio: e' il motore di fmtMoney, ed e' separato da quello
+       perche' gli assi dei grafici usano lo stesso arrotondamento su un
+       valore che il cambio l'ha gia' subito.
+       [EN] Number with 2 decimals and thousands separator, without symbol
+       and without conversion: it is fmtMoney's engine, and it is kept
+       apart from it because the chart axes use the same rounding on a
+       value that has already gone through the conversion. */
+    window.fmtDecimal2 = function (n) {
+      /* Arrotondato per eccesso a 2 decimali (con tolleranza per errori di
+         virgola mobile, cosi' un valore "vero" come 7.92 non diventa
+         7.93).
+         [EN] Rounded up to 2 decimals (with tolerance for floating-point
+         errors, so a "true" value like 7.92 does not become 7.93). */
+      var cents = Math.ceil(n * 100 - 1e-9);
+      var totalCents = Math.round(cents + 0);
+      var sign = totalCents < 0 ? '-' : '';
+      totalCents = Math.abs(totalCents);
+      var intPart = Math.floor(totalCents / 100);
+      var centsPart = totalCents % 100;
+      var centsStr = centsPart < 10 ? '0' + centsPart : String(centsPart);
+      return sign + window.groupThousands(String(intPart)) + DEC + centsStr;
+    };
+
+    /* L'unico modo di scrivere un importo. Prende SEMPRE dollari -- e'
+       l'unita' in cui arrivano sia i costi calcolati sia i prezzi di
+       listino -- e restituisce la valuta scelta, gia' convertita e col
+       simbolo al posto giusto. Chi chiama non deve mai ricordarsi di
+       moltiplicare, e non rischia di farlo due volte.
+       [EN] The only way to write an amount. It ALWAYS takes dollars -- the
+       unit both the computed costs and the list prices arrive in -- and
+       returns the chosen currency, already converted and with the symbol
+       in the right place. Callers never have to remember to multiply, and
+       cannot do it twice. */
+    window.fmtMoney = function (usd) {
+      return window.MONEY_PRE + window.fmtDecimal2(usd * window.CUR_RATE) +
+             window.MONEY_POST;
+    };
 
     /* tr('sezione.chiave') restituisce il testo tradotto.
 
@@ -1568,6 +1664,36 @@ I18N_APPLY = r"""  <script>
         els = document.querySelectorAll('[' + data + ']');
         for (i = 0; i < els.length; i++) {
           els[i].setAttribute(ATTRS[data], tr(els[i].getAttribute(data)));
+        }
+      }
+
+      /* Gli importi scritti nel markup dalla generazione: nell'attributo
+         c'e' il numero in dollari, nella cella ci finisce lo stesso numero
+         nella valuta scelta. Non e' una traduzione, ma passa di qui per la
+         stessa ragione per cui ci passano i titoli: e' un testo che si sa
+         solo a runtime, e questo e' il punto in cui la pagina si riscrive
+         prima di essere mostrata.
+         Serve al tariffario, i cui prezzi sono generati da Python. La
+         dashboard non lo usa: i suoi importi nascono gia' dentro il
+         JavaScript, che chiama fmtMoney direttamente.
+         Un valore che non e' un numero viene lasciato stare: il testo
+         scritto nel markup resta al suo posto, che e' meglio di un "NaN".
+         [EN] The amounts written into the markup at generation time: the
+         attribute holds the number in dollars, the cell gets the same
+         number in the chosen currency. It is not a translation, but it
+         goes through here for the same reason the titles do: it is text
+         known only at runtime, and this is the point where the page
+         rewrites itself before being shown.
+         The price list needs it, its prices being generated by Python. The
+         dashboard does not use it: its amounts are born inside the
+         JavaScript, which calls fmtMoney directly.
+         A value that is not a number is left alone: the text written in
+         the markup stays where it is, which beats a "NaN". */
+      if (typeof window.fmtMoney === 'function') {
+        els = document.querySelectorAll('[data-i18n-money]');
+        for (i = 0; i < els.length; i++) {
+          var usd = parseFloat(els[i].getAttribute('data-i18n-money'));
+          if (!isNaN(usd)) els[i].textContent = window.fmtMoney(usd);
         }
       }
 

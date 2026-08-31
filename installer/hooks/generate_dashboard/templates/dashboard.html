@@ -2040,18 +2040,6 @@ __I18N_APPLY__
     return (cinqueMin / 1e6) * p.cacheWrite + (unOra / 1e6) * p.cacheWrite1h;
   }
   var DEFAULT_MODEL_KEY = payload.defaultModelKey;
-  // Quanto vale un dollaro in ciascuna valuta offerta, fissato a mano in
-  // pricing.py (non sono cambi in tempo reale: la pagina e' generata
-  // offline). Il dollaro c'e' anche lui, con cambio 1: cosi' convertire e'
-  // sempre una moltiplicazione e non esiste un caso "questa valuta non si
-  // converte" da ricordarsi.
-  // [EN] What a dollar is worth in each offered currency, fixed by hand in
-  // [EN] pricing.py (these are not live rates: the page is generated
-  // [EN] offline). The dollar is in there too, at a rate of 1: this way
-  // [EN] converting is always a multiplication and there is no "this
-  // [EN] currency does not convert" case to remember.
-  var USD_RATES = payload.usdRates || {};
-
   // Il transcript a volte riporta l'ID modello con un suffisso data (es.
   // "claude-haiku-4-5-20251001" invece di "claude-haiku-4-5"): un lookup
   // esatto nel tariffario fallirebbe silenziosamente sul prezzo di default
@@ -2176,96 +2164,30 @@ __I18N_APPLY__
   var BILLION = fmtOpt('billion', 'Md');
 
   // --- La valuta ---
-  // Una sola valuta per volta, quella scelta nell'intestazione, e vale per
-  // OGNI importo della pagina: schede, tabelle, tooltip, assi. Prima la
-  // scelta stava fra i filtri e toccava i soli grafici, mentre tutto il
-  // resto restava in dollari comunque -- e in inglese andava peggio, perche'
-  // il profilo di lingua metteva il simbolo del dollaro anche davanti agli
-  // importi convertiti in euro.
-  // Il cambio si applica qui e in nessun altro posto: i dati arrivano tutti
-  // in dollari (e' il listino), e chi chiama fmtMoney passa sempre dollari.
-  // Cosi' nessuno deve ricordarsi di moltiplicare, e nessuno rischia di
-  // farlo due volte.
-  // Il POSTO del simbolo lo decide la lingua (in italiano dopo con uno
-  // spazio, in inglese prima e attaccato), il simbolo lo decide la valuta:
-  // sono due cose diverse e stanno in due registri diversi.
+  // Il formattatore degli importi non vive piu' qui: sta in header.py,
+  // dentro I18N_BOOT, perche' le pagine che mostrano importi sono due --
+  // questa e il tariffario -- e una funzione sola vuol dire che schede,
+  // tabelle, tooltip, assi e listino diranno sempre la stessa cosa.
+  // Qui restano solo gli alias locali, cosi' i punti di chiamata (una
+  // trentina) continuano a scrivere fmtMoney(...) senza il prefisso.
+  // MONEY_PRE e MONEY_POST servono agli assi: fmtMoneyAxis li riceve come
+  // parametri da UNIT_MODES, perche' sull'asse i centesimi si mostrano o
+  // no a seconda della scala.
   // [EN] --- The currency ---
-  // [EN] One currency at a time, the one chosen in the header, and it
-  // [EN] applies to EVERY amount on the page: cards, tables, tooltips,
-  // [EN] axes. The choice used to sit among the filters and touched the
-  // [EN] charts only, while everything else stayed in dollars anyway -- and
-  // [EN] in English it went worse, because the language profile put the
-  // [EN] dollar sign in front of euro-converted amounts too.
-  // [EN] The exchange rate is applied here and nowhere else: the data all
-  // [EN] arrive in dollars (that is the price list), and callers of
-  // [EN] fmtMoney always pass dollars. This way nobody has to remember to
-  // [EN] multiply, and nobody risks doing it twice.
-  // [EN] The symbol's PLACE is decided by the language (in Italian after,
-  // [EN] with a space; in English before and attached), the symbol by the
-  // [EN] currency: two different things, in two different registries.
-  var CURRENCY = window.CURRENCY || 'usd';
-  // Il "|| 1" e' una rete di sicurezza per una pagina rigenerata con un
-  // payload vecchio, privo della tabella: meglio importi sbagliati ma
-  // leggibili che tutti a zero. Non copre una valuta senza cambio, che
-  // mostrerebbe dollari sotto un altro simbolo: quella la ferma il
-  // selftest, che confronta i due elenchi prima che la pagina esista.
-  // [EN] The "|| 1" is a safety net for a page regenerated with an old
-  // payload lacking the table: better wrong-but-readable amounts than
-  // every one at zero. It does not cover a currency with no rate, which
-  // would show dollars under another symbol: that one is stopped by the
-  // selftest, which compares the two lists before the page exists.
-  var CUR_RATE = USD_RATES[CURRENCY] || 1;
-  var CUR_SYMBOL = window.CURRENCY_SYMBOL || '';
-  var SYMBOL_BEFORE = fmtOpt('moneySymbolBefore', false);
-  var MONEY_GAP = fmtOpt('moneyGap', ' ');
-  var MONEY_PRE = SYMBOL_BEFORE ? CUR_SYMBOL + MONEY_GAP : '';
-  var MONEY_POST = SYMBOL_BEFORE ? '' : MONEY_GAP + CUR_SYMBOL;
-
-  function groupThousands(intStr) {
-    return intStr.replace(/\B(?=(\d{3})+(?!\d))/g, THOU);
-  }
-  // Numero con 2 decimali e separatore delle migliaia, SENZA simbolo di
-  // valuta e senza cambio: e' il motore di fmtMoney, ed e' separato da
-  // quello perche' l'asse dei grafici usa lo stesso arrotondamento su un
-  // valore che ha gia' subito la conversione.
-  // [EN] Number with 2 decimals and thousands separator, WITHOUT a currency
-  // [EN] symbol and without conversion: it is fmtMoney's engine, and it is
-  // [EN] kept apart from it because the charts' axis uses the same rounding
-  // [EN] on a value that has already gone through the conversion.
-  function fmtDecimal2(n) {
-    // Arrotondato per eccesso a 2 decimali (con tolleranza per errori di
-    // virgola mobile, cosi' un valore "vero" come 7.92 non diventa 7.93).
-    // [EN] Rounded up to 2 decimals (with tolerance for floating-point
-    // [EN] errors, so a "true" value like 7.92 does not become 7.93).
-    var cents = Math.ceil(n * 100 - 1e-9);
-    // normalizza -0 a 0
-    // [EN] normalizes -0 to 0
-    var totalCents = Math.round(cents + 0);
-    var sign = totalCents < 0 ? '-' : '';
-    totalCents = Math.abs(totalCents);
-    var intPart = Math.floor(totalCents / 100);
-    var centsPart = totalCents % 100;
-    var centsStr = centsPart < 10 ? '0' + centsPart : String(centsPart);
-    return sign + groupThousands(String(intPart)) + DEC + centsStr;
-  }
-  // L'unico modo di scrivere un importo in questa pagina. Prende SEMPRE
-  // dollari -- e' l'unita' in cui arrivano i dati -- e restituisce la
-  // valuta scelta, gia' convertita e col simbolo al posto giusto.
-  // Una funzione sola e non una per valuta: prima ce n'erano due, piu' una
-  // terza che le incollava insieme, e la meta' della pagina che non usava
-  // nessuna delle tre restava in dollari qualunque cosa si scegliesse.
-  // Gli assi seguono da soli: fmtMoneyAxis riceve i due pezzi come
-  // parametri (vedi UNIT_MODES).
-  // [EN] The only way to write an amount on this page. It ALWAYS takes
-  // [EN] dollars -- the unit the data arrive in -- and returns the chosen
-  // [EN] currency, already converted and with the symbol in the right
-  // [EN] place.
-  // [EN] One function and not one per currency: there used to be two, plus
-  // [EN] a third gluing them together, and the half of the page that used
-  // [EN] none of the three stayed in dollars whatever you chose.
-  // [EN] The axes follow by themselves: fmtMoneyAxis receives the two
-  // [EN] pieces as parameters (see UNIT_MODES).
-  function fmtMoney(usd) { return MONEY_PRE + fmtDecimal2(usd * CUR_RATE) + MONEY_POST; }
+  // The amount formatter no longer lives here: it sits in header.py,
+  // inside I18N_BOOT, because there are two pages showing amounts -- this
+  // one and the price list -- and a single function means cards, tables,
+  // tooltips, axes and tariff will always say the same thing.
+  // What stays here are the local aliases, so the (thirty or so) call
+  // sites keep writing fmtMoney(...) with no prefix.
+  // MONEY_PRE and MONEY_POST are needed by the axes: fmtMoneyAxis receives
+  // them as parameters from UNIT_MODES, because on an axis the cents are
+  // shown or not depending on the scale.
+  var fmtMoney = window.fmtMoney;
+  var groupThousands = window.groupThousands;
+  var CUR_RATE = window.CUR_RATE;
+  var MONEY_PRE = window.MONEY_PRE;
+  var MONEY_POST = window.MONEY_POST;
 
   // Etichette degli assi: gli importi sull'asse non hanno bisogno dei
   // centesimi quando i valori sono grandi (un asse a "$1.234,00" e'
