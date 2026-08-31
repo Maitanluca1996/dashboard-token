@@ -45,7 +45,109 @@ $claudeDir = Join-Path $env:USERPROFILE '.claude'
 $hooksDst  = Join-Path $claudeDir 'hooks'
 $settingsPath = Join-Path $claudeDir 'settings.json'
 
-Write-Host "== Installazione dashboard token usage per Claude Code ==" -ForegroundColor Cyan
+# La lingua dei messaggi di questo script. Non passa dal dizionario Python
+# del progetto, e non per pigrizia: quando questo script gira, Python
+# potrebbe non esserci ancora -- e' anzi il caso che poco piu' sotto viene
+# gestito esplicitamente, offrendosi di installarlo. Un installer che ha
+# bisogno di Python per dire "Python non c'e'" non servirebbe a niente.
+# Stessi indizi della catena in i18n.cli_lang(), nell'ordine: la variabile
+# d'ambiente per un singolo lancio, la lingua dell'interfaccia di Windows,
+# l'inglese per ultimo.
+# [EN] The language of this script's messages. It does not go through the
+# project's Python dictionary, and not out of laziness: when this script
+# runs, Python may not be there yet -- that is in fact the case handled
+# explicitly a little further down, by offering to install it. An installer
+# that needs Python in order to say "Python is missing" would be of no use.
+# Same clues as the chain in i18n.cli_lang(), in order: the environment
+# variable for a single run, the Windows UI language, English last.
+$L = if ($env:DASHBOARD_TOKEN_LANG -in @('it', 'en')) { $env:DASHBOARD_TOKEN_LANG }
+     elseif ((Get-UICulture).TwoLetterISOLanguageName -eq 'it') { 'it' }
+     else { 'en' }
+
+$MSG = @{
+  it = @{
+    done = 'Fatto.'
+    followDialog = 'Segui la finestra di dialogo (se compare), poi rilancia questo script.'
+    hooksCopied = 'Hook copiati in: {0}'
+    hooksRegistered = 'Hook registrati in: {0}'
+    installManually = 'Installa Python 3 manualmente e rilancia questo script.'
+    macHint1 = 'Su macOS puo'' bastare lanciare ''python3 --version'' una volta: se non e'''
+    macHint2 = 'installato, macOS offre di installare i Command Line Tools (che includono'
+    macHint3 = 'python3).'
+    noPkgMgr = 'Nessun gestore pacchetti noto trovato (brew/apt-get/dnf/pacman).'
+    noPyNoSettings1 = 'python3 non e'' ancora disponibile: hook copiati, ma non posso registrarli'
+    noPyNoSettings2 = 'in settings.json senza Python. Rilancia questo script dopo averlo installato.'
+    optLabels = '  - account_labels.json    { "<uuid-account>": "etichetta leggibile" }'
+    optLang = '  - dashboard_config.json  { "lang": "en" }  (lingua dei messaggi a terminale)'
+    optOutDirUnix = '  - dashboard_config.json  { "out_dir": "/percorso/a/piacere" }'
+    optOutDirWin = '  - dashboard_config.json  { "out_dir": "C:\...\cartella-a-piacere" }'
+    optional = 'Personalizzazioni facoltative (create in {0}):'
+    pyAlias = '(trovato solo l''alias Microsoft Store in {0} -- non e'' Python vero)'
+    pyDeclinedUnix = 'Ok, installa Python 3 manualmente e rilancia questo script.'
+    pyDeclinedWin = 'Ok, installa Python da https://www.python.org/downloads/ (spunta ''Add python.exe to PATH'') e rilancia questo script.'
+    pyMissing = 'ATTENZIONE: python3 non risulta funzionante su questo PC.'
+    pyNoWinget = 'winget non disponibile su questo PC. Installa Python da https://www.python.org/downloads/ (spunta ''Add python.exe to PATH'') e rilancia questo script.'
+    pyNotFound = '(nessun python3 trovato sul PATH)'
+    pyWinget = 'Installazione di Python 3.12 via winget in corso...'
+    pyWingetOk = 'Fatto. Se lo script sotto non trova ancora python3, riapri il terminale (il PATH si aggiorna alla nuova sessione) e rilancia install.cmd.'
+    restart1 = 'Riavvia Claude Code se era gia'' aperto (gli hook si applicano dalla'
+    restart2Unix = 'prossima sessione). Alla fine del primo turno successivo trovi la'
+    restart2Win = 'prossima sessione). Alla fine del primo turno successivo verra'' generata'
+    restart3Win = 'la tua dashboard personale in:'
+    staleModule = 'Nota: non sono riuscito a rimuovere il vecchio {0} (non blocca l''installazione).'
+    title = '== Installazione dashboard token usage per Claude Code =='
+    triggerClt = 'Lancio ''python3 --version'' per innescare l''eventuale prompt dei Command Line Tools...'
+    viaApt = 'Installazione via apt-get (potrebbe chiedere la password sudo)...'
+    viaBrew = 'Installazione via Homebrew...'
+    viaDnf = 'Installazione via dnf (potrebbe chiedere la password sudo)...'
+    viaPacman = 'Installazione via pacman (potrebbe chiedere la password sudo)...'
+  }
+  en = @{
+    done = 'Done.'
+    followDialog = 'Follow the dialog (if it appears), then run this script again.'
+    hooksCopied = 'Hooks copied to: {0}'
+    hooksRegistered = 'Hooks registered in: {0}'
+    installManually = 'Install Python 3 by hand and run this script again.'
+    macHint1 = 'On macOS running ''python3 --version'' once may be enough: if it is not'
+    macHint2 = 'installed, macOS offers to install the Command Line Tools (which include'
+    macHint3 = 'python3).'
+    noPkgMgr = 'No known package manager found (brew/apt-get/dnf/pacman).'
+    noPyNoSettings1 = 'python3 is not available yet: hooks copied, but they cannot be registered'
+    noPyNoSettings2 = 'in settings.json without Python. Run this script again once it is installed.'
+    optLabels = '  - account_labels.json    { "<account-uuid>": "readable label" }'
+    optLang = '  - dashboard_config.json  { "lang": "it" }  (language of the terminal messages)'
+    optOutDirUnix = '  - dashboard_config.json  { "out_dir": "/any/path/you/like" }'
+    optOutDirWin = '  - dashboard_config.json  { "out_dir": "C:\...\any-folder-you-like" }'
+    optional = 'Optional customisations (create them in {0}):'
+    pyAlias = '(only the Microsoft Store alias found in {0} -- not real Python)'
+    pyDeclinedUnix = 'All right, install Python 3 by hand and run this script again.'
+    pyDeclinedWin = 'All right, install Python from https://www.python.org/downloads/ (tick ''Add python.exe to PATH'') and run this script again.'
+    pyMissing = 'WARNING: python3 does not appear to work on this PC.'
+    pyNoWinget = 'winget is not available on this PC. Install Python from https://www.python.org/downloads/ (tick ''Add python.exe to PATH'') and run this script again.'
+    pyNotFound = '(no python3 found on the PATH)'
+    pyWinget = 'Installing Python 3.12 via winget...'
+    pyWingetOk = 'Done. If the script below still does not find python3, reopen the terminal (the PATH updates for the new session) and run install.cmd again.'
+    restart1 = 'Restart Claude Code if it was already open (the hooks apply from the'
+    restart2Unix = 'next session). At the end of the first turn after that you will find the'
+    restart2Win = 'next session). At the end of the first turn after that, your personal'
+    restart3Win = 'dashboard will be generated in:'
+    staleModule = 'Note: could not remove the old {0} (it does not block the installation).'
+    title = '== Installing the Claude Code token usage dashboard =='
+    triggerClt = 'Running ''python3 --version'' to trigger the Command Line Tools prompt, if any...'
+    viaApt = 'Installing via apt-get (it may ask for the sudo password)...'
+    viaBrew = 'Installing via Homebrew...'
+    viaDnf = 'Installing via dnf (it may ask for the sudo password)...'
+    viaPacman = 'Installing via pacman (it may ask for the sudo password)...'
+  }
+}
+
+# Scorciatoia: M 'chiave' restituisce il messaggio nella lingua scelta.
+# I valori con {0} dentro si completano con -f, come altrove in PowerShell.
+# [EN] Shorthand: M 'key' returns the message in the chosen language.
+# Values containing {0} are completed with -f, as elsewhere in PowerShell.
+function M($key) { $MSG[$L][$key] }
+
+Write-Host (M 'title') -ForegroundColor Cyan
 Write-Host ""
 
 # --- 1. Prerequisiti ---------------------------------------------------------
@@ -77,11 +179,11 @@ try {
 
 if (-not $pythonOk) {
     $cmd = Get-Command python3 -ErrorAction SilentlyContinue
-    Write-Host "ATTENZIONE: python3 non risulta funzionante su questo PC." -ForegroundColor Yellow
+    Write-Host (M 'pyMissing') -ForegroundColor Yellow
     if ($cmd -and $cmd.Source -like '*\WindowsApps\*') {
-        Write-Host "(trovato solo l'alias Microsoft Store in $($cmd.Source) -- non e' Python vero)" -ForegroundColor Yellow
+        Write-Host ((M 'pyAlias') -f $cmd.Source) -ForegroundColor Yellow
     } elseif (-not $cmd) {
-        Write-Host "(nessun python3 trovato sul PATH)" -ForegroundColor Yellow
+        Write-Host (M 'pyNotFound') -ForegroundColor Yellow
     }
     Write-Host ""
 
@@ -94,14 +196,14 @@ if (-not $pythonOk) {
 
     if ($reply -and $reply -notmatch '^[Nn]') {
         if (Get-Command winget -ErrorAction SilentlyContinue) {
-            Write-Host "Installazione di Python 3.12 via winget in corso..." -ForegroundColor Cyan
+            Write-Host (M 'pyWinget') -ForegroundColor Cyan
             winget install --id Python.Python.3.12 -e --source winget --accept-package-agreements --accept-source-agreements
-            Write-Host "Fatto. Se lo script sotto non trova ancora python3, riapri il terminale (il PATH si aggiorna alla nuova sessione) e rilancia install.cmd." -ForegroundColor Green
+            Write-Host (M 'pyWingetOk') -ForegroundColor Green
         } else {
-            Write-Host "winget non disponibile su questo PC. Installa Python da https://www.python.org/downloads/ (spunta 'Add python.exe to PATH') e rilancia questo script." -ForegroundColor Yellow
+            Write-Host (M 'pyNoWinget') -ForegroundColor Yellow
         }
     } else {
-        Write-Host "Ok, installa Python da https://www.python.org/downloads/ (spunta 'Add python.exe to PATH') e rilancia questo script." -ForegroundColor Yellow
+        Write-Host (M 'pyDeclinedWin') -ForegroundColor Yellow
     }
     Write-Host ""
 }
@@ -132,10 +234,10 @@ if (Test-Path $staleFlatModule) {
     try {
         Remove-Item -Path $staleFlatModule -Force -ErrorAction Stop
     } catch {
-        Write-Host "Nota: non sono riuscito a rimuovere il vecchio $staleFlatModule (non blocca l'installazione)." -ForegroundColor Yellow
+        Write-Host ((M 'staleModule') -f $staleFlatModule) -ForegroundColor Yellow
     }
 }
-Write-Host "Hook copiati in: $hooksDst" -ForegroundColor Green
+Write-Host ((M 'hooksCopied') -f $hooksDst) -ForegroundColor Green
 
 # --- 3. Merge di settings.json -----------------------------------------------
 # [EN] --- 3. Merge settings.json ---
@@ -206,18 +308,19 @@ Set-ExecHook -HooksRoot $settings.hooks -EventName 'PostToolUse' `
 
 $json = $settings | ConvertTo-Json -Depth 20
 [System.IO.File]::WriteAllText($settingsPath, $json, (New-Object System.Text.UTF8Encoding($false)))
-Write-Host "Hook registrati in: $settingsPath" -ForegroundColor Green
+Write-Host ((M 'hooksRegistered') -f $settingsPath) -ForegroundColor Green
 
 # --- 4. Riepilogo -------------------------------------------------------------
 # [EN] --- 4. Summary ---
 $dashboardPath = Join-Path $claudeDir 'dashboard-token\dashboard.html'
 Write-Host ""
-Write-Host "Fatto." -ForegroundColor Cyan
-Write-Host "Riavvia Claude Code se era gia' aperto (gli hook si applicano dalla"
-Write-Host "prossima sessione). Alla fine del primo turno successivo verra' generata"
-Write-Host "la tua dashboard personale in:"
+Write-Host (M 'done') -ForegroundColor Cyan
+Write-Host (M 'restart1')
+Write-Host (M 'restart2Win')
+Write-Host (M 'restart3Win')
 Write-Host "  $dashboardPath" -ForegroundColor White
 Write-Host ""
-Write-Host "Personalizzazioni facoltative (create in $hooksDst):"
-Write-Host "  - dashboard_config.json  { ""out_dir"": ""C:\...\cartella-a-piacere"" }"
-Write-Host "  - account_labels.json    { ""<uuid-account>"": ""etichetta leggibile"" }"
+Write-Host ((M 'optional') -f $hooksDst)
+Write-Host (M 'optOutDirWin')
+Write-Host (M 'optLang')
+Write-Host (M 'optLabels')
