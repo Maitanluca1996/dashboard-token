@@ -4,7 +4,7 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🪙</text></svg>" />
-<title>Claude Code &mdash; Utilizzo token</title>
+<title data-i18n="page.dashboard">Claude Code &mdash; Utilizzo token</title>
 <style>
   :root {
     color-scheme: light;
@@ -1695,6 +1695,7 @@ __HEADER_CSS__
     * { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; }
   }
 </style>
+__I18N_BOOT__
 __REVEAL_BOOT__
 </head>
 <body>
@@ -2003,6 +2004,7 @@ __SITE_HEADER__
 
 <div id="custom-tooltip" class="custom-tooltip" role="tooltip"></div>
 
+__I18N_APPLY__
 <script src="dashboard-data.js"></script>
 <script>
 (function () {
@@ -7426,11 +7428,12 @@ __SITE_HEADER__
     return false;
   }
 
-  function reloadPreservingFilters() {
+  function saveFiltersForReload() {
     try {
-      // Questo e' un ricaricamento "di servizio" (automatico o chiesto col
-      // bottone): la pagina non deve rifare tutta la sua entrata animata
-      // solo perche' sono cambiati dei numeri. La chiave viene letta e
+      // Questo e' un ricaricamento "di servizio" (automatico, chiesto col
+      // bottone, oppure provocato da un cambio di lingua): la pagina non
+      // deve rifare tutta la sua entrata animata solo perche' sono
+      // cambiati dei numeri o la lingua in cui sono scritti. La chiave viene letta e
       // cancellata dallo script in <head> (REVEAL_BOOT in header.py),
       // quindi vale per un solo caricamento: un F5 dato a mano rivede
       // l'animazione.
@@ -7457,8 +7460,30 @@ __SITE_HEADER__
         pageSize: document.getElementById('page-size-filter').value
       }));
     } catch (e) {}
+  }
+
+  function reloadPreservingFilters() {
+    saveFiltersForReload();
     location.reload();
   }
+
+  // Il cambio di lingua vive in header.py, perche' lo switch sta
+  // nell'intestazione ed e' condiviso con le altre due pagine: da li' non
+  // si puo' chiamare niente che esista solo qui. Quindi e' la dashboard a
+  // farsi avanti, appendendo il proprio salvataggio a window: chi cambia
+  // lingua lo cerca, e se lo trova lo usa.
+  // Cosi' le altre due pagine non hanno bisogno di nessun caso speciale --
+  // non hanno stato da conservare, semplicemente non definiscono niente e
+  // il cambio di lingua ricarica e basta.
+  // [EN] The language change lives in header.py, because the switch sits
+  // in the header and is shared with the other two pages: from there
+  // nothing that exists only here can be called. So it is the dashboard
+  // that steps forward, hanging its own saver on window: whoever changes
+  // language looks for it, and uses it if found.
+  // This way the other two pages need no special case -- they have no
+  // state to preserve, they simply define nothing and the language change
+  // just reloads.
+  window.__saveStateForReload = saveFiltersForReload;
 
   function cancelAwayReload() {
     if (awayTimer) { clearTimeout(awayTimer); awayTimer = null; }

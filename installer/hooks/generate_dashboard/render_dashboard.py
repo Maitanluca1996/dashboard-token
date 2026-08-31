@@ -362,6 +362,8 @@ def render(tokens, ops):
     # [EN] The two pieces of the reveal-on-scroll animation, shared
     # with the other pages (see header.py): the "starter" in the <head>
     # and the observer at the bottom of the <body>.
+    html = html.replace("__I18N_BOOT__", templating.I18N_BOOT)
+    html = html.replace("__I18N_APPLY__", templating.I18N_APPLY)
     html = html.replace("__REVEAL_BOOT__", templating.REVEAL_BOOT)
     html = html.replace("__REVEAL_JS__", templating.REVEAL_JS)
     # refresh_control=True: solo qui i numeri cambiano ad ogni turno, quindi

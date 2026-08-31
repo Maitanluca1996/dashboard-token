@@ -32,6 +32,7 @@ import os
 
 from . import config
 from . import data
+from . import i18n
 from . import render_dashboard
 from . import render_guide
 from . import render_pricing
@@ -67,6 +68,21 @@ def main():
     generated_at = timeutils.generated_at_now()
     with open(config.OUT_META_JS, "w", encoding="utf-8") as f:
         f.write("var GENERATED_AT = " + json.dumps(generated_at) + ";\n")
+
+    # 3-bis. Le stringhe tradotte, tutte le lingue insieme, in un unico
+    #    site-i18n.js che le tre pagine caricano nel loro <head>. Il
+    #    perche' di ogni scelta (un modulo Python invece di un JSON, tutte
+    #    le lingue invece della sola scelta, il <head> invece del fondo
+    #    pagina) sta nel docstring di i18n.py: qui basta sapere che senza
+    #    questo file le pagine mostrerebbero i nomi delle chiavi.
+    # [EN] 3-bis. The translated strings, all languages together, in a
+    # single site-i18n.js that the three pages load in their <head>. The
+    # reason for every choice (a Python module instead of a JSON, all
+    # languages instead of just the chosen one, the <head> instead of the
+    # bottom of the page) is in i18n.py's docstring: here it is enough to
+    # know that without this file the pages would show the key names.
+    with open(config.OUT_I18N_JS, "w", encoding="utf-8") as f:
+        f.write(i18n.js_payload())
 
     # 4. Ogni funzione render() qui sotto legge i dati che le servono e
     #    scrive la propria pagina HTML finale su disco. Vengono chiamate in

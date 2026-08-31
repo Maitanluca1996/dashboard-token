@@ -31,6 +31,15 @@ and identical to the other two pages. If tomorrow you want to change
 the logo or add a menu item, you touch ONLY this file, not three
 different templates.
 """
+# i18n serve per due cose sole, entrambe nello switch di lingua piu'
+# sotto: sapere QUALI lingue esistono e come si chiamano. Le stringhe
+# dell'intestazione non passano da qui -- vengono tradotte nel browser
+# a partire dagli attributi data-i18n del markup.
+# [EN] i18n is needed for two things only, both in the language switch
+# below: knowing WHICH languages exist and what they are called. The
+# header strings do not go through here -- they are translated in the
+# browser starting from the markup's data-i18n attributes.
+from . import i18n
 
 # Una TRIPLA STRINGA (tra tre virgolette """ ... """) può contenere testo
 # su più righe così com'è scritto, "a capo" inclusi: qui dentro c'è del CSS
@@ -250,6 +259,64 @@ HEADER_CSS = """
      did take effect even if the browser takes a moment to respond. */
   .meta-refresh.busy .refresh-icon { animation: meta-refresh-spin 0.8s linear infinite; }
   @keyframes meta-refresh-spin { to { transform: rotate(360deg); } }
+  /* Lo switch di lingua. Riusa il vocabolario "a pillola" gia' adoperato
+     qui accanto da .meta-status e .meta-refresh, e NON il controllo
+     segmentato che la dashboard usa per i propri filtri: quello posiziona
+     il suo indicatore scorrevole MISURANDO in JavaScript la larghezza dei
+     bottoni, e questa intestazione si ristruttura da sola allo scorrimento
+     (vedi html.chrome-compact piu' sotto). Sarebbe una misura da rifare ad
+     ogni ristrutturazione, su tre pagine, per un effetto puramente
+     estetico. Qui il bottone attivo si distingue per colore, che il CSS sa
+     fare da solo e non sbaglia mai.
+     [EN] The language switch. It reuses the "pill" vocabulary already
+     used next to it by .meta-status and .meta-refresh, and NOT the
+     segmented control the dashboard uses for its own filters: that one
+     positions its sliding indicator by MEASURING the buttons' width in
+     JavaScript, and this header restructures itself on scroll (see
+     html.chrome-compact below). It would be a measurement to redo at
+     every restructuring, on three pages, for a purely cosmetic effect.
+     Here the active button stands out by colour, which CSS does on its
+     own and never gets wrong. */
+  .meta-lang {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    background: var(--surface-1);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 2px;
+  }
+  .meta-lang button {
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-muted);
+    background: none;
+    border: 0;
+    border-radius: 999px;
+    padding: 3px 10px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: color 0.18s ease, background-color 0.18s ease;
+  }
+  .meta-lang button:hover { color: var(--text-primary); }
+  .meta-lang button[aria-pressed="true"] {
+    background: var(--series-1);
+    color: #fff;
+  }
+  .meta-lang button:focus-visible {
+    outline: 2px solid var(--series-1);
+    outline-offset: 2px;
+  }
+  /* Forma lunga ("Italiano") di riposo, forma corta ("IT") solo dove lo
+     spazio manca davvero (vedi la media query in fondo). Lo scambio e'
+     puro CSS: nessuna misura, nessun JavaScript, e quindi niente da
+     rifare quando l'etichetta cambia lingua.
+     [EN] Long form ("Italiano") at rest, short form ("IT") only where
+     space is genuinely lacking (see the media query at the bottom). The
+     swap is pure CSS: no measurement, no JavaScript, and therefore
+     nothing to redo when the label changes language. */
+  .meta-lang .lang-short { display: none; }
   .site-nav {
     display: flex;
     width: 100%;
@@ -380,13 +447,29 @@ HEADER_CSS = """
      data e tre schede su una riga sola a 375px non ci stanno: le schede
      finirebbero fuori dallo schermo e la pagina prenderebbe a scorrere in
      orizzontale. La data torna appena si risale in cima.
+     Sparisce la DATA, non tutto il gruppo che la contiene: accanto a lei
+     vive anche lo switch di lingua, e nasconderlo lo renderebbe
+     irraggiungibile su un telefono a chiunque abbia scorso di un dito --
+     mentre la data che se ne va non toglie niente a nessuno, e il
+     ricaricamento per dati vecchi si arma comunque da solo. L'elemento
+     largo, del resto, e' sempre stata lei: una riga intera di testo senza
+     a-capo. Lo switch, in forma corta, sono due sigle.
      [EN] On narrow screens we stop here, and the date goes away too:
      logo, date and three tabs on one row do not fit at 375px -- the tabs
      would overflow the screen and the page would start scrolling
      horizontally. The date comes back as soon as you scroll back to the
-     top. */
+     top.
+     It is the DATE that disappears, not the whole group containing it:
+     the language switch lives next to it, and hiding that would make it
+     unreachable on a phone for anyone who has scrolled a finger --
+     whereas the date leaving takes nothing away from anyone, and the
+     stale-data reload arms itself anyway. The wide element, after all,
+     was always the date: a whole line of text with no wrapping. The
+     switch, in short form, is two abbreviations. */
   @media (max-width: 699px) {
-    html.chrome-compact .site-header-meta { display: none; }
+    html.chrome-compact .meta-status { display: none; }
+    html.chrome-compact .meta-lang .lang-long { display: none; }
+    html.chrome-compact .meta-lang .lang-short { display: inline; }
   }
   @media (min-width: 700px) {
     html.chrome-compact .site-header {
@@ -463,6 +546,34 @@ HEADER_CSS = """
      drawing itself in the dashboard charts): without it they would start
      at load time while the box is still off-screen, and would already be
      over by the time you scroll down to it. */
+  /* Varco anti-lampeggio della traduzione. La classe la mette lo script
+     nell'<head> (I18N_BOOT) e la toglie quello che applica le traduzioni
+     (I18N_APPLY), che gira poco piu' avanti nella pagina: nel mezzo il
+     corpo resta invisibile, cosi' chi ha il browser in inglese non vede
+     un lampo di italiano prima dello scambio.
+     Quasi tutta la pagina sarebbe gia' coperta dalla rivelazione allo
+     scorrimento qui sotto (nasce a opacita' zero); questa regola serve ai
+     pochi blocchi che non hanno data-reveal e nascerebbero visibili.
+     visibility e non display: lo spazio resta occupato, quindi non c'e'
+     nessun salto di impaginazione quando il corpo ricompare.
+     La classe viene messa SOLO se il dizionario si e' caricato davvero, e
+     tolta in un finally: nessuna combinazione di errori puo' lasciare la
+     pagina vuota per sempre.
+     [EN] Anti-flash gate for the translation. The class is set by the
+     script in the <head> (I18N_BOOT) and removed by the one applying the
+     translations (I18N_APPLY), which runs slightly further down the page:
+     in between the body stays invisible, so someone with an English
+     browser does not see a flash of Italian before the swap.
+     Almost all of the page would already be covered by the reveal-on-
+     scroll below (it is born at zero opacity); this rule serves the few
+     blocks that have no data-reveal and would be born visible.
+     visibility and not display: the space stays occupied, so there is no
+     layout jump when the body comes back.
+     The class is set ONLY if the dictionary actually loaded, and removed
+     in a finally: no combination of errors can leave the page blank
+     forever. */
+  html.i18n-pending body { visibility: hidden; }
+
   .has-reveal [data-reveal] {
     opacity: 0;
     transform: translateY(16px);
@@ -506,6 +617,7 @@ HEADER_CSS = """
     .meta-refresh:hover { transform: none; }
     .meta-refresh:hover .refresh-icon { transform: none; }
     .meta-refresh.busy .refresh-icon { animation: none; }
+    .meta-lang button { transition: none; }
   }
 """
 
@@ -514,26 +626,35 @@ HEADER_CSS = """
 # "id" e' usato solo internamente (per capire qual e' la voce "attiva",
 # vedi render_header sotto), "href" e' il link vero, "label" il testo
 # mostrato, "icon" l'SVG dell'iconcina incollato cosi' com'e' nell'HTML.
+# "key" e' la chiave con cui il testo viene tradotto a runtime: "label"
+# resta l'italiano scritto nell'HTML, che e' quello che si vede se il
+# dizionario non si carica o se JavaScript e' spento.
 # [EN] NAV_ITEMS is a LIST of dictionaries: one element per menu item of
 # the navigation bar, in the order they appear on the page.
 # "id" is used only internally (to figure out which item is "active",
 # see render_header below), "href" is the actual link, "label" the text
 # shown, "icon" the SVG of the small icon pasted as-is into the HTML.
+# "key" is the key the text is translated with at runtime: "label" stays
+# the Italian written into the HTML, which is what one sees if the
+# dictionary fails to load or if JavaScript is off.
 NAV_ITEMS = [
     {
         "id": "dashboard",
+        "key": "nav.dashboard",
         "href": "dashboard.html",
         "label": "Dashboard",
         "icon": '<svg class="nav-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9"></rect><rect x="14" y="3" width="7" height="5"></rect><rect x="14" y="12" width="7" height="9"></rect><rect x="3" y="16" width="7" height="5"></rect></svg>',
     },
     {
         "id": "pricing",
+        "key": "nav.pricing",
         "href": "pricing.html",
         "label": "Tariffario",
         "icon": '<svg class="nav-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>',
     },
     {
         "id": "guide",
+        "key": "nav.guide",
         "href": "guida-costi.html",
         "label": "Guida ai costi",
         "icon": '<svg class="nav-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 1 1 7.072 0l-.548.547A3.374 3.374 0 0 0 14 18.469V19a2 2 0 1 1-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path></svg>',
@@ -696,7 +817,7 @@ def render_header(active_id, refresh_control=False):
         tabs_html.append(
             f'      <a href="{item["href"]}" class="nav-tab{active_cls}"{aria_current}>\n'
             f'        {item["icon"]}\n'
-            f'        <span class="nav-text">{item["label"]}</span>\n'
+            f'        <span class="nav-text" data-i18n="{item["key"]}">{item["label"]}</span>\n'
             f'      </a>'
         )
 
@@ -721,6 +842,7 @@ def render_header(active_id, refresh_control=False):
     if refresh_control:
         refresh_html = (
             '\n        <button type="button" class="meta-refresh" id="meta-refresh" hidden'
+            ' data-i18n-title="header.refreshTitle"'
             ' title="Ricarica i dati conservando i filtri scelti">'
             '<svg class="refresh-icon" width="13" height="13" viewBox="0 0 24 24" fill="none"'
             ' stroke="currentColor" stroke-width="2.2" stroke-linecap="round"'
@@ -728,8 +850,63 @@ def render_header(active_id, refresh_control=False):
             '<path d="M21 12a9 9 0 1 1-2.64-6.36"></path>'
             '<polyline points="21 3 21 9 15 9"></polyline>'
             "</svg>"
-            "<span>Aggiorna</span></button>"
+            '<span data-i18n="header.refresh">Aggiorna</span></button>'
         )
+
+    # Lo switch di lingua, costruito SCORRENDO IL REGISTRO invece di
+    # essere scritto a mano. E' la differenza fra una fattorizzazione vera
+    # e una a meta': con i bottoni scritti a mano, aggiungere una lingua
+    # costringerebbe comunque a tornare qui, e il registro in i18n.py
+    # sarebbe solo meta' della verita'.
+    #
+    # Ogni bottone porta il nome della lingua in DUE forme, lunga e corta
+    # ("Italiano" e "IT"): quale delle due si veda lo decide il CSS in base
+    # allo spazio disponibile, senza che nessuno debba misurare niente. I
+    # nomi sono endonimi e non passano da t(): "Italiano" resta "Italiano"
+    # anche mentre la pagina e' in inglese, altrimenti chi cerca la propria
+    # lingua leggerebbe il nome che le da' un'altra.
+    #
+    # lang="xx" su ciascun bottone serve a chi usa un lettore di schermo:
+    # dice al sintetizzatore vocale di pronunciare quella parola con la
+    # fonetica della sua lingua, invece di leggere "English" all'italiana.
+    # aria-pressed nasce a "false" su tutti e viene acceso a runtime da
+    # I18N_APPLY: quale lingua sia attiva qui non si sa ancora, e cuocerlo
+    # nell'HTML vorrebbe dire generare pagine diverse per ogni lingua.
+    # [EN] The language switch, built by WALKING THE REGISTRY instead of
+    # being written out by hand. It is the difference between a real
+    # factorisation and a half one: with hand-written buttons, adding a
+    # language would still force a return here, and the registry in
+    # i18n.py would be only half the truth.
+    #
+    # Every button carries the language name in TWO forms, long and short
+    # ("Italiano" and "IT"): which of the two is visible is decided by the
+    # CSS according to the available space, without anyone having to
+    # measure anything. The names are endonyms and do not go through t():
+    # "Italiano" stays "Italiano" even while the page is in English,
+    # otherwise someone looking for their own language would read the name
+    # another language gives it.
+    #
+    # lang="xx" on each button serves screen-reader users: it tells the
+    # speech synthesiser to pronounce that word with its own language's
+    # phonetics, instead of reading "English" the Italian way.
+    # aria-pressed is born "false" on all of them and is lit at runtime by
+    # I18N_APPLY: which language is active is not known here yet, and
+    # baking it into the HTML would mean generating different pages per
+    # language.
+    lang_buttons = "".join(
+        f'<button type="button" data-lang="{code}" lang="{code}"'
+        f' aria-pressed="false">'
+        f'<span class="lang-long">{i18n.ENDONYMS[code]}</span>'
+        f'<span class="lang-short">{i18n.SHORT[code]}</span>'
+        "</button>"
+        for code in i18n.LANGS
+    )
+    lang_html = (
+        '<div class="meta-lang" role="group"'
+        ' data-i18n-aria-label="header.langSwitch"'
+        ' aria-label="Lingua della pagina">'
+        f"{lang_buttons}</div>"
+    )
 
     # Il "return f\"\"\" ... \"\"\"" restituisce l'HTML completo
     # dell'intestazione come un'unica stringa multi-riga, con dentro
@@ -748,24 +925,358 @@ def render_header(active_id, refresh_control=False):
         <span class="brand-badge" aria-hidden="true">🪙</span>
         <div class="brand-info">
           <span class="brand-name">Claude Code</span>
-          <span class="brand-tag">Monitoraggio Token &amp; Costi</span>
+          <span class="brand-tag" data-i18n="header.brandTag">Monitoraggio Token &amp; Costi</span>
         </div>
       </div>
       <div class="site-header-meta">
-        <div class="meta-status" id="meta-status" title="Data e ora dell'ultimo aggiornamento">
+        <div class="meta-status" id="meta-status" data-i18n-title="header.updatedTitle" title="Data e ora dell'ultimo aggiornamento">
           <span class="status-indicator" aria-hidden="true"></span>
-          <span class="meta-label">Aggiornato</span>
+          <span class="meta-label" data-i18n="header.updated">Aggiornato</span>
           <span class="meta-timestamp" id="meta-timestamp"></span>
-        </div>{refresh_html}
+        </div>
+        {lang_html}{refresh_html}
       </div>
     </div>
-    <nav class="site-nav" aria-label="Navigazione principale">
+    <nav class="site-nav" data-i18n-aria-label="header.nav" aria-label="Navigazione principale">
       <div class="nav-tabs">
 {tabs_block}
       </div>
     </nav>
   </header>
 {HEADER_SCRIPT}"""
+
+
+# I due frammenti JavaScript della traduzione. Sono divisi in due, e per
+# la stessa ragione per cui lo sono REVEAL_BOOT e REVEAL_JS qui sotto: il
+# primo deve girare PRIMA che il browser disegni qualcosa, il secondo ha
+# bisogno che il markup esista gia'.
+#
+# I18N_BOOT (segnaposto __I18N_BOOT__, nell'<head>) carica il dizionario,
+# sceglie la lingua e pubblica gli attrezzi che tutto il resto usera':
+# LANG, FMT, t() e switchLanguage(). Nient'altro: al momento in cui gira
+# il corpo della pagina non esiste ancora.
+#
+# I18N_APPLY (segnaposto __I18N_APPLY__) fa la passata vera e propria
+# sugli attributi data-i18n*, accende il bottone della lingua attiva e
+# toglie il varco anti-lampeggio.
+#
+# DOVE VA MESSO I18N_APPLY, E PERCHE' E' IMPORTANTE. Va incollato subito
+# PRIMA dello <script src> dei dati (dashboard-data.js), non in fondo alla
+# pagina e non dentro un DOMContentLoaded. E' uno script classico, quindi
+# bloccante: quando gira, tutto il markup che lo precede esiste gia' (ed e'
+# tutto quello che c'e' da tradurre), ma il file dei dati -- che pesa
+# megabyte -- non e' ancora stato chiesto. Aspettare DOMContentLoaded
+# significherebbe tenere il corpo invisibile finche' quei megabyte non
+# sono stati letti e interpretati: secondi di pagina bianca.
+# C'e' un secondo motivo, meno ovvio: la dashboard posiziona gli
+# indicatori scorrevoli dei suoi controlli segmentati misurando la
+# larghezza dei bottoni, una sola volta, quando li collega. Se le
+# etichette venissero tradotte DOPO quel momento, gli indicatori
+# resterebbero misurati sul testo italiano e storti fino al primo
+# ridimensionamento della finestra. Girando qui, le etichette sono gia'
+# quelle giuste quando il collegamento avviene. L'ordine e' portante:
+# spostare questo script piu' in basso romperebbe due cose insieme.
+#
+# [EN] The two JavaScript fragments of the translation. They are split in
+# two, and for the same reason REVEAL_BOOT and REVEAL_JS below are: the
+# first must run BEFORE the browser paints anything, the second needs the
+# markup to already exist.
+#
+# I18N_BOOT (placeholder __I18N_BOOT__, in the <head>) loads the
+# dictionary, chooses the language and publishes the tools everything else
+# will use: LANG, FMT, t() and switchLanguage(). Nothing else: at the
+# moment it runs, the page body does not exist yet.
+#
+# I18N_APPLY (placeholder __I18N_APPLY__) does the actual pass over the
+# data-i18n* attributes, lights up the active language button and removes
+# the anti-flash gate.
+#
+# WHERE I18N_APPLY GOES, AND WHY IT MATTERS. It is pasted right BEFORE the
+# data <script src> (dashboard-data.js), not at the bottom of the page and
+# not inside a DOMContentLoaded. It is a classic script, therefore
+# blocking: when it runs, all the markup preceding it already exists (and
+# that is all there is to translate), but the data file -- weighing
+# megabytes -- has not been requested yet. Waiting for DOMContentLoaded
+# would mean keeping the body invisible until those megabytes have been
+# read and parsed: seconds of blank page.
+# There is a second, less obvious reason: the dashboard positions the
+# sliding indicators of its segmented controls by measuring the buttons'
+# width, once, when it wires them. If the labels were translated AFTER
+# that moment, the indicators would stay measured against the Italian text
+# and sit crooked until the first window resize. Running here, the labels
+# are already the right ones when the wiring happens. The order is
+# load-bearing: moving this script further down would break two things at
+# once.
+I18N_BOOT = r"""  <script src="site-i18n.js"></script>
+  <script>
+  (function () {
+    /* Se il dizionario non si e' caricato non si fa NIENTE: niente varco
+       anti-lampeggio, niente traduzione. Il markup delle pagine porta il
+       testo italiano scritto dentro, quindi la degradazione e' una pagina
+       in italiano perfettamente leggibile -- molto meglio di una pagina
+       piena di nomi di chiave, e infinitamente meglio di una pagina
+       bianca in attesa di uno scambio che non arrivera'.
+       [EN] If the dictionary did not load we do NOTHING: no anti-flash
+       gate, no translation. The pages' markup carries the Italian text
+       written inside, so the degradation is a perfectly readable Italian
+       page -- much better than a page full of key names, and infinitely
+       better than a blank page waiting for a swap that will never come. */
+    if (typeof I18N === 'undefined' || !I18N.strings) return;
+
+    var LIST = I18N.langs || [];
+
+    /* La lingua si sceglie in tre mosse, dalla piu' esplicita alla piu'
+       generica: la scelta gia' fatta con lo switch, la lingua del
+       browser, il ripiego. Una scelta esplicita vince SEMPRE su quello
+       che dice il browser -- e' il senso stesso di avere uno switch.
+       navigator.languages e non solo navigator.language: e' la lista
+       ordinata delle preferenze, e chi ha l'inglese come seconda scelta
+       preferisce l'inglese al ripiego.
+       [EN] The language is chosen in three moves, from the most explicit
+       to the most generic: the choice already made with the switch, the
+       browser language, the fallback. An explicit choice ALWAYS wins over
+       what the browser says -- that is the very point of having a switch.
+       navigator.languages and not just navigator.language: it is the
+       ordered list of preferences, and someone with English as a second
+       choice prefers English to the fallback. */
+    function pick() {
+      var stored = null;
+      /* localStorage puo' sollevare un'eccezione (modalita' privata,
+         cookie di terze parti bloccati): senza try/catch un browser
+         configurato cosi' resterebbe senza traduzione del tutto.
+         [EN] localStorage can throw (private mode, blocked third-party
+         cookies): without try/catch a browser configured that way would
+         end up with no translation at all. */
+      try { stored = localStorage.getItem('dashboardLang'); } catch (e) {}
+      if (stored && LIST.indexOf(stored) >= 0) return stored;
+
+      var tags = [];
+      if (navigator.languages && navigator.languages.length) {
+        tags = tags.concat([].slice.call(navigator.languages));
+      }
+      if (navigator.language) tags.push(navigator.language);
+      for (var i = 0; i < tags.length; i++) {
+        /* "it-IT" e "en_US.UTF-8" cominciano entrambi con le due lettere
+           che ci interessano: si taglia al primo separatore.
+           [EN] "it-IT" and "en_US.UTF-8" both start with the two letters
+           we care about: cut at the first separator. */
+        var code = String(tags[i]).toLowerCase().split(/[-_.]/)[0];
+        if (LIST.indexOf(code) >= 0) return code;
+      }
+      return I18N.fallback;
+    }
+
+    var LANG = pick();
+    var DICT = I18N.strings[LANG] || {};
+
+    window.LANG = LANG;
+    window.FMT = I18N.fmt[LANG] || {};
+
+    /* t('sezione.chiave') restituisce il testo tradotto.
+       Il secondo argomento e' opzionale e ha due forme: un NUMERO, per le
+       chiavi che hanno singolare e plurale (finisce anche in {n}), oppure
+       un OGGETTO di valori da mettere nei segnaposto {cosi'}.
+       Una chiave che non esiste torna indietro come chiave: un
+       "chart.avgOthers" ben visibile in pagina e' una segnalazione che
+       chiunque riconosce, mentre un ripiego silenzioso sull'italiano
+       sarebbe un errore che viene spedito senza che nessuno se ne accorga.
+       Il perche' di tutto questo, per esteso, e' nel docstring di i18n.py.
+       [EN] t('section.key') returns the translated text.
+       The second argument is optional and has two shapes: a NUMBER, for
+       keys having a singular and a plural (it also lands in {n}), or an
+       OBJECT of values to put into the {like_this} placeholders.
+       A key that does not exist comes back as the key: a plainly visible
+       "chart.avgOthers" on the page is a report anyone recognises, whereas
+       a silent fallback to Italian would be a bug that ships unnoticed.
+       The full reasoning is in i18n.py's docstring. */
+    window.t = function (key, arg) {
+      var node = DICT;
+      var parts = key.split('.');
+      for (var i = 0; i < parts.length; i++) {
+        if (!node || typeof node !== 'object' || !(parts[i] in node)) return key;
+        node = node[parts[i]];
+      }
+      if (node && typeof node === 'object') {
+        /* Chiave a due forme senza il numero per sceglierle: si torna
+           indietro con la chiave invece di tirare a indovinare.
+           [EN] Two-form key without the number to choose between them: we
+           come back with the key instead of guessing. */
+        if (typeof arg !== 'number') return key;
+        node = (arg === 1) ? node.one : node.other;
+      }
+      if (typeof node !== 'string') return key;
+      var values = (typeof arg === 'number') ? { n: arg } : (arg || {});
+      /* Un segnaposto senza valore resta scritto com'e': si vede cosa
+         manca, invece di ritrovarsi un "undefined" in mezzo alla frase.
+         [EN] A placeholder with no value stays written as it is: you see
+         what is missing, instead of finding an "undefined" mid-sentence. */
+      return node.replace(/\{(\w+)\}/g, function (whole, name) {
+        return (name in values) ? values[name] : whole;
+      });
+    };
+
+    /* Cambiare lingua ricarica la pagina. Non e' una rinuncia: e' la
+       scelta descritta al punto 3 del docstring di i18n.py, e riusa il
+       meccanismo che la dashboard ha gia' per i propri ricaricamenti di
+       servizio -- si salvano i filtri, si salta l'animazione d'entrata,
+       si ricarica. La dashboard pubblica __saveStateForReload; le altre
+       due pagine non hanno stato da conservare e semplicemente non lo
+       definiscono, quindi qui non serve nessun caso speciale per pagina.
+       [EN] Changing language reloads the page. Not a concession: it is
+       the choice described at point 3 of i18n.py's docstring, and it
+       reuses the mechanism the dashboard already has for its own service
+       reloads -- save the filters, skip the entrance animation, reload.
+       The dashboard publishes __saveStateForReload; the other two pages
+       have no state to preserve and simply do not define it, so no
+       per-page special case is needed here. */
+    window.switchLanguage = function (next) {
+      if (next === LANG || LIST.indexOf(next) < 0) return;
+      try {
+        localStorage.setItem('dashboardLang', next);
+        sessionStorage.setItem('skipPageIntro', '1');
+        /* Dopo il ricaricamento il fuoco deve tornare sullo switch: chi
+           naviga da tastiera lo ha appena premuto, e ritrovarsi il fuoco
+           in cima al documento vorrebbe dire rifare tutta la strada.
+           [EN] After the reload the focus must return to the switch:
+           whoever navigates by keyboard has just pressed it, and finding
+           the focus back at the top of the document would mean walking
+           the whole way again. */
+        sessionStorage.setItem('focusAfterLangSwitch', '1');
+      } catch (e) {}
+      if (typeof window.__saveStateForReload === 'function') {
+        try { window.__saveStateForReload(); } catch (e) {}
+      }
+      location.reload();
+    };
+
+    document.documentElement.lang = LANG;
+    document.documentElement.classList.add('i18n-pending');
+  })();
+  </script>"""
+
+# Vedi il commento sopra I18N_BOOT per il perche' di questa divisione in
+# due e, soprattutto, per il perche' della POSIZIONE di questo secondo
+# frammento nella pagina.
+# [EN] See the comment above I18N_BOOT for why this is split in two and,
+# above all, for why this second fragment sits where it sits in the page.
+I18N_APPLY = r"""  <script>
+  (function () {
+    var root = document.documentElement;
+    try {
+      if (typeof window.t !== 'function') return;
+
+      /* Gli attributi che non sono testo visibile. Una tabella e non una
+         catena di if: aggiungere un attributo traducibile e' una riga qui,
+         e il ciclo sotto non cambia.
+         [EN] The attributes that are not visible text. A table and not a
+         chain of ifs: adding a translatable attribute is one line here,
+         and the loop below does not change. */
+      var ATTRS = {
+        'data-i18n-title': 'title',
+        'data-i18n-aria-label': 'aria-label',
+        'data-i18n-placeholder': 'placeholder',
+        'data-i18n-href': 'href'
+      };
+
+      var els, i;
+
+      /* textContent e non innerHTML: il testo tradotto viene messo cosi'
+         com'e', quindi una traduzione non puo' mai iniettare markup per
+         sbaglio. Funziona anche sul <title> della scheda.
+         [EN] textContent and not innerHTML: the translated text is put in
+         as-is, so a translation can never inject markup by accident. It
+         works on the tab <title> too. */
+      els = document.querySelectorAll('[data-i18n]');
+      for (i = 0; i < els.length; i++) {
+        els[i].textContent = t(els[i].getAttribute('data-i18n'));
+      }
+
+      /* L'eccezione: le poche stringhe che contengono markup (un <code>,
+         un <strong>). Stanno sotto un attributo diverso proprio perche' si
+         veda a colpo d'occhio, leggendo il markup, quali sono.
+         [EN] The exception: the few strings containing markup (a <code>, a
+         <strong>). They sit under a different attribute precisely so that
+         one can see at a glance, reading the markup, which ones they are. */
+      els = document.querySelectorAll('[data-i18n-html]');
+      for (i = 0; i < els.length; i++) {
+        els[i].innerHTML = t(els[i].getAttribute('data-i18n-html'));
+      }
+
+      for (var data in ATTRS) {
+        if (!Object.prototype.hasOwnProperty.call(ATTRS, data)) continue;
+        els = document.querySelectorAll('[' + data + ']');
+        for (i = 0; i < els.length; i++) {
+          els[i].setAttribute(ATTRS[data], t(els[i].getAttribute(data)));
+        }
+      }
+
+      /* Lo switch: si accende il bottone della lingua attiva e si
+         collegano i click. aria-pressed viene messo qui e non nell'HTML
+         generato perche' quale lingua sia attiva si sa solo adesso:
+         cuocerlo nel markup vorrebbe dire generare tre pagine diverse per
+         ogni lingua, che e' esattamente cio' che questo disegno evita.
+         [EN] The switch: light up the active language's button and wire
+         the clicks. aria-pressed is set here and not in the generated HTML
+         because which language is active is known only now: baking it into
+         the markup would mean generating three different pages per
+         language, which is exactly what this design avoids. */
+      var restore = false;
+      try {
+        restore = !!sessionStorage.getItem('focusAfterLangSwitch');
+        if (restore) sessionStorage.removeItem('focusAfterLangSwitch');
+      } catch (e) {}
+
+      var buttons = document.querySelectorAll('.meta-lang button[data-lang]');
+      var current = null;
+      for (i = 0; i < buttons.length; i++) {
+        (function (btn) {
+          var active = btn.getAttribute('data-lang') === window.LANG;
+          btn.setAttribute('aria-pressed', active ? 'true' : 'false');
+          if (active) current = btn;
+          btn.addEventListener('click', function () {
+            switchLanguage(btn.getAttribute('data-lang'));
+          });
+        })(buttons[i]);
+      }
+
+      /* Il fuoco e' l'unica cosa qui dentro che NON va fatta subito.
+         Questo script gira mentre il parser sta ancora leggendo la pagina,
+         e un focus() dato in quel momento viene perso: a fine caricamento
+         il browser riporta il fuoco su <body>, e chi era arrivato allo
+         switch da tastiera se lo ritroverebbe in cima al documento --
+         esattamente il disagio che questo pezzo vuole evitare.
+         Le traduzioni, al contrario, devono restare qui e non possono
+         aspettare (il perche' e' nel commento sopra I18N_BOOT): quindi le
+         due cose si separano, ognuna nel momento che le serve.
+         [EN] Focus is the only thing in here that must NOT be done right
+         away. This script runs while the parser is still reading the page,
+         and a focus() given at that moment is lost: at the end of loading
+         the browser puts focus back on <body>, and whoever reached the
+         switch by keyboard would find it back at the top of the document
+         -- exactly the nuisance this piece is meant to avoid.
+         The translations, on the contrary, must stay here and cannot wait
+         (why is in the comment above I18N_BOOT): so the two are separated,
+         each at the moment it needs. */
+      if (restore && current) {
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', function () {
+            current.focus();
+          });
+        } else {
+          current.focus();
+        }
+      }
+    } finally {
+      /* In un finally, sempre: qualunque errore capiti qui sopra, il corpo
+         della pagina torna visibile. Una traduzione incompleta e' un
+         difetto; una pagina che resta bianca per sempre e' un guasto.
+         [EN] In a finally, always: whatever error happens above, the page
+         body becomes visible again. An incomplete translation is a flaw; a
+         page staying blank forever is a failure. */
+      root.classList.remove('i18n-pending');
+    }
+  })();
+  </script>"""
 
 
 # Frammento da incollare nell'<head> di ogni pagina (segnaposto
