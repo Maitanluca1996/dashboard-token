@@ -40,12 +40,15 @@ The generator is organized into dedicated modules:
 | `config.py` | Input/output path resolution and reading of `dashboard_config.json` |
 | `pricing.py` | Price list definition (`MODEL_PRICING`), single source of truth for all pages |
 | `timeutils.py` | Italian time zone handling (CET/CEST) with built-in daylight saving time algorithm |
-| `numfmt.py` | Italian-style number and currency formatting utilities |
+| `numfmt.py` | Number and currency formatting, with the separators taken from the active language's profile |
+| `i18n.py` | Translation machinery: language registry, key lookup, browser payload, language choice for the terminal |
+| `lang_it.py`, `lang_en.py` | The texts, one file per language: interface (`UI`), formatting profile (`FMT`), terminal messages (`CLI`) |
+| `guide_css.py` | The cost guide's own CSS, shared by its two language templates |
 | `data.py` | Parsing and cleaning of data from `tokens.csv` and `operations.csv` |
 | `sessions.py` | Extraction and enrichment of session metadata (title, project) with caching |
 | `header.py` | Component generating the header, the unified navbar and the shared CSS styles |
 | `templating.py` | HTML template loading and placeholder substitution |
-| `templates/*.html` | Source templates for the dashboard (`dashboard.html`), the price list (`pricing.html`) and the guide (`guide.html`) |
+| `templates/*.html` | Source templates for the dashboard (`dashboard.html`), the price list (`pricing.html`) and the guide, one per language (`guide.html`, `guide.en.html`) |
 | `render_dashboard.py` | Aggregation and population logic for `dashboard.html` |
 | `render_pricing.py` | Rendering logic for the price table in `pricing.html` |
 | `render_guide.py` | Break-even threshold computation and rendering for `guida-costi.html` |
@@ -267,12 +270,15 @@ Il generatore è organizzato in moduli dedicati:
 | `config.py` | Risoluzione percorsi di input/output e lettura di `dashboard_config.json` |
 | `pricing.py` | Definizione del listino prezzi (`MODEL_PRICING`), unica fonte di verità per tutte le pagine |
 | `timeutils.py` | Gestione fuso orario italiano (CET/CEST) con algoritmo ora legale integrato |
-| `numfmt.py` | Utility di formattazione numerica e valuta in stile italiano |
+| `numfmt.py` | Formattazione di numeri e valuta, con i separatori presi dal profilo della lingua attiva |
+| `i18n.py` | Meccanica della traduzione: registro delle lingue, ricerca delle chiavi, payload per il browser, scelta della lingua per il terminale |
+| `lang_it.py`, `lang_en.py` | I testi, un file per lingua: interfaccia (`UI`), profilo di formattazione (`FMT`), messaggi a terminale (`CLI`) |
+| `guide_css.py` | Il CSS proprio della guida ai costi, condiviso dai suoi due template di lingua |
 | `data.py` | Parsing e pulizia dei dati da `tokens.csv` e `operations.csv` |
 | `sessions.py` | Estrazione e arricchimento di metadati sessione (titolo, progetto) con cache |
 | `header.py` | Componente per la generazione di header, navbar unificata e stili CSS condivisi |
 | `templating.py` | Caricamento dei template HTML e sostituzione dei placeholder |
-| `templates/*.html` | Template sorgente per dashboard (`dashboard.html`), tariffario (`pricing.html`) e guida (`guide.html`) |
+| `templates/*.html` | Template sorgente per dashboard (`dashboard.html`), tariffario (`pricing.html`) e guida, uno per lingua (`guide.html`, `guide.en.html`) |
 | `render_dashboard.py` | Logica di aggregazione e popolamento per `dashboard.html` |
 | `render_pricing.py` | Logica di rendering per la tabella prezzi in `pricing.html` |
 | `render_guide.py` | Calcolo delle soglie di convenienza e rendering per `guida-costi.html` |

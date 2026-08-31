@@ -57,8 +57,31 @@ though, you can run from a terminal:
 ~/.claude/hooks/dashboard-token/dashboard-token config
 ```
 
-to move the output folder or give a readable label to your Claude accounts
-(only useful with multiple accounts on the same PC).
+to move the output folder, choose the language of the terminal messages, or
+give a readable label to your Claude accounts (only useful with multiple
+accounts on the same PC).
+
+### Language
+
+The pages are available in Italian and English, with a switch in the header
+next to the update time. On a first visit the browser's language decides;
+after that the choice is remembered, and it holds across the three pages.
+
+The terminal messages follow their own chain, because a terminal has no
+switch: the `DASHBOARD_TOKEN_LANG` environment variable (`it` or `en`) for a
+single command, otherwise a `"lang"` key in `dashboard_config.json` for this
+machine once and for all, otherwise the operating system's language, and
+English as the last resort.
+
+```bash
+DASHBOARD_TOKEN_LANG=en dashboard-token backfill
+```
+
+Adding a language means writing one `lang_xx.py` beside `lang_it.py` and
+naming it in the registry at the top of `i18n.py`. The markup, the
+JavaScript and the number formatters do not change, and the switch grows on
+its own because it is built by walking that registry. The cost guide is the
+exception: it is long prose and lives as one template file per language.
 
 ### Repository contents
 
@@ -174,8 +197,32 @@ Chi vuole può però lanciare da terminale:
 ~/.claude/hooks/dashboard-token/dashboard-token config
 ```
 
-per spostare la cartella di output o dare un'etichetta leggibile ai propri
-account Claude (utile solo con più account sullo stesso PC).
+per spostare la cartella di output, scegliere la lingua dei messaggi a
+terminale o dare un'etichetta leggibile ai propri account Claude (utile solo
+con più account sullo stesso PC).
+
+### Lingua
+
+Le pagine esistono in italiano e in inglese, con uno switch nell'intestazione
+accanto all'ora di aggiornamento. Alla prima visita decide la lingua del
+browser; da lì in poi la scelta viene ricordata, e vale per tutte e tre le
+pagine.
+
+I messaggi a terminale seguono una catena propria, perché un terminale non ha
+uno switch: la variabile d'ambiente `DASHBOARD_TOKEN_LANG` (`it` oppure `en`)
+per un singolo comando, altrimenti una chiave `"lang"` in
+`dashboard_config.json` per questa macchina una volta per sempre, altrimenti
+la lingua del sistema operativo, e l'inglese come ultima spiaggia.
+
+```bash
+DASHBOARD_TOKEN_LANG=en dashboard-token backfill
+```
+
+Aggiungere una lingua significa scrivere un `lang_xx.py` accanto a
+`lang_it.py` e nominarlo nel registro in cima a `i18n.py`. Il markup, il
+JavaScript e i formattatori di numeri non cambiano, e lo switch cresce da
+solo perché è costruito scorrendo quel registro. La guida ai costi è
+l'eccezione: è prosa lunga e vive in un file template per lingua.
 
 ### Contenuto della repo
 
