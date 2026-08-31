@@ -459,6 +459,31 @@ UI = {
                  "per rileggerli.",
     },
 
+    # La pagina del tariffario. Le quattro colonne dei consumi riusano le
+    # chiavi delle schede statistiche (stats.input e compagnia): e' lo
+    # stesso concetto, e scriverlo due volte vorrebbe dire poterlo tradurre
+    # in due modi diversi nella stessa applicazione.
+    # [EN] The price list page. The four usage columns reuse the stat card
+    # keys (stats.input and friends): it is the same concept, and writing it
+    # twice would mean being able to translate it two different ways within
+    # the same application.
+    "pricingPage": {
+        "h1": "Tariffario prezzi — Claude Code",
+        "desc": "Prezzi di listino Anthropic come configurati nel tariffario "
+                "locale, in $ per milione di token (input, output, cache)",
+        "colModel": "Modello",
+        "colIdNote": "ID / note",
+        "hint": "Cache write = 1,25&times; il prezzo input con TTL 5 minuti, "
+                "<strong>2&times; con TTL 1 ora</strong> (quella usata da "
+                "Claude Code, e quindi la quasi totalita' delle scritture di "
+                "cache) &middot; cache read = 0,1&times; il prezzo input "
+                "&mdash; moltiplicatori standard Anthropic, uguali per ogni "
+                "modello.<br>Questi sono i prezzi ufficiali dell'API a "
+                "consumo: se l'account e' su piano Pro/Team a canone fisso "
+                "non c'e' fatturazione a token, ma la dashboard li usa "
+                "comunque come stima di riferimento.",
+    },
+
     "footer": {
         "generated": "File generato da ~/.claude/hooks/generate_dashboard/, "
                      "richiamato dall'hook Stop.",
