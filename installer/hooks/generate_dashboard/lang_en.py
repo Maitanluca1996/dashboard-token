@@ -397,4 +397,106 @@ FMT = {
 # [EN] CLI -- the messages printed to the terminal. They never reach the
 # browser.
 # ------------------------------------------------------------------
-CLI = {}
+CLI = {
+    # Vedi lang_it.py: le due colonne sono allineate a mano.
+    # [EN] See lang_it.py: the two columns are aligned by hand.
+    "usage": """dashboard-token -- Claude Code token usage dashboard
+
+  dashboard-token                 double click: on the downloaded installer
+                                  it installs, on the installed app it checks
+                                  for and applies updates
+  dashboard-token install         install, from the command line (--no-pause for CI)
+  dashboard-token log-tokens      Stop hook -- Claude Code calls it
+  dashboard-token log-operation   PostToolUse hook -- Claude Code calls it
+  dashboard-token backfill        rebuilds the history from the transcripts of
+                                  sessions already open before the installation
+                                  (--dry-run to see the effect without writing)
+  dashboard-token config          the three optional customisations
+  dashboard-token self-update     check for and install a new version (-v)
+  dashboard-token version         print the version and the paths""",
+
+    "cfg": {
+        "title": "== Optional customisations ==",
+        "enterKeeps": "Press ENTER to leave everything as it is.",
+        "outDir": "Folder the HTML pages are generated into.",
+        "current": "  current: {valore}",
+        "outDirPrompt": "  new (ENTER = keep, - = back to default): ",
+        "backToDefault": "  -> back to the default.",
+        "set": "  -> set.",
+        "langTitle": "Language of the terminal messages.",
+        "langPrompt": "  new ({lingue}, ENTER = keep, - = automatic): ",
+        "langAuto": "automatic",
+        "labels": "Labels for the Claude accounts seen on this PC.",
+        "noLabel": "no label",
+        "labelsSaved": "  -> labels saved.",
+        "done": "Done. The changes take effect from the next dashboard "
+                "generation.",
+    },
+
+    "upd": {
+        "launchedByClaude": "Claude Code launches this application by itself at "
+                            "every turn.",
+        "yourDashboard": "Your dashboard is in:",
+        "checking": "Checking whether a newer version exists...",
+        "available": "Version {nuova} is available (you have {attuale}).",
+        "prompt": "Update now? (Y/n): ",
+        "promptNo": "n",
+        "declined": "All right, leaving it. It will update by itself within 24 "
+                    "hours anyway.",
+        "downloading": "Downloading and verifying...",
+        "failed1": "The update failed. Try again later: in the meantime the",
+        "failed2": "version you have keeps working.",
+        "started1": "Update started. It finishes by itself in a couple of "
+                    "seconds,",
+        "started2": "this window closes shortly.",
+        "noBinary": "No binary published for {piattaforma}.",
+        "checkFailed": "The update check failed: {errore}",
+        "noTag": "Release with no tag, ignored.",
+        "upToDate": "Already up to date ({versione}).",
+        "missingAsset": "Release {tag} does not contain {file}.",
+        "downloadFailed": "Download failed: {errore}",
+        "badSize": "Unexpected size, update cancelled.",
+        "badChecksum": "Checksum does not match, update cancelled.",
+        "noChecksums": "SHA256SUMS unavailable: only the size was verified.",
+        "writeFailed": "Writing the installer failed: {errore}",
+        "startFailed": "Starting the installer failed: {errore}",
+        "notPackaged": "Not packaged: nothing to update.",
+        "newVersion": "New version available: {nuova} (currently {attuale}).",
+        "updatingBg": "Updating to {tag} in the background.",
+    },
+
+    "misc": {
+        "roleInstaller": "installer",
+        "roleApp": "application",
+        "exe": "  executable:  {valore}",
+        "fromSource": "(Python sources)",
+        "installed": "  installed:   {valore}",
+        "settings": "  settings:    {valore}",
+        "repo": "  repo:        {valore}",
+        "unknownCommand": "Unknown command: {comando}",
+        "pressEnter": "Press ENTER to close...",
+    },
+
+    "backfill": {
+        "start": "Recovering sessions from before the installation...",
+        "failed": "Recovery failed: {errore}",
+        "failedOk": "The installation is still valid: sessions will be "
+                    "recorded from here on.",
+        "nothing": "No earlier session found: starting from scratch.",
+        "sessions": "{esaminate} sessions examined: {recuperate} recovered, "
+                    "{ricostruite} with their history rebuilt.",
+        "added": "{turni} turns and {operazioni} operations added to the history.",
+        "timeline": "The app's sign-in log: {eventi} account changes rebuilt.",
+        "noTimeline1": "The app's sign-in log is unavailable: the account will",
+        "noTimeline2": "be attributed only where the hooks or the transcripts say so.",
+        "accounts": "Account per turn: {timeline} from the sign-in log, {hook} "
+                    "from the hooks, {transcript} from the transcripts, "
+                    "{ignoti} with no trace (\"{etichetta}\").",
+        "rows": "Rows in tokens.csv: {prima} -> {dopo}.",
+        "dryRun": "(dry run: no file was modified)",
+        "backup": "Backup copy: {percorso}",
+        "regenerated": "Dashboard regenerated.",
+        "notRegenerated": "Data saved, but the dashboard did not regenerate "
+                          "now: {errore}",
+    },
+}

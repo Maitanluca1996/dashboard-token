@@ -276,7 +276,35 @@ def normalize(tag):
     for sep in ("-", "_", "."):
         if sep in code:
             code = code.split(sep, 1)[0]
-    return code if code in _MODULES else None
+    if code in _MODULES:
+        return code
+
+    # Windows non dice "it_IT": dice "Italian_Italy.1252", cioe' il nome
+    # della lingua per esteso e in inglese. Tagliato al primo separatore
+    # resta "italian", che non e' un codice ISO e che quindi il controllo
+    # qui sopra non riconosce -- ed e' il motivo per cui un PC italiano si
+    # ritroverebbe i messaggi in inglese senza accorgersi del perche'.
+    # locale.normalize() conosce quei nomi e li riporta alla forma "it_IT",
+    # da cui si riprendono le due lettere. E' libreria standard, quindi non
+    # rompe la regola "nessuna dipendenza esterna".
+    # [EN] Windows does not say "it_IT": it says "Italian_Italy.1252", that
+    # is the language name spelled out, in English. Cut at the first
+    # separator it leaves "italian", which is not an ISO code and which the
+    # check above therefore does not recognise -- and that is why an Italian
+    # PC would end up with English messages without anyone seeing why.
+    # locale.normalize() knows those names and brings them back to the
+    # "it_IT" form, from which the two letters can be taken again. It is
+    # standard library, so it does not break the "no external dependencies"
+    # rule.
+    try:
+        esteso = locale.normalize(code)
+    except (AttributeError, ValueError):
+        return None
+    if esteso and esteso != code:
+        code = esteso.lower().split("_", 1)[0].split(".", 1)[0]
+        if code in _MODULES:
+            return code
+    return None
 
 
 def _bundle(lang, section):

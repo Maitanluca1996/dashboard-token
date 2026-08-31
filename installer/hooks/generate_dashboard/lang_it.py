@@ -591,4 +591,132 @@ FMT = {
 # [EN] CLI -- the messages printed to the terminal. They never reach the
 # browser.
 # ------------------------------------------------------------------
-CLI = {}
+CLI = {
+    # L'aiuto del comando. Le due colonne sono allineate a mano con degli
+    # spazi: chi traduce deve riallinearle, perche' la larghezza della
+    # colonna di sinistra dipende dalla lunghezza dei nomi dei comandi, che
+    # non si traducono.
+    # [EN] The command's help. The two columns are aligned by hand with
+    # spaces: whoever translates has to realign them, because the width of
+    # the left column depends on the length of the command names, which are
+    # not translated.
+    "usage": """dashboard-token -- dashboard consumi token di Claude Code
+
+  dashboard-token                 doppio click: sull'installer scaricato
+                                  installa, sull'app installata controlla
+                                  e applica gli aggiornamenti
+  dashboard-token install         installa, da riga di comando (--no-pause per la CI)
+  dashboard-token log-tokens      hook Stop -- lo chiama Claude Code
+  dashboard-token log-operation   hook PostToolUse -- lo chiama Claude Code
+  dashboard-token backfill        ricostruisce lo storico dai transcript delle
+                                  sessioni gia' aperte prima dell'installazione
+                                  (--dry-run per vedere l'effetto senza scrivere)
+  dashboard-token config          le tre personalizzazioni facoltative
+  dashboard-token self-update     controlla e installa una versione nuova (-v)
+  dashboard-token version         stampa la versione e i percorsi""",
+
+    # Il comando "config": le personalizzazioni facoltative.
+    # [EN] The "config" command: the optional customisations.
+    "cfg": {
+        "title": "== Personalizzazioni facoltative ==",
+        "enterKeeps": "Premi INVIO per lasciare tutto com'e'.",
+        "outDir": "Cartella in cui vengono generate le pagine HTML.",
+        "current": "  attuale: {valore}",
+        "outDirPrompt": "  nuova (INVIO = lascia, - = torna al default): ",
+        "backToDefault": "  -> tornata al default.",
+        "set": "  -> impostata.",
+        "langTitle": "Lingua dei messaggi a terminale.",
+        "langPrompt": "  nuova ({lingue}, INVIO = lascia, - = automatica): ",
+        "langAuto": "automatica",
+        "labels": "Etichette per gli account Claude visti su questo PC.",
+        "noLabel": "nessuna etichetta",
+        "labelsSaved": "  -> etichette salvate.",
+        "done": "Fatto. Le modifiche valgono dalla prossima generazione della "
+                "dashboard.",
+    },
+
+    # Il doppio click sull'applicazione installata: controlla e installa gli
+    # aggiornamenti.
+    # [EN] Double-clicking the installed application: it checks for and
+    # installs updates.
+    "upd": {
+        "launchedByClaude": "Questa applicazione la lancia Claude Code da sola "
+                            "a ogni turno.",
+        "yourDashboard": "La tua dashboard e' in:",
+        "checking": "Controllo se c'e' una versione piu' recente...",
+        "available": "Disponibile la versione {nuova} (adesso hai la {attuale}).",
+        "prompt": "Vuoi aggiornare adesso? (S/n): ",
+        "promptNo": "n",
+        "declined": "Ok, lasciamo stare. Si aggiornera' comunque da solo entro "
+                    "24 ore.",
+        "downloading": "Scarico e verifico...",
+        "failed1": "Aggiornamento non riuscito. Riprova piu' tardi: intanto la",
+        "failed2": "versione che hai continua a funzionare.",
+        "started1": "Aggiornamento avviato. Si completa da solo in un paio di "
+                    "secondi,",
+        "started2": "questa finestra si chiude fra poco.",
+        "noBinary": "Nessun binario pubblicato per {piattaforma}.",
+        "checkFailed": "Controllo aggiornamenti non riuscito: {errore}",
+        "noTag": "Release senza tag, ignorata.",
+        "upToDate": "Gia' aggiornato ({versione}).",
+        "missingAsset": "La release {tag} non contiene {file}.",
+        "downloadFailed": "Download non riuscito: {errore}",
+        "badSize": "Dimensione inattesa, aggiornamento annullato.",
+        "badChecksum": "Checksum non corrispondente, aggiornamento annullato.",
+        "noChecksums": "SHA256SUMS non disponibile: verificata solo la dimensione.",
+        "writeFailed": "Scrittura dell'installer non riuscita: {errore}",
+        "startFailed": "Avvio dell'installer non riuscito: {errore}",
+        "notPackaged": "Non impacchettato: niente da aggiornare.",
+        "newVersion": "Nuova versione disponibile: {nuova} (attuale {attuale}).",
+        "updatingBg": "Aggiornamento a {tag} in corso in background.",
+    },
+
+    # Il resto: la versione, l'attesa a fine comando, il comando ignoto.
+    # [EN] The rest: the version, the wait at the end of a command, the
+    # unknown command.
+    "misc": {
+        "roleInstaller": "installer",
+        "roleApp": "applicazione",
+        "exe": "  eseguibile:  {valore}",
+        "fromSource": "(sorgenti Python)",
+        "installed": "  installata:  {valore}",
+        "settings": "  settings:    {valore}",
+        "repo": "  repo:        {valore}",
+        "unknownCommand": "Comando sconosciuto: {comando}",
+        "pressEnter": "Premi INVIO per chiudere...",
+    },
+
+    # I messaggi del recupero delle sessioni precedenti all'installazione
+    # (backfill.py). I segnaposto {cosi'} stanno nella traduzione e non nel
+    # codice perche' l'ordine delle parole cambia da lingua a lingua: "12
+    # sessioni esaminate" e "examined 12 sessions" mettono il numero in
+    # posti diversi, e solo chi traduce sa dove va.
+    # [EN] The messages of the recovery of sessions predating the
+    # installation (backfill.py). The {like_this} placeholders live in the
+    # translation and not in the code because word order changes between
+    # languages: "12 sessioni esaminate" and "examined 12 sessions" put the
+    # number in different places, and only whoever translates knows where.
+    "backfill": {
+        "start": "Recupero delle sessioni precedenti all'installazione...",
+        "failed": "Recupero non riuscito: {errore}",
+        "failedOk": "L'installazione resta valida: verranno registrate le "
+                    "sessioni da qui in avanti.",
+        "nothing": "Nessuna sessione precedente trovata: si parte da zero.",
+        "sessions": "{esaminate} sessioni esaminate: {recuperate} recuperate, "
+                    "{ricostruite} con la cronologia ricostruita.",
+        "added": "{turni} turni e {operazioni} operazioni aggiunti allo storico.",
+        "timeline": "Registro accessi dell'app: {eventi} cambi di account "
+                    "ricostruiti.",
+        "noTimeline1": "Registro accessi dell'app non disponibile: l'account verra'",
+        "noTimeline2": "attribuito solo dove lo dicono gli hook o i transcript.",
+        "accounts": "Account per turno: {timeline} dal registro accessi, {hook} "
+                    "dagli hook, {transcript} dai transcript, {ignoti} senza "
+                    "traccia (\"{etichetta}\").",
+        "rows": "Righe in tokens.csv: {prima} -> {dopo}.",
+        "dryRun": "(prova a vuoto: nessun file e' stato modificato)",
+        "backup": "Copia di sicurezza: {percorso}",
+        "regenerated": "Dashboard rigenerata.",
+        "notRegenerated": "Dati salvati, ma la dashboard non si e' rigenerata "
+                          "ora: {errore}",
+    },
+}

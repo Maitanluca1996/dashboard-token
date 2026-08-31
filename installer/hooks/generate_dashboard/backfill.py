@@ -152,6 +152,7 @@ import sys
 from datetime import datetime, timezone
 
 from . import config
+from . import i18n
 from . import timeutils
 
 # Etichetta usata nella colonna "account" per i turni ricostruiti di cui non
@@ -1436,8 +1437,23 @@ def run(dry_run=False, log=None, rigenera=True):
     command-line programs.
     """
     say = log or (lambda m: print(m))
+    # La lingua si lega una volta sola qui, e da qui in poi le righe restano
+    # corte. T("chiave", valori=...) restituisce il testo tradotto: il
+    # perche' delle scelte (dove sta la lingua, perche' i segnaposto sono
+    # nella traduzione) e' nel docstring di i18n.py.
+    # I due spazi di rientro davanti ai messaggi secondari restano scritti
+    # qui e non nelle traduzioni: sono impaginazione del terminale, non
+    # testo, e chi traduce non deve doverli contare.
+    # [EN] The language is bound once here, and from here on the lines stay
+    # short. T("key", values=...) returns the translated text: the reasoning
+    # behind the choices (where the language comes from, why the
+    # placeholders live in the translation) is in i18n.py's docstring.
+    # The two indent spaces in front of the secondary messages stay written
+    # here and not in the translations: they are terminal layout, not text,
+    # and whoever translates should not have to count them.
+    T = i18n.translator(i18n.cli_lang())
 
-    say("Recupero delle sessioni precedenti all'installazione...")
+    say(T("backfill.start"))
     barra = ConsoleProgress()
     try:
         stats = backfill(progress=barra, dry_run=dry_run)
@@ -1451,38 +1467,41 @@ def run(dry_run=False, log=None, rigenera=True):
         # inside a malformed transcript must produce a warning, not a
         # failed installation.
         barra.chiudi()
-        say("  Recupero non riuscito: {}".format(exc))
-        say("  L'installazione resta valida: verranno registrate le sessioni da qui in avanti.")
+        say("  " + T("backfill.failed", errore=exc))
+        say("  " + T("backfill.failedOk"))
         return 1
     barra.chiudi()
 
     if stats["transcript"] == 0:
-        say("  Nessuna sessione precedente trovata: si parte da zero.")
+        say("  " + T("backfill.nothing"))
         return 0
 
-    say("  {} sessioni esaminate: {} recuperate, {} con la cronologia ricostruita.".format(
-        stats["transcript"], stats["sessioni_nuove"], stats["sessioni_riscritte"]))
-    say("  {} turni e {} operazioni aggiunti allo storico.".format(
-        stats["turni"], stats["operazioni"]))
+    say("  " + T("backfill.sessions",
+                  esaminate=stats["transcript"],
+                  recuperate=stats["sessioni_nuove"],
+                  ricostruite=stats["sessioni_riscritte"]))
+    say("  " + T("backfill.added",
+                  turni=stats["turni"], operazioni=stats["operazioni"]))
     if stats["eventi_timeline"]:
-        say("  Registro accessi dell'app: {} cambi di account ricostruiti.".format(
-            stats["eventi_timeline"]))
+        say("  " + T("backfill.timeline", eventi=stats["eventi_timeline"]))
     else:
-        say("  Registro accessi dell'app non disponibile: l'account verra'")
-        say("  attribuito solo dove lo dicono gli hook o i transcript.")
-    say("  Account per turno: {} dal registro accessi, {} dagli hook, {} dai"
-        " transcript, {} senza traccia (\"{}\").".format(
-            stats["account_da_timeline"], stats["account_da_hook"],
-            stats["account_dal_transcript"], stats["account_ignoto"],
-            ACCOUNT_NON_RILEVATO))
-    say("  Righe in tokens.csv: {} -> {}.".format(stats["tokens_prima"], stats["tokens_dopo"]))
+        say("  " + T("backfill.noTimeline1"))
+        say("  " + T("backfill.noTimeline2"))
+    say("  " + T("backfill.accounts",
+                  timeline=stats["account_da_timeline"],
+                  hook=stats["account_da_hook"],
+                  transcript=stats["account_dal_transcript"],
+                  ignoti=stats["account_ignoto"],
+                  etichetta=ACCOUNT_NON_RILEVATO))
+    say("  " + T("backfill.rows",
+                  prima=stats["tokens_prima"], dopo=stats["tokens_dopo"]))
 
     if dry_run:
-        say("  (prova a vuoto: nessun file e' stato modificato)")
+        say("  " + T("backfill.dryRun"))
         return 0
 
     for percorso in stats["backup"]:
-        say("  Copia di sicurezza: {}".format(percorso))
+        say("  " + T("backfill.backup", percorso=percorso))
 
     if rigenera:
         try:
@@ -1496,12 +1515,12 @@ def run(dry_run=False, log=None, rigenera=True):
             # FUNCTION and not the main.py module containing it.
             from .main import main as genera
             genera()
-            say("  Dashboard rigenerata.")
+            say("  " + T("backfill.regenerated"))
         except Exception as exc:  # noqa: BLE001
             # Stessa logica di regenerate_dashboard() in log_tokens.py: i dati
             # sono gia' salvati, le pagine si rifaranno al primo turno utile.
             # [EN] Same logic as regenerate_dashboard() in
             # log_tokens.py: the data is already saved, the pages will
             # be rebuilt at the first useful turn.
-            say("  Dati salvati, ma la dashboard non si e' rigenerata ora: {}".format(exc))
+            say("  " + T("backfill.notRegenerated", errore=exc))
     return 0
