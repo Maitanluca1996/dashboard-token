@@ -1767,25 +1767,35 @@ __SITE_HEADER__
     </div>
     <div class="side-section">
       <div class="side-title" data-i18n="side.unit">Unità</div>
-      <!-- L'unita' di misura degli importi. Stava sopra il primo
-           grafico, che era il primo punto in cui la si incontrava
-           scorrendo: ora che c'e' una colonna per le scelte che
-           valgono per tutta la pagina, sta con le altre. Vale per
-           TUTTI i grafici, non per uno solo.
-           [EN] The unit of measure for amounts. It used to sit above
-           the first chart, the first place you met it while
-           scrolling: now that there is a column for choices that
-           apply to the whole page, it sits with the others. It
-           applies to ALL charts, not just one. -->
+      <!-- Cosa misurano i grafici. Vale per TUTTI i grafici, non per
+           uno solo, ed e' per questo che sta nella colonna delle
+           scelte che valgono per tutta la pagina invece che sopra il
+           primo grafico, dov'era prima.
+           Le voci erano tre: dollari, euro, token. Le prime due sono
+           diventate una da quando la valuta si sceglie
+           nell'intestazione: era una scelta a meta', perche' toccava
+           solo i grafici mentre schede, tabelle e tooltip restavano in
+           dollari comunque. Qui resta la domanda che riguarda
+           davvero i grafici, cioe' se l'asse conti soldi o token; in
+           che moneta siano quei soldi lo dice la combo in alto.
+           [EN] What the charts measure. It applies to ALL charts, not
+           just one, which is why it sits in the column of choices
+           that apply to the whole page rather than above the first
+           chart, where it used to be.
+           There were three entries: dollars, euros, tokens. The first
+           two became one once the currency is chosen in the header:
+           it was a half choice, because it touched the charts only
+           while cards, tables and tooltips stayed in dollars anyway.
+           What stays here is the question that really concerns the
+           charts, namely whether the axis counts money or tokens; what
+           money that is, is said by the combo at the top. -->
       <div class="segmented-control unit-control" id="unit-filter-custom">
         <div class="indicator"></div>
-        <button type="button" data-value="usd" class="active" data-i18n="unit.usd">Dollari</button>
-        <button type="button" data-value="eur" data-i18n="unit.eur">Euro</button>
+        <button type="button" data-value="money" class="active" data-i18n="unit.money">Costo</button>
         <button type="button" data-value="tokens" data-i18n="unit.tokens">Token</button>
       </div>
       <select id="unit-filter" style="display:none">
-        <option value="usd" selected data-i18n="unit.usd">Dollari</option>
-        <option value="eur" data-i18n="unit.eur">Euro</option>
+        <option value="money" selected data-i18n="unit.money">Costo</option>
         <option value="tokens" data-i18n="unit.tokens">Token</option>
       </select>
     </div>
@@ -2116,7 +2126,7 @@ __I18N_APPLY__
       ]));
       return '<span class="cost-na" data-tooltip="' + tip + '">n/d</span>';
     }
-    return fmtUsd(turnCostUsd(a));
+    return fmtMoney(turnCostUsd(a));
   }
 
   // Separatore delle migliaia inserito a mano: toLocaleString('it-IT') su
@@ -2163,22 +2173,55 @@ __I18N_APPLY__
   }
   var DEC = fmtOpt('dec', ',');
   var THOU = fmtOpt('thou', '.');
-  var MONEY_PRE = fmtOpt('moneyPre', '');
-  var MONEY_USD = fmtOpt('moneyPostUsd', ' $');
-  var MONEY_EUR = fmtOpt('moneyPostEur', ' \u20ac');
   var BILLION = fmtOpt('billion', 'Md');
+
+  // --- La valuta ---
+  // Una sola valuta per volta, quella scelta nell'intestazione, e vale per
+  // OGNI importo della pagina: schede, tabelle, tooltip, assi. Prima la
+  // scelta stava fra i filtri e toccava i soli grafici, mentre tutto il
+  // resto restava in dollari comunque -- e in inglese andava peggio, perche'
+  // il profilo di lingua metteva il simbolo del dollaro anche davanti agli
+  // importi convertiti in euro.
+  // Il cambio si applica qui e in nessun altro posto: i dati arrivano tutti
+  // in dollari (e' il listino), e chi chiama fmtMoney passa sempre dollari.
+  // Cosi' nessuno deve ricordarsi di moltiplicare, e nessuno rischia di
+  // farlo due volte.
+  // Il POSTO del simbolo lo decide la lingua (in italiano dopo con uno
+  // spazio, in inglese prima e attaccato), il simbolo lo decide la valuta:
+  // sono due cose diverse e stanno in due registri diversi.
+  // [EN] --- The currency ---
+  // [EN] One currency at a time, the one chosen in the header, and it
+  // [EN] applies to EVERY amount on the page: cards, tables, tooltips,
+  // [EN] axes. The choice used to sit among the filters and touched the
+  // [EN] charts only, while everything else stayed in dollars anyway -- and
+  // [EN] in English it went worse, because the language profile put the
+  // [EN] dollar sign in front of euro-converted amounts too.
+  // [EN] The exchange rate is applied here and nowhere else: the data all
+  // [EN] arrive in dollars (that is the price list), and callers of
+  // [EN] fmtMoney always pass dollars. This way nobody has to remember to
+  // [EN] multiply, and nobody risks doing it twice.
+  // [EN] The symbol's PLACE is decided by the language (in Italian after,
+  // [EN] with a space; in English before and attached), the symbol by the
+  // [EN] currency: two different things, in two different registries.
+  var CURRENCY = window.CURRENCY || 'usd';
+  var CUR_RATE = (CURRENCY === 'eur') ? USD_TO_EUR : 1;
+  var CUR_SYMBOL = window.CURRENCY_SYMBOL || '';
+  var SYMBOL_BEFORE = fmtOpt('moneySymbolBefore', false);
+  var MONEY_GAP = fmtOpt('moneyGap', ' ');
+  var MONEY_PRE = SYMBOL_BEFORE ? CUR_SYMBOL + MONEY_GAP : '';
+  var MONEY_POST = SYMBOL_BEFORE ? '' : MONEY_GAP + CUR_SYMBOL;
 
   function groupThousands(intStr) {
     return intStr.replace(/\B(?=(\d{3})+(?!\d))/g, THOU);
   }
   // Numero con 2 decimali e separatore delle migliaia, SENZA simbolo di
-  // valuta: e' il motore comune di fmtUsd e fmtEur, cosi' dollari ed euro
-  // arrotondano e raggruppano esattamente allo stesso modo (prima questa
-  // logica viveva dentro fmtUsd, quando il dollaro era l'unica valuta).
+  // valuta e senza cambio: e' il motore di fmtMoney, ed e' separato da
+  // quello perche' l'asse dei grafici usa lo stesso arrotondamento su un
+  // valore che ha gia' subito la conversione.
   // [EN] Number with 2 decimals and thousands separator, WITHOUT a currency
-  // [EN] symbol: it is the shared engine of fmtUsd and fmtEur, so dollars
-  // [EN] and euros round and group in exactly the same way (this logic used
-  // [EN] to live inside fmtUsd, when the dollar was the only currency).
+  // [EN] symbol and without conversion: it is fmtMoney's engine, and it is
+  // [EN] kept apart from it because the charts' axis uses the same rounding
+  // [EN] on a value that has already gone through the conversion.
   function fmtDecimal2(n) {
     // Arrotondato per eccesso a 2 decimali (con tolleranza per errori di
     // virgola mobile, cosi' un valore "vero" come 7.92 non diventa 7.93).
@@ -2195,36 +2238,24 @@ __I18N_APPLY__
     var centsStr = centsPart < 10 ? '0' + centsPart : String(centsPart);
     return sign + groupThousands(String(intPart)) + DEC + centsStr;
   }
-  // Da che lato sta il simbolo di valuta lo dice la lingua, non il codice:
-  // in italiano va in coda ("12,34 $"), in inglese davanti ("$12.34"). Per
-  // questo le due valute incollano un pezzo davanti e uno dietro, e in
-  // ciascuna lingua uno dei due e' vuoto.
-  // Quel che NON cambia e' che le due valute si comportino allo stesso
-  // modo fra loro: prima il dollaro teneva il simbolo davanti e l'euro
-  // dietro, e cambiare unita' lo faceva saltare da un lato all'altro del
-  // numero -- un movimento che si notava e non significava niente.
-  // Gli assi seguono da soli: fmtMoneyAxis prende i due pezzi come
-  // parametri e li riceve da UNIT_MODES.
-  // [EN] Trailing symbol for both currencies, as written in Italian. The
-  // [EN] dollar used to keep it in front ("$12.34") and the euro behind
-  // [EN] ("12,34 €"): switching unit made the symbol jump from one side of
-  // [EN] the number to the other, a movement you noticed and that meant
-  // [EN] nothing. If one day the leading symbol comes back, it must move in
-  // [EN] both -- and in the axes too, where fmtMoneyAxis takes the symbol
-  // [EN] as a parameter (see UNIT_MODES).
-  function fmtUsd(n) { return MONEY_PRE + fmtDecimal2(n) + MONEY_USD; }
-  // Prende SEMPRE un importo in dollari e applica il cambio internamente:
-  // chi chiama non deve mai ricordarsi di moltiplicare (e non rischia di
-  // farlo due volte).
-  // [EN] ALWAYS takes an amount in dollars and applies the exchange rate
-  // [EN] internally: callers never need to remember to multiply (and cannot
-  // [EN] do it twice).
-  function fmtEur(usd) { return MONEY_PRE + fmtDecimal2(usd * USD_TO_EUR) + MONEY_EUR; }
-  // Coppia "valore ufficiale + controvalore", il formato usato nei tooltip
-  // dei grafici: il dollaro e' il dato di listino, l'euro e' la conversione.
-  // [EN] "Official value + counter-value" pair, the format used in chart
-  // [EN] tooltips: the dollar is the list price, the euro the conversion.
-  function fmtUsdEur(usd) { return fmtUsd(usd) + ' · ' + fmtEur(usd); }
+  // L'unico modo di scrivere un importo in questa pagina. Prende SEMPRE
+  // dollari -- e' l'unita' in cui arrivano i dati -- e restituisce la
+  // valuta scelta, gia' convertita e col simbolo al posto giusto.
+  // Una funzione sola e non una per valuta: prima ce n'erano due, piu' una
+  // terza che le incollava insieme, e la meta' della pagina che non usava
+  // nessuna delle tre restava in dollari qualunque cosa si scegliesse.
+  // Gli assi seguono da soli: fmtMoneyAxis riceve i due pezzi come
+  // parametri (vedi UNIT_MODES).
+  // [EN] The only way to write an amount on this page. It ALWAYS takes
+  // [EN] dollars -- the unit the data arrive in -- and returns the chosen
+  // [EN] currency, already converted and with the symbol in the right
+  // [EN] place.
+  // [EN] One function and not one per currency: there used to be two, plus
+  // [EN] a third gluing them together, and the half of the page that used
+  // [EN] none of the three stayed in dollars whatever you chose.
+  // [EN] The axes follow by themselves: fmtMoneyAxis receives the two
+  // [EN] pieces as parameters (see UNIT_MODES).
+  function fmtMoney(usd) { return MONEY_PRE + fmtDecimal2(usd * CUR_RATE) + MONEY_POST; }
 
   // Etichette degli assi: gli importi sull'asse non hanno bisogno dei
   // centesimi quando i valori sono grandi (un asse a "$1.234,00" e'
@@ -2432,7 +2463,6 @@ __I18N_APPLY__
     var costStrong = document.createElement('strong');
     costStrong.textContent = data.cost;
     totals.appendChild(costStrong);
-    totals.appendChild(document.createTextNode(' · ' + data.costEur));
     container.appendChild(totals);
 
     var totalsTokens = document.createElement('div');
@@ -2508,21 +2538,23 @@ __I18N_APPLY__
     sub.textContent = data.start + '–' + data.end + ' · ' + tr('common.turns', data.count);
     container.appendChild(sub);
 
-    // Il costo passa in testa (e' il dato che conta di piu' qui dentro),
-    // con il controvalore in euro subito accanto; i token restano, ma come
-    // riga secondaria. data.costEur puo' mancare su un tooltip generato da
-    // una versione precedente della pagina, da cui il controllo.
-    // [EN] Cost moves to the top (it is the number that matters most in
-    // [EN] here), with the euro counter-value right next to it; tokens
-    // [EN] remain, but as a secondary line. data.costEur can be missing on
-    // [EN] a tooltip generated by a previous version of the page, hence
-    // [EN] the check.
+    // Il costo passa in testa: e' il dato che conta di piu' qui dentro. I
+    // token restano, ma come riga secondaria. Accanto al costo stava il
+    // controvalore in euro: non serve piu' da quando la valuta si sceglie
+    // nell'intestazione, perche' l'importo e' gia' in quella scelta e
+    // affiancargli l'altra vorrebbe dire mostrare una conversione che
+    // nessuno ha chiesto.
+    // [EN] Cost moves to the top: it is the number that matters most in
+    // [EN] here. Tokens remain, but as a secondary line. Next to the cost
+    // [EN] there used to be the euro counter-value: it is no longer needed
+    // [EN] now that the currency is chosen in the header, because the
+    // [EN] amount is already in the chosen one, and putting the other
+    // [EN] beside it would mean showing a conversion nobody asked for.
     var totals = document.createElement('div');
     totals.className = 'tt-sub';
     var costStrong = document.createElement('strong');
     costStrong.textContent = data.cost;
     totals.appendChild(costStrong);
-    if (data.costEur) { totals.appendChild(document.createTextNode(' · ' + data.costEur)); }
     container.appendChild(totals);
 
     var totalsTokens = document.createElement('div');
@@ -4202,10 +4234,10 @@ __I18N_APPLY__
     // [EN] measure: the cost card shows the 4 dollar amounts, the token
     // [EN] card shows the 4 counts.
     var costBreakdown = [
-      { label: tr('stats.input'), val: fmtUsd(costI), pct: fmtPct(costI, costAll) },
-      { label: tr('stats.output'), val: fmtUsd(costO), pct: fmtPct(costO, costAll) },
-      { label: tr('stats.cacheWrite'), val: fmtUsd(costCw), pct: fmtPct(costCw, costAll) },
-      { label: tr('stats.cacheRead'), val: fmtUsd(costCr), pct: fmtPct(costCr, costAll) }
+      { label: tr('stats.input'), val: fmtMoney(costI), pct: fmtPct(costI, costAll) },
+      { label: tr('stats.output'), val: fmtMoney(costO), pct: fmtPct(costO, costAll) },
+      { label: tr('stats.cacheWrite'), val: fmtMoney(costCw), pct: fmtPct(costCw, costAll) },
+      { label: tr('stats.cacheRead'), val: fmtMoney(costCr), pct: fmtPct(costCr, costAll) }
     ];
     var tokenBreakdown = [
       { label: tr('stats.input'), val: fmtInt(totI), pct: fmtPct(totI, totalAll) },
@@ -4214,11 +4246,11 @@ __I18N_APPLY__
       { label: tr('stats.cacheRead'), val: fmtInt(totCr), pct: fmtPct(totCr, totalAll) }
     ];
     var heroCards = [
-      [tr('stats.estCost'), fmtUsd(costAll), costBreakdown],
+      [tr('stats.estCost'), fmtMoney(costAll), costBreakdown],
       [tr('stats.freshTokens'), fmtInt(freshAll), tokenBreakdown]
     ];
     var miniCards = [
-      [tr('stats.costToday'), fmtUsd(todayCost)],
+      [tr('stats.costToday'), fmtMoney(todayCost)],
       [tr('stats.tokensToday'), fmtInt(todayTotal)],
       [tr('stats.turns'), fmtInt(nTurns)],
       [tr('stats.sessions'), fmtInt(nSessions)],
@@ -4255,41 +4287,42 @@ __I18N_APPLY__
 
   // --- Unita' dei grafici -------------------------------------------------
   // I due grafici (barre e linea) tracciano lo stesso tipo di aggregato: un
-  // oggetto con .tot (token) e .cost (dollari). La scelta "token / dollari
-  // / euro" si riduce quindi a tre cose che cambiano -- quale numero
-  // estrarre da quell'aggregato, come formattarlo sull'asse, e come
-  // chiamarlo nel titolo. Nessuno dei due grafici sa quale unita' sia
-  // attiva: chiedono a currentUnit() e disegnano il numero che ne esce, per
-  // cui aggiungere un'unita' in futuro non tocca il codice di disegno.
+  // oggetto con .tot (token) e .cost (dollari). La scelta "costo / token"
+  // si riduce quindi a tre cose che cambiano -- quale numero estrarre da
+  // quell'aggregato, come formattarlo sull'asse, e come chiamarlo nel
+  // titolo. Nessuno dei due grafici sa quale unita' sia attiva: chiedono a
+  // currentUnit() e disegnano il numero che ne esce, per cui aggiungere
+  // un'unita' in futuro non tocca il codice di disegno.
+  // Le unita' erano tre -- dollari, euro, token -- e le prime due erano la
+  // stessa cosa vista in due valute. Adesso la valuta e' una preferenza
+  // dell'intestazione che vale per tutta la pagina, e qui resta la sola
+  // domanda che riguarda i grafici: se l'asse conti soldi o token.
   // [EN] --- Chart units ---
   // [EN] The two charts (bars and line) plot the same kind of aggregate: an
-  // [EN] object with .tot (tokens) and .cost (dollars). The "tokens /
-  // [EN] dollars / euros" choice thus boils down to three things that
-  // [EN] change -- which number to extract from that aggregate, how to
-  // [EN] format it on the axis, and what to call it in the title. Neither
-  // [EN] chart knows which unit is active: they ask currentUnit() and draw
-  // [EN] the number that comes out, so adding a unit in the future does not
-  // [EN] touch the drawing code.
+  // [EN] object with .tot (tokens) and .cost (dollars). The "cost / tokens"
+  // [EN] choice thus boils down to three things that change -- which number
+  // [EN] to extract from that aggregate, how to format it on the axis, and
+  // [EN] what to call it in the title. Neither chart knows which unit is
+  // [EN] active: they ask currentUnit() and draw the number that comes out,
+  // [EN] so adding a unit in the future does not touch the drawing code.
+  // [EN] There used to be three units -- dollars, euros, tokens -- and the
+  // [EN] first two were the same thing seen in two currencies. Now the
+  // [EN] currency is a header preference applying to the whole page, and
+  // [EN] what stays here is the only question concerning the charts:
+  // [EN] whether the axis counts money or tokens.
   var UNIT_MODES = {
-    usd: {
-      valueOf: function (d) { return d.cost; },
-      axis: function (v, scale) { return fmtMoneyAxis(v, scale, MONEY_PRE, MONEY_USD); },
-      barNoun: tr('unitMode.barUsd'),
-      lineTitle: tr('unitMode.lineUsd'),
-      aria: tr('unitMode.ariaUsd')
-    },
-    eur: {
+    money: {
       // .cost e' in dollari: la conversione avviene qui, una volta sola,
-      // cosi' l'asse e il valore massimo ragionano gia' in euro e il resto
-      // del disegno resta identico alle altre unita'.
+      // cosi' l'asse e il valore massimo ragionano gia' nella valuta scelta
+      // e il resto del disegno resta identico all'altra unita'.
       // [EN] .cost is in dollars: the conversion happens here, once, so the
-      // [EN] axis and the max value already think in euros and the rest of
-      // [EN] the drawing stays identical to the other units.
-      valueOf: function (d) { return d.cost * USD_TO_EUR; },
-      axis: function (v, scale) { return fmtMoneyAxis(v, scale, MONEY_PRE, MONEY_EUR); },
-      barNoun: tr('unitMode.barEur'),
-      lineTitle: tr('unitMode.lineEur'),
-      aria: tr('unitMode.ariaEur')
+      // [EN] axis and the max value already think in the chosen currency
+      // [EN] and the rest of the drawing stays identical to the other unit.
+      valueOf: function (d) { return d.cost * CUR_RATE; },
+      axis: function (v, scale) { return fmtMoneyAxis(v, scale, MONEY_PRE, MONEY_POST); },
+      barNoun: tr('unitMode.barMoney'),
+      lineTitle: tr('unitMode.lineMoney'),
+      aria: tr('unitMode.ariaMoney')
     },
     tokens: {
       valueOf: function (d) { return d.tot; },
@@ -4307,7 +4340,7 @@ __I18N_APPLY__
 
   function currentUnit() {
     var el = document.getElementById('unit-filter');
-    return UNIT_MODES[el && el.value] || UNIT_MODES.usd;
+    return UNIT_MODES[el && el.value] || UNIT_MODES.money;
   }
 
   // Un "secchio" del grafico a barre: l'aggregato di tutti i turni che
@@ -4475,7 +4508,7 @@ __I18N_APPLY__
   function altriTooltipHead(g, nounPlural) {
     return [
       segB(tr('bar.avgOf', { n: g.altri, noun: nounPlural })), segBr(),
-      seg(tr('bar.inTotal')), segB(fmtUsdEur(g.altriCost)),
+      seg(tr('bar.inTotal')), segB(fmtMoney(g.altriCost)),
       seg(' \u00b7 ' + tr('common.tokensStr', { n: fmtInt(g.altriTot) })), segBr()
     ];
   }
@@ -4985,12 +5018,12 @@ __I18N_APPLY__
       var y = baseY - barH;
       var label = group.label(k, g);
       var tooltipData = simpleTooltipData(group.tooltipHead(label, g, k).concat([
-        segB(fmtUsdEur(g.cost)), segBr(),
+        segB(fmtMoney(g.cost)), segBr(),
         seg(tr('common.tokensStr', { n: fmtInt(g.tot) })), segBr(),
-        seg(tr('stats.input') + ': '), segB(fmtInt(g.i)), seg(' (' + fmtUsd(g.costI) + ')'), segBr(),
-        seg(tr('stats.output') + ': '), segB(fmtInt(g.o)), seg(' (' + fmtUsd(g.costO) + ')'), segBr(),
-        seg(tr('stats.cacheWrite') + ': '), segB(fmtInt(g.cw)), seg(' (' + fmtUsd(g.costCw) + ')'), segBr(),
-        seg(tr('stats.cacheRead') + ': '), segB(fmtInt(g.cr)), seg(' (' + fmtUsd(g.costCr) + ')')
+        seg(tr('stats.input') + ': '), segB(fmtInt(g.i)), seg(' (' + fmtMoney(g.costI) + ')'), segBr(),
+        seg(tr('stats.output') + ': '), segB(fmtInt(g.o)), seg(' (' + fmtMoney(g.costO) + ')'), segBr(),
+        seg(tr('stats.cacheWrite') + ': '), segB(fmtInt(g.cw)), seg(' (' + fmtMoney(g.costCw) + ')'), segBr(),
+        seg(tr('stats.cacheRead') + ': '), segB(fmtInt(g.cr)), seg(' (' + fmtMoney(g.costCr) + ')')
       ]));
       // Il fill va in stile inline, non in una classe: i colori arrivano
       // dalla palette a run time, una classe per tonalita' vorrebbe dire
@@ -5729,18 +5762,18 @@ __I18N_APPLY__
       type: 'bucket',
       session: titleText,
       start: fmtWindowTs(b.start, windowHours), end: fmtWindowTs(b.end, windowHours),
-      count: b.count, tot: fmtInt(b.tot), cost: fmtUsd(b.cost), costEur: fmtEur(b.cost),
+      count: b.count, tot: fmtInt(b.tot), cost: fmtMoney(b.cost),
       breakdown: [
-        { label: tr('stats.input'), val: fmtInt(b.i), cost: fmtUsd(b.costI) },
-        { label: tr('stats.output'), val: fmtInt(b.o), cost: fmtUsd(b.costO) },
-        { label: tr('stats.cacheWrite'), val: fmtInt(b.cw), cost: fmtUsd(b.costCw) },
-        { label: tr('stats.cacheRead'), val: fmtInt(b.cr), cost: fmtUsd(b.costCr) }
+        { label: tr('stats.input'), val: fmtInt(b.i), cost: fmtMoney(b.costI) },
+        { label: tr('stats.output'), val: fmtInt(b.o), cost: fmtMoney(b.costO) },
+        { label: tr('stats.cacheWrite'), val: fmtInt(b.cw), cost: fmtMoney(b.costCw) },
+        { label: tr('stats.cacheRead'), val: fmtInt(b.cr), cost: fmtMoney(b.costCr) }
       ],
       turns: b.turns.map(function (t) {
         return {
           ts: fmtTurnTs(parseTs(t.ts), windowHours),
           req: t.sum || tr('tt.noRequest'),
-          cost: fmtUsd(turnCostUsd(t))
+          cost: fmtMoney(turnCostUsd(t))
         };
       })
     };
@@ -5951,7 +5984,7 @@ __I18N_APPLY__
     if (totals.cost - windowCost > 0.005 || totals.count !== windowCount) {
       windowNote = tr('tt.windowNote', {
         period: windowLabel.toLowerCase(),
-        cost: fmtUsd(windowCost),
+        cost: fmtMoney(windowCost),
         turns: tr('common.turns', windowCount)
       });
     }
@@ -5961,14 +5994,13 @@ __I18N_APPLY__
       scope: scopeLabel,
       count: totals.count,
       span: totals.count ? tr('tt.span', { from: fmtTs(totals.firstTs), to: fmtTs(totals.lastTs) }) : '',
-      cost: fmtUsd(totals.cost),
-      costEur: fmtEur(totals.cost),
+      cost: fmtMoney(totals.cost),
       tot: fmtInt(totals.tot),
       breakdown: [
-        { label: tr('stats.input'), val: fmtInt(totals.i), cost: fmtUsd(totals.costI) },
-        { label: tr('stats.output'), val: fmtInt(totals.o), cost: fmtUsd(totals.costO) },
-        { label: tr('stats.cacheWrite'), val: fmtInt(totals.cw), cost: fmtUsd(totals.costCw) },
-        { label: tr('stats.cacheRead'), val: fmtInt(totals.cr), cost: fmtUsd(totals.costCr) }
+        { label: tr('stats.input'), val: fmtInt(totals.i), cost: fmtMoney(totals.costI) },
+        { label: tr('stats.output'), val: fmtInt(totals.o), cost: fmtMoney(totals.costO) },
+        { label: tr('stats.cacheWrite'), val: fmtInt(totals.cw), cost: fmtMoney(totals.costCw) },
+        { label: tr('stats.cacheRead'), val: fmtInt(totals.cr), cost: fmtMoney(totals.costCr) }
       ],
       windowNote: windowNote,
       // Su cosa filtrare la pagina se si sceglie l'azione in fondo al
@@ -6657,10 +6689,10 @@ __I18N_APPLY__
     var costCw = cacheWriteCostUsd(t, p);
     var costCr = (t.cr / 1e6) * p.cacheRead;
     return simpleTooltipData([
-      seg(tr('stats.input') + ': '), segB(fmtInt(t.i)), seg(' (' + fmtUsd(costI) + ')'), segBr(),
-      seg(tr('stats.output') + ': '), segB(fmtInt(t.o)), seg(' (' + fmtUsd(costO) + ')'), segBr(),
-      seg(tr('stats.cacheWrite') + ': '), segB(fmtInt(t.cw)), seg(' (' + fmtUsd(costCw) + ')'), segBr(),
-      seg(tr('stats.cacheRead') + ': '), segB(fmtInt(t.cr)), seg(' (' + fmtUsd(costCr) + ')')
+      seg(tr('stats.input') + ': '), segB(fmtInt(t.i)), seg(' (' + fmtMoney(costI) + ')'), segBr(),
+      seg(tr('stats.output') + ': '), segB(fmtInt(t.o)), seg(' (' + fmtMoney(costO) + ')'), segBr(),
+      seg(tr('stats.cacheWrite') + ': '), segB(fmtInt(t.cw)), seg(' (' + fmtMoney(costCw) + ')'), segBr(),
+      seg(tr('stats.cacheRead') + ': '), segB(fmtInt(t.cr)), seg(' (' + fmtMoney(costCr) + ')')
     ]);
   }
 
@@ -6859,7 +6891,7 @@ __I18N_APPLY__
         '<td class="summary" data-tooltip="' + tooltipAttr(simpleTooltipData([seg(summaryText)])) + '">' + esc(summaryText) + '</td>' +
         '<td class="model">' + esc(modelShortLabel(t.model)) + '</td>' +
         '<td class="num total" data-tooltip="' + tooltipAttr(totaleTooltipData(t)) + '">' + fmtInt(t.tot) + '</td>' +
-        '<td class="num">' + fmtUsd(turnCostUsd(t)) + '</td></tr>';
+        '<td class="num">' + fmtMoney(turnCostUsd(t)) + '</td></tr>';
       html += '<tr class="actions-row" id="' + rowId + '"><td colspan="7"><div class="actions-reveal">';
       if (actions.length) {
         html += '<div class="actions-nested"><table><colgroup><col style="width:92px"><col style="width:190px"><col><col style="width:64px"></colgroup>' +
@@ -7238,8 +7270,20 @@ __I18N_APPLY__
       document.getElementById(cfg.selectId).value = v;
       setSegmentedControl(cfg.customId, v);
     });
-    if (restoredFilters.unit) {
-      document.getElementById('unit-filter').value = restoredFilters.unit;
+    // Si ripristina solo un valore che esiste ancora. Le unita' sono
+    // cambiate una volta (dollari/euro/token sono diventati costo/token) e
+    // possono cambiare di nuovo: una scheda rimasta aperta attraverso una
+    // rigenerazione riporterebbe indietro un valore che non c'e' piu', e il
+    // controllo resterebbe senza nessun bottone acceso.
+    // [EN] Only a value that still exists is restored. The units changed
+    // once (dollars/euros/tokens became cost/tokens) and can change again:
+    // a tab left open across a regeneration would bring back a value that
+    // no longer exists, and the control would be left with no lit button.
+    var unitSelect = document.getElementById('unit-filter');
+    var unitOk = restoredFilters.unit && [].some.call(unitSelect.options,
+      function (o) { return o.value === restoredFilters.unit; });
+    if (unitOk) {
+      unitSelect.value = restoredFilters.unit;
       setSegmentedControl('unit-filter-custom', restoredFilters.unit);
     }
     if (restoredFilters.period) { ensureSavedPeriod(restoredFilters.period); }

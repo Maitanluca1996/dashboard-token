@@ -375,7 +375,8 @@ def render(tokens, ops):
     # the template turns it on).
     html = html.replace(
         "__SITE_HEADER__",
-        templating.render_header("dashboard", refresh_control=True),
+        templating.render_header("dashboard", refresh_control=True,
+                                 currency_control=True),
     )
 
     with open(config.OUT_HTML, "w", encoding="utf-8") as f:

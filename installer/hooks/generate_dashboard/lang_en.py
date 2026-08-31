@@ -38,6 +38,7 @@ UI = {
         "refresh": "Refresh",
         "nav": "Main navigation",
         "langSwitch": "Page language",
+        "currencySwitch": "Currency of the amounts",
     },
 
     "dash": {
@@ -86,9 +87,10 @@ UI = {
         "searchClear": "Clear the search",
     },
 
+    # Vedi lang_it.py: "Cost" non nomina la valuta di proposito.
+    # [EN] See lang_it.py: "Cost" deliberately does not name the currency.
     "unit": {
-        "usd": "Dollars",
-        "eur": "Euros",
+        "money": "Cost",
         "tokens": "Tokens",
     },
 
@@ -150,12 +152,13 @@ UI = {
     },
 
     "unitMode": {
-        "barUsd": "Total cost",
-        "lineUsd": "Cost over time",
-        "ariaUsd": "Estimated cost in dollars",
-        "barEur": "Total cost in euros",
-        "lineEur": "Cost in euros over time",
-        "ariaEur": "Estimated cost in euros",
+        # Vedi lang_it.py: una forma sola per il denaro, la valuta la
+        # dicono l'asse e i numeri.
+        # [EN] See lang_it.py: one form for money, the currency is said by
+        # the axis and the numbers.
+        "barMoney": "Total cost",
+        "lineMoney": "Cost over time",
+        "ariaMoney": "Estimated cost",
         "barTokens": "Total tokens",
         "lineTokens": "Tokens over time",
         "ariaTokens": "Total tokens",
@@ -366,15 +369,14 @@ FMT = {
     "dec": ".",
     "thou": ",",
 
-    # Il simbolo di valuta va DAVANTI e attaccato: "$12.50". Per questo
-    # il pezzo anteriore e' pieno e quello posteriore vuoto -- lo
-    # specchio esatto dell'italiano.
-    # [EN] The currency symbol goes IN FRONT and attached: "$12.50".
-    # Hence the front piece is filled and the back one empty -- the exact
-    # mirror of Italian.
-    "moneyPre": "$",
-    "moneyPostUsd": "",
-    "moneyPostEur": "",
+    # Il simbolo di valuta va DAVANTI e attaccato: "$12.50", "€12.50".
+    # Lo specchio esatto dell'italiano. Vedi lang_it.py: qui c'e' solo
+    # il posto del simbolo, il simbolo lo porta la valuta.
+    # [EN] The currency symbol goes IN FRONT and attached: "$12.50",
+    # "€12.50". The exact mirror of Italian. See lang_it.py: only the
+    # symbol's place is here, the symbol itself comes with the currency.
+    "moneySymbolBefore": True,
+    "moneyGap": "",
 
     # "B" per billion. Vedi la nota sul falso amico in lang_it.py.
     # [EN] "B" for billion. See the false-friend note in lang_it.py.

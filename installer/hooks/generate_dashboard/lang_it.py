@@ -80,6 +80,13 @@ UI = {
         # inside the switch are NOT here: they are endonyms and live in
         # i18n.ENDONYMS, because they are never translated.
         "langSwitch": "Lingua della pagina",
+        # Come per la lingua, i nomi delle valute dentro la combo NON
+        # stanno qui: sono simboli e codici ISO, e si scrivono uguali in
+        # ogni lingua (i18n.CURRENCY_SYMBOLS e CURRENCY_CODES).
+        # [EN] As for the language, the currency names inside the combo
+        # are NOT here: they are symbols and ISO codes, written the same
+        # in every language (i18n.CURRENCY_SYMBOLS and CURRENCY_CODES).
+        "currencySwitch": "Valuta degli importi",
     },
 
     # La pagina della dashboard: titolo e sottotitolo in cima.
@@ -144,11 +151,23 @@ UI = {
         "searchClear": "Cancella la ricerca",
     },
 
-    # L'unita' di misura degli importi.
-    # [EN] The unit of measure for amounts.
+    # Cosa misurano i grafici. Erano tre voci -- dollari, euro, token --
+    # e le prime due sono diventate una sola da quando la valuta si sceglie
+    # nell'intestazione e vale per tutta la pagina: qui resta la domanda
+    # che riguarda soltanto i grafici, cioe' se l'asse conti soldi o token.
+    # "Costo" senza nominare la valuta e' voluto: quale sia lo dice il
+    # simbolo sull'asse, e ripeterlo qui sarebbe una seconda cosa da tenere
+    # allineata alla combo.
+    # [EN] What the charts measure. It used to be three entries -- dollars,
+    # euros, tokens -- and the first two became one once the currency is
+    # chosen in the header and applies to the whole page: what stays here is
+    # the question that concerns the charts alone, namely whether the axis
+    # counts money or tokens. "Cost" without naming the currency is
+    # deliberate: which one it is, is said by the symbol on the axis, and
+    # repeating it here would be a second thing to keep in step with the
+    # combo.
     "unit": {
-        "usd": "Dollari",
-        "eur": "Euro",
+        "money": "Costo",
         "tokens": "Token",
     },
 
@@ -244,12 +263,17 @@ UI = {
     # on the bars, the line chart's title and the spoken description for
     # screen-reader users.
     "unitMode": {
-        "barUsd": "Costo totale",
-        "lineUsd": "Andamento costo nel tempo",
-        "ariaUsd": "Costo stimato in dollari",
-        "barEur": "Costo totale in euro",
-        "lineEur": "Andamento costo in euro nel tempo",
-        "ariaEur": "Costo stimato in euro",
+        # Una forma sola per il denaro, non una per valuta: la valuta e'
+        # gia' scritta sull'asse e nei numeri, e un titolo che la ripete
+        # ("Costo totale in euro") diventa falso il giorno che qualcuno
+        # aggiunge una valuta e dimentica di aggiungere il titolo.
+        # [EN] One form for money, not one per currency: the currency is
+        # already written on the axis and in the numbers, and a title that
+        # repeats it ("Total cost in euros") turns false the day someone
+        # adds a currency and forgets to add the title.
+        "barMoney": "Costo totale",
+        "lineMoney": "Andamento costo nel tempo",
+        "ariaMoney": "Costo stimato",
         "barTokens": "Token totali",
         "lineTokens": "Andamento token nel tempo",
         "ariaTokens": "Token totali",
@@ -547,18 +571,25 @@ FMT = {
     "dec": ",",
     "thou": ".",
 
-    # Il simbolo di valuta va DOPO il numero, con uno spazio: "12,50 $".
-    # In inglese va prima e senza spazio, quindi il posto del simbolo e'
-    # parte del profilo e non della funzione: chi formatta incolla il
-    # pezzo davanti e quello dietro, e uno dei due e' vuoto.
+    # Il simbolo di valuta va DOPO il numero, con uno spazio: "12,50 $",
+    # "12,50 €". In inglese va prima e attaccato. Qui c'e' il POSTO del
+    # simbolo, non il simbolo: quale sia lo dice la valuta scelta
+    # (i18n.CURRENCY_SYMBOLS), ed e' lo stesso in ogni lingua.
+    # Prima queste chiavi tenevano anche il simbolo, una per valuta, e
+    # il difetto era grosso: il profilo inglese metteva "$" davanti a
+    # entrambe le valute, per cui scegliendo gli euro si leggevano
+    # importi convertiti in euro col simbolo del dollaro davanti.
     # [EN] The currency symbol goes AFTER the number, with a space:
-    # "12,50 $". In English it goes before and without a space, so the
-    # symbol's position is part of the profile and not of the function:
-    # the formatter glues on the front piece and the back piece, and one
-    # of the two is empty.
-    "moneyPre": "",
-    "moneyPostUsd": " $",
-    "moneyPostEur": " €",
+    # "12,50 $", "12,50 €". In English it goes before and attached. What
+    # is here is the symbol's PLACE, not the symbol: which one it is
+    # comes from the chosen currency (i18n.CURRENCY_SYMBOLS), and it is
+    # the same in every language.
+    # These keys used to hold the symbol too, one per currency, and the
+    # flaw was a large one: the English profile put "$" in front of both
+    # currencies, so choosing euros gave amounts converted into euros
+    # with a dollar sign in front of them.
+    "moneySymbolBefore": False,
+    "moneyGap": " ",
 
     # Abbreviazione dei miliardi nei numeri compatti. In italiano si usa
     # "Md" (miliardi); l'inglese usa "B" (billion), che in italiano

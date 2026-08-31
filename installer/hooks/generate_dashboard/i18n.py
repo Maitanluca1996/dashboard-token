@@ -270,6 +270,64 @@ FLAGS = {
 }
 
 
+# --- Le valute ---------------------------------------------------------
+#
+# La valuta e' una preferenza a se', accanto alla lingua e non dentro:
+# sono due domande diverse ("in che lingua leggo" e "in che moneta
+# ragiono") e mescolarle da' risposte sbagliate a entrambe. Un profilo
+# di lingua che decidesse anche la valuta manderebbe in dollari chi
+# legge in inglese ma paga in euro, e la scelta esplicita dell'utente
+# verrebbe sovrascritta dal solo fatto di aver cambiato lingua.
+#
+# Quel che la lingua decide davvero e' soltanto DOVE sta il simbolo e
+# se ha uno spazio davanti (in FMT: moneySymbolBefore e moneyGap); QUALE
+# simbolo sia lo dice la valuta, ed e' lo stesso in ogni lingua.
+#
+# I costi arrivano tutti in dollari, perche' in dollari e' il listino:
+# l'euro e' una conversione a cambio fisso (vedi pricing.USD_TO_EUR).
+# Per questo il ripiego e' il dollaro e non la valuta del paese di chi
+# guarda -- e' il dato originale, non una preferenza.
+CURRENCIES = ["usd", "eur"]
+
+CURRENCY_DEFAULT = "usd"
+
+# Simbolo e codice ISO di ogni valuta. Nessuno dei due si traduce: "$"
+# e "USD" si scrivono cosi' in ogni lingua, ed e' esattamente la stessa
+# ragione per cui gli endonimi non passano da tr(). Nella combo stanno
+# insieme -- il simbolo si riconosce con la coda dell'occhio, il codice
+# toglie ogni dubbio su quale dollaro o quale corona sia.
+# [EN] --- Currencies ---
+# Currency is a preference of its own, next to language and not inside
+# it: they are two different questions ("what language do I read in" and
+# "what money do I think in") and mixing them answers both wrongly. A
+# language profile that also decided the currency would push into
+# dollars someone who reads in English but pays in euros, and the user's
+# explicit choice would be overwritten by the mere act of changing
+# language.
+# What the language really decides is only WHERE the symbol sits and
+# whether it has a space before it (in FMT: moneySymbolBefore and
+# moneyGap); WHICH symbol it is comes from the currency, and it is the
+# same in every language.
+# Costs all arrive in dollars, because the price list is in dollars: the
+# euro is a fixed-rate conversion (see pricing.USD_TO_EUR). Hence the
+# fallback is the dollar and not the viewer's country currency -- it is
+# the original datum, not a preference.
+# Symbol and ISO code for each currency. Neither is translated: "$" and
+# "USD" are written that way in every language, for exactly the reason
+# endonyms do not go through tr(). In the combo they sit together -- the
+# symbol is recognised out of the corner of the eye, the code removes
+# any doubt about which dollar or which crown it is.
+CURRENCY_SYMBOLS = {
+    "usd": "$",
+    "eur": "€",
+}
+
+CURRENCY_CODES = {
+    "usd": "USD",
+    "eur": "EUR",
+}
+
+
 def is_supported(code):
     """Dice se un codice di lingua e' fra quelli che sappiamo mostrare.
 
@@ -498,12 +556,12 @@ def js_payload():
     """Costruisce il testo di site-i18n.js: "var I18N = {...};".
 
     Dentro ci vanno UI e FMT di TUTTE le lingue (il perche' e' al punto
-    2 del docstring in cima), mai CLI.
+    2 del docstring in cima) piu' il registro delle valute, mai CLI.
 
     [EN] Builds the text of site-i18n.js: "var I18N = {...};".
 
     UI and FMT of ALL languages go in (why is at point 2 of the
-    docstring above), never CLI.
+    docstring above), plus the currency registry, never CLI.
     """
     payload = {
         "langs": LANGS,
@@ -517,6 +575,15 @@ def js_payload():
         "fallback": DEFAULT,
         "endonyms": ENDONYMS,
         "flags": FLAGS,
+        # Le valute viaggiano nello stesso file per la stessa ragione
+        # delle lingue: sono una scelta che il browser deve poter fare
+        # da fermo, senza andare a prendere un secondo file.
+        # [EN] Currencies travel in the same file for the same reason as
+        # languages: they are a choice the browser must be able to make
+        # standing still, without fetching a second file.
+        "currencies": CURRENCIES,
+        "currencyFallback": CURRENCY_DEFAULT,
+        "currencySymbols": CURRENCY_SYMBOLS,
         "strings": {code: _bundle(code, "UI") for code in LANGS},
         "fmt": {code: _bundle(code, "FMT") for code in LANGS},
     }

@@ -165,7 +165,19 @@ HEADER_CSS = """
   }
   .brand-group { justify-self: start; min-width: 0; }
   .site-header-meta { justify-self: center; }
-  .lang-combo { justify-self: end; }
+  /* Le preferenze stanno insieme in fondo a destra: sono la stessa
+     categoria di scelta -- come guardo la pagina, non cosa contiene -- e
+     tenerle affiancate le rende una cosa sola da cercare invece di due.
+     [EN] The preferences sit together at the far right: they are the same
+     category of choice -- how I look at the page, not what it contains --
+     and keeping them side by side makes them one thing to look for
+     instead of two. */
+  .pref-group {
+    justify-self: end;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
   /* Sotto i 700px le tre zone su una riga non ci stanno. La riga va a capo:
      logo e lingua restano affiancati, la data con il suo bottone scende
      sotto, sempre centrata. Non e' una "forma compatta" che scatta allo
@@ -184,6 +196,25 @@ HEADER_CSS = """
       justify-content: space-between;
     }
     .site-header-meta { order: 3; width: 100%; justify-content: center; }
+    /* Su schermo stretto il BOTTONE delle combo perde il nome e tiene solo
+       bandiera o simbolo. Serve a far stare logo e preferenze sulla stessa
+       riga: con due combo per esteso non ci stanno, e l'intestazione --
+       che e' agganciata in cima -- si mangerebbe una terza riga di schermo
+       per sempre.
+       Solo il bottone: dentro l'elenco i nomi restano, ed e' li' che
+       servono, perche' e' li' che si sceglie fra cose che non si conoscono
+       ancora. Il bottone invece mostra una scelta gia' fatta, e per
+       riconoscerla la bandiera basta.
+       [EN] On a narrow screen the combos' BUTTON drops the name and keeps
+       only the flag or the symbol. It is what makes the logo and the
+       preferences fit on the same row: with two combos written out in full
+       they do not, and the header -- which is stuck to the top -- would eat
+       a third row of screen forever.
+       The button only: inside the list the names stay, and that is where
+       they are needed, because that is where you choose between things you
+       do not know yet. The button, by contrast, shows a choice already
+       made, and the flag is enough to recognise it. */
+    .pref-trigger .pref-name { display: none; }
   }
   .brand-group {
     display: flex;
@@ -323,8 +354,13 @@ HEADER_CSS = """
      ruoli ARIA che dicono a un lettore di schermo che si tratta di una
      scelta fra opzioni, e non un bottone qualsiasi.
      Il bottone che apre resta nel vocabolario "a pillola" gia' adoperato
-     qui accanto da .meta-status e .meta-refresh: bordo tondo, stesso corpo,
-     stessi colori. Cambia il contenuto, non la forma.
+     qui accanto dal bottone Aggiorna: bordo tondo, stesso corpo, stessi
+     colori. Cambia il contenuto, non la forma.
+     Le classi si chiamano pref-* e non lang-* perche' di combo ce ne sono
+     due -- lingua e valuta -- e sono lo stesso oggetto: stesso CSS, stesso
+     cablaggio, stesso comportamento da tastiera. Cambia soltanto cosa c'e'
+     dentro le voci, ed e' render_header a metterlo. Una terza preferenza
+     futura non aggiunge una riga a questo CSS.
      [EN] The language choice.
      NOT a native <select>: inside an <option> the browser draws no markup,
      so a flag could not be shown. And flag emoji are no alternative --
@@ -333,10 +369,15 @@ HEADER_CSS = """
      width). Hence a hand-built list, with the ARIA roles that tell a screen
      reader this is a choice among options and not just some button.
      The button that opens it stays in the "pill" vocabulary already used
-     next to it by .meta-status and .meta-refresh: round border, same size,
-     same colours. The content changes, not the shape. */
-  .lang-combo { position: relative; }
-  .lang-trigger {
+     next to it by the Refresh button: round border, same size, same
+     colours. The content changes, not the shape.
+     The classes are called pref-* and not lang-* because there are two
+     combos -- language and currency -- and they are the same object: same
+     CSS, same wiring, same keyboard behaviour. Only what is inside the
+     entries changes, and render_header is what puts it there. A future
+     third preference adds no line to this CSS. */
+  .pref-combo { position: relative; }
+  .pref-trigger {
     display: inline-flex;
     align-items: center;
     gap: 7px;
@@ -352,15 +393,15 @@ HEADER_CSS = """
     white-space: nowrap;
     transition: color 0.18s ease, border-color 0.18s ease;
   }
-  .lang-trigger:hover {
+  .pref-trigger:hover {
     color: var(--text-primary);
     border-color: var(--series-1);
   }
-  .lang-trigger:focus-visible {
+  .pref-trigger:focus-visible {
     outline: 2px solid var(--series-1);
     outline-offset: 2px;
   }
-  .lang-current { display: inline-flex; align-items: center; gap: 7px; }
+  .pref-current { display: inline-flex; align-items: center; gap: 7px; }
   /* La bandiera e' un rettangolo pieno: senza un filo di contorno, la banda
      bianca dell'italiana sparirebbe nello sfondo chiaro della pillola. Il
      contorno lo mette il CSS e non l'SVG, ed e' un grigio medio
@@ -387,19 +428,35 @@ HEADER_CSS = """
     border-radius: 2px;
     box-shadow: inset 0 0 0 1px rgba(128, 128, 128, 0.45);
   }
-  .lang-caret {
+  /* Il simbolo della valuta sta nella casella che nell'altra combo tiene
+     la bandiera, ed e' largo uguale: cosi' i due bottoni affiancati hanno
+     il testo incolonnato invece di scalare di due pixel l'uno dall'altro.
+     [EN] The currency symbol sits in the box that holds the flag in the
+     other combo, and is just as wide: this way the two buttons side by
+     side have their text lined up instead of shifting a couple of pixels
+     from one another. */
+  .pref-symbol {
+    display: block;
+    flex-shrink: 0;
+    width: 19px;
+    text-align: center;
+    font-size: 13px;
+    line-height: 13px;
+    color: var(--text-primary);
+  }
+  .pref-caret {
     font-size: 9px;
     color: var(--text-muted);
     transition: transform 0.18s ease;
   }
-  .lang-combo.open .lang-caret { transform: rotate(180deg); }
+  .pref-combo.open .pref-caret { transform: rotate(180deg); }
   /* L'elenco si apre ancorato al bordo DESTRO del bottone, perche' la combo
      sta all'estremita' destra dell'intestazione: ancorandolo a sinistra
      uscirebbe dallo schermo.
      [EN] The list opens anchored to the button's RIGHT edge, because the
      combo sits at the far right of the header: anchored left it would run
      off the screen. */
-  .lang-menu {
+  .pref-menu {
     position: absolute;
     top: calc(100% + 6px);
     right: 0;
@@ -414,8 +471,8 @@ HEADER_CSS = """
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
     z-index: 300;
   }
-  .lang-menu[hidden] { display: none; }
-  .lang-option {
+  .pref-menu[hidden] { display: none; }
+  .pref-option {
     display: flex;
     align-items: center;
     gap: 7px;
@@ -435,12 +492,12 @@ HEADER_CSS = """
      tenue definita da tutte e tre le pagine, e questo CSS le serve tutte.
      [EN] --gridline and not an accent tint: it is the only soft background
      variable defined by all three pages, and this CSS serves all three. */
-  .lang-option:hover {
+  .pref-option:hover {
     background: var(--gridline);
     color: var(--text-primary);
   }
-  .lang-option[aria-selected="true"] { color: var(--text-primary); }
-  .lang-option:focus-visible {
+  .pref-option[aria-selected="true"] { color: var(--text-primary); }
+  .pref-option:focus-visible {
     outline: 2px solid var(--series-1);
     outline-offset: -2px;
   }
@@ -694,8 +751,8 @@ HEADER_CSS = """
     .meta-refresh:hover { transform: none; }
     .meta-refresh:hover .refresh-icon { transform: none; }
     .meta-refresh.busy .refresh-icon { animation: none; }
-    .lang-trigger { transition: none; }
-    .lang-caret { transition: none; }
+    .pref-trigger { transition: none; }
+    .pref-caret { transition: none; }
   }
 """
 
@@ -812,7 +869,7 @@ HEADER_SCRIPT = """  <script>
   </script>"""
 
 
-def render_header(active_id, refresh_control=False):
+def render_header(active_id, refresh_control=False, currency_control=False):
     """Genera l'HTML dell'intestazione unificata con navigazione a schede.
 
     "active_id" e' l'id (es. "dashboard") della pagina che sta venendo
@@ -832,6 +889,12 @@ def render_header(active_id, refresh_control=False):
     i dati a schermo cominciano ad essere vecchi; sulle altre pagine il
     bottone non viene proprio generato.
 
+    "currency_control" aggiunge la combo della valuta accanto a quella
+    della lingua. Anche questa serve solo alla dashboard, e per un motivo
+    di sostanza: e' l'unica pagina che mostra importi calcolati. Il
+    tariffario e la guida riportano il listino, che e' in dollari, e li'
+    la combo non avrebbe niente da cambiare.
+
     [EN] Generates the HTML of the unified header with tabbed navigation.
 
     "active_id" is the id (e.g. "dashboard") of the page being generated
@@ -850,6 +913,12 @@ def render_header(active_id, refresh_control=False):
     hidden and is turned on by the dashboard script when the on-screen
     data starts getting old; on the other pages the button is not even
     generated.
+
+    "currency_control" adds the currency combo next to the language one.
+    This too is only for the dashboard, and for a reason of substance: it
+    is the only page showing computed amounts. The price list and the
+    guide report the tariff, which is in dollars, and there the combo
+    would have nothing to change.
     """
     # qui accumuliamo un pezzo di HTML per ciascuna voce di menu
     # [EN] here we accumulate one chunk of HTML for each menu item
@@ -977,27 +1046,82 @@ def render_header(active_id, refresh_control=False):
     # which language is active is not known here yet, and baking it into the
     # HTML would mean generating different pages per language.
     lang_options = "".join(
-        f'<button type="button" role="option" class="lang-option"'
-        f' data-lang="{code}" lang="{code}" aria-selected="false">'
+        f'<button type="button" role="option" class="pref-option"'
+        f' data-value="{code}" lang="{code}" aria-selected="false">'
         f"{i18n.FLAGS[code]}"
-        f'<span class="lang-name">{i18n.ENDONYMS[code]}</span>'
+        f'<span class="pref-name">{i18n.ENDONYMS[code]}</span>'
         "</button>"
         for code in i18n.LANGS
     )
-    lang_html = (
-        '<div class="lang-combo" id="lang-combo">'
-        '<button type="button" class="lang-trigger" id="lang-trigger"'
-        ' aria-haspopup="listbox" aria-expanded="false"'
-        ' data-i18n-aria-label="header.langSwitch"'
-        ' aria-label="Lingua della pagina">'
-        '<span class="lang-current"></span>'
-        '<span class="lang-caret" aria-hidden="true">&#9662;</span>'
+
+    # La valuta, dallo stesso registro e nella stessa forma. Simbolo e
+    # codice ISO al posto di bandiera ed endonimo, e per la stessa ragione:
+    # il simbolo si riconosce con la coda dell'occhio, il codice toglie il
+    # dubbio. Nessuno dei due passa da tr() -- "$" e "USD" si scrivono
+    # uguali in ogni lingua.
+    # Niente lang="xx" qui: non sono parole di una lingua, sono codici, e
+    # dire a un sintetizzatore vocale di leggerli "all'inglese" non
+    # aggiungerebbe niente.
+    # [EN] The currency, from the same registry and in the same shape.
+    # Symbol and ISO code instead of flag and endonym, and for the same
+    # reason: the symbol is recognised out of the corner of the eye, the
+    # code removes the doubt. Neither goes through tr() -- "$" and "USD"
+    # are written the same in every language.
+    # No lang="xx" here: these are not words of a language, they are codes,
+    # and telling a speech synthesiser to read them "the English way" would
+    # add nothing.
+    currency_options = "".join(
+        f'<button type="button" role="option" class="pref-option"'
+        f' data-value="{code}" aria-selected="false">'
+        f'<span class="pref-symbol" aria-hidden="true">'
+        f"{i18n.CURRENCY_SYMBOLS[code]}</span>"
+        f'<span class="pref-name">{i18n.CURRENCY_CODES[code]}</span>'
         "</button>"
-        '<div class="lang-menu" id="lang-menu" role="listbox"'
-        ' data-i18n-aria-label="header.langSwitch"'
-        ' aria-label="Lingua della pagina" hidden>'
-        f"{lang_options}</div></div>"
+        for code in i18n.CURRENCIES
     )
+
+    # Una combo e' una combo: cambia il nome della preferenza che pilota,
+    # l'etichetta e le voci. data-pref e' l'unica cosa che il JavaScript
+    # legge per sapere quale preferenza sta cablando, e da li' in poi il
+    # codice e' lo stesso per tutte -- niente id fissi, quindi niente
+    # limite di una sola combo per pagina.
+    # [EN] A combo is a combo: what changes is the name of the preference
+    # it drives, the label and the entries. data-pref is the only thing the
+    # JavaScript reads to know which preference it is wiring, and from
+    # there on the code is the same for all of them -- no fixed ids, hence
+    # no limit of one combo per page.
+    def combo(pref, label_key, label_it, options):
+        return (
+            f'<div class="pref-combo" data-pref="{pref}">'
+            '<button type="button" class="pref-trigger"'
+            ' aria-haspopup="listbox" aria-expanded="false"'
+            f' data-i18n-aria-label="{label_key}" aria-label="{label_it}">'
+            '<span class="pref-current"></span>'
+            '<span class="pref-caret" aria-hidden="true">&#9662;</span>'
+            "</button>"
+            f'<div class="pref-menu" role="listbox"'
+            f' data-i18n-aria-label="{label_key}" aria-label="{label_it}"'
+            f" hidden>{options}</div></div>"
+        )
+
+    # La valuta solo dove ci sono importi da mostrare. Il tariffario e la
+    # guida riportano il listino ufficiale, che e' in dollari: una combo li'
+    # o non farebbe niente (e sarebbe un controllo morto) o convertirebbe
+    # un listino, facendo passare per prezzo una conversione a cambio
+    # fisso. La lingua invece vale ovunque, e la sua combo c'e' sempre.
+    # [EN] The currency only where there are amounts to show. The price
+    # list and the guide report the official tariff, which is in dollars: a
+    # combo there would either do nothing (and be a dead control) or
+    # convert a tariff, passing a fixed-rate conversion off as a price. The
+    # language, on the other hand, applies everywhere, and its combo is
+    # always there.
+    combos = ""
+    if currency_control:
+        combos += combo("currency", "header.currencySwitch",
+                        "Valuta degli importi", currency_options)
+    combos += combo("lang", "header.langSwitch",
+                    "Lingua della pagina", lang_options)
+    prefs_html = f'<div class="pref-group">{combos}</div>'
 
     # Il "return f\"\"\" ... \"\"\"" restituisce l'HTML completo
     # dell'intestazione come un'unica stringa multi-riga, con dentro
@@ -1026,7 +1150,7 @@ def render_header(active_id, refresh_control=False):
           <span class="meta-timestamp" id="meta-timestamp"></span>
         </div>{refresh_html}
       </div>
-      {lang_html}
+      {prefs_html}
     </div>
     <nav class="site-nav" data-i18n-aria-label="header.nav" aria-label="Navigazione principale">
       <div class="nav-tabs">
@@ -1044,7 +1168,7 @@ def render_header(active_id, refresh_control=False):
 #
 # I18N_BOOT (segnaposto __I18N_BOOT__, nell'<head>) carica il dizionario,
 # sceglie la lingua e pubblica gli attrezzi che tutto il resto usera':
-# LANG, FMT, t() e switchLanguage(). Nient'altro: al momento in cui gira
+# LANG, FMT, CURRENCY, tr() e switchPref(). Nient'altro: al momento in cui gira
 # il corpo della pagina non esiste ancora.
 #
 # I18N_APPLY (segnaposto __I18N_APPLY__) fa la passata vera e propria
@@ -1075,7 +1199,7 @@ def render_header(active_id, refresh_control=False):
 #
 # I18N_BOOT (placeholder __I18N_BOOT__, in the <head>) loads the
 # dictionary, chooses the language and publishes the tools everything else
-# will use: LANG, FMT, t() and switchLanguage(). Nothing else: at the
+# will use: LANG, FMT, CURRENCY, tr() and switchPref(). Nothing else: at the
 # moment it runs, the page body does not exist yet.
 #
 # I18N_APPLY (placeholder __I18N_APPLY__) does the actual pass over the
@@ -1163,6 +1287,38 @@ I18N_BOOT = r"""  <script src="site-i18n.js"></script>
     window.LANG = LANG;
     window.FMT = I18N.fmt[LANG] || {};
 
+    /* La valuta e' la seconda preferenza, letta con lo stesso schema della
+       lingua meno un passaggio: quello dal browser. navigator non dichiara
+       una valuta, e dedurla dalla lingua sarebbe esattamente l'errore che
+       questa separazione esiste per evitare -- chi legge in inglese non per
+       questo paga in dollari, chi legge in italiano non per questo paga in
+       euro. Senza una scelta esplicita si mostra il dato com'e' nel
+       listino, cioe' in dollari: e' un dato, non una preferenza indovinata.
+       [EN] The currency is the second preference, read with the same
+       scheme as the language minus one step: the browser one. navigator
+       declares no currency, and inferring it from the language would be
+       exactly the mistake this separation exists to avoid -- someone
+       reading in English does not therefore pay in dollars, someone
+       reading in Italian does not therefore pay in euros. With no explicit
+       choice we show the datum as the price list has it, in dollars: a
+       fact, not a guessed preference. */
+    var CURLIST = I18N.currencies || [];
+    function pickCurrency() {
+      var stored = null;
+      try { stored = localStorage.getItem('dashboardCurrency'); } catch (e) {}
+      if (stored && CURLIST.indexOf(stored) >= 0) return stored;
+      return I18N.currencyFallback;
+    }
+
+    var CURRENCY = pickCurrency();
+
+    window.CURRENCY = CURRENCY;
+    /* Il simbolo viaggia gia' risolto: chi formatta gli importi non deve
+       sapere che esiste un registro delle valute, gli serve il carattere.
+       [EN] The symbol travels already resolved: whoever formats amounts
+       need not know a currency registry exists, they need the character. */
+    window.CURRENCY_SYMBOL = (I18N.currencySymbols || {})[CURRENCY] || '';
+
     /* tr('sezione.chiave') restituisce il testo tradotto.
 
        Si chiama tr e non t perche' in dashboard.html "t" e' gia' il nome
@@ -1192,10 +1348,12 @@ I18N_BOOT = r"""  <script src="site-i18n.js"></script>
        a silent fallback to Italian would be a bug that ships unnoticed.
        The full reasoning is in i18n.py's docstring. */
     /* La ricerca di una chiave, in una lingua qualsiasi. Sta fuori da tr()
-       perche' serve anche a switchLanguage, che deve leggere il dizionario
+       perche' serve anche a switchPref, che quando cambia la lingua deve
+       leggere il dizionario
        della lingua verso cui si sta andando, non di quella attuale.
        [EN] Key lookup, in any language. It lives outside tr() because
-       switchLanguage needs it too: that one has to read the dictionary of
+       switchPref needs it too: when the language changes, that one has to
+       read the dictionary of
        the language being switched TO, not the current one. */
     function lookup(lang, key) {
       var node = I18N.strings[lang];
@@ -1229,22 +1387,48 @@ I18N_BOOT = r"""  <script src="site-i18n.js"></script>
       });
     };
 
-    /* Cambiare lingua ricarica la pagina. Non e' una rinuncia: e' la
-       scelta descritta al punto 3 del docstring di i18n.py, e riusa il
+    /* Cambiare una preferenza ricarica la pagina. Non e' una rinuncia: e'
+       la scelta descritta al punto 3 del docstring di i18n.py, e riusa il
        meccanismo che la dashboard ha gia' per i propri ricaricamenti di
        servizio -- si salvano i filtri, si salta l'animazione d'entrata,
-       si ricarica. La dashboard pubblica __saveStateForReload; le altre
+       si ricarica. Vale anche per la valuta, e per la stessa ragione: gli
+       importi sono cotti nel DOM in decine di punti fra schede, tabelle,
+       tooltip e assi, e riscriverli tutti a caldo vorrebbe dire rieseguire
+       ogni disegno conservando a mano selezioni, ordinamenti e pagina --
+       cioe' rifare a mano quello che il ricaricamento fa gia'. La dashboard pubblica __saveStateForReload; le altre
        due pagine non hanno stato da conservare e semplicemente non lo
        definiscono, quindi qui non serve nessun caso speciale per pagina.
-       [EN] Changing language reloads the page. Not a concession: it is
-       the choice described at point 3 of i18n.py's docstring, and it
+       [EN] Changing a preference reloads the page. Not a concession: it
+       is the choice described at point 3 of i18n.py's docstring, and it
        reuses the mechanism the dashboard already has for its own service
        reloads -- save the filters, skip the entrance animation, reload.
+       It holds for the currency too, and for the same reason: amounts are
+       baked into the DOM in dozens of places across cards, tables,
+       tooltips and axes, and rewriting them all live would mean re-running
+       every draw while preserving selections, sort order and page by hand
+       -- that is, redoing by hand what the reload already does.
        The dashboard publishes __saveStateForReload; the other two pages
        have no state to preserve and simply do not define it, so no
        per-page special case is needed here. */
-    window.switchLanguage = function (next) {
-      if (next === LANG || LIST.indexOf(next) < 0) return;
+    /* Le preferenze in una tabella sola: nome, dove si salvano, quali
+       valori accettano, qual e' quella attiva. Il cablaggio delle combo la
+       legge da qui invece di sapere a memoria che esistono una lingua e una
+       valuta, per cui una terza preferenza si aggiunge scrivendo una riga
+       in questa tabella e una voce in render_header.
+       [EN] The preferences in a single table: name, where they are saved,
+       which values they accept, which one is active. The combos' wiring
+       reads it from here instead of knowing by heart that a language and a
+       currency exist, so a third preference is added by writing one line in
+       this table and one entry in render_header. */
+    var PREFS = {
+      lang: { store: 'dashboardLang', list: LIST, value: LANG },
+      currency: { store: 'dashboardCurrency', list: CURLIST, value: CURRENCY }
+    };
+    window.__prefs = PREFS;
+
+    window.switchPref = function (name, next) {
+      var pref = PREFS[name];
+      if (!pref || next === pref.value || pref.list.indexOf(next) < 0) return;
       /* Quasi tutte le pagine esistono in un file solo e si traducono
          ricaricandosi. La guida no: e' prosa lunga e vive in un file per
          lingua, quindi ricaricare lo stesso file darebbe testo inglese
@@ -1253,6 +1437,8 @@ I18N_BOOT = r"""  <script src="site-i18n.js"></script>
          qui si va a leggerla nel dizionario della lingua di destinazione.
          Non e' un caso speciale per la guida: e' un meccanismo che vale per
          qualunque pagina futura che nasca in piu' file.
+         Riguarda la sola lingua: la valuta non cambia il file su cui si
+         sta, cambia i numeri che ci sono dentro.
          [EN] Almost every page exists as a single file and translates
          itself by reloading. The guide does not: it is long prose and lives
          as one file per language, so reloading the same file would give
@@ -1260,20 +1446,30 @@ I18N_BOOT = r"""  <script src="site-i18n.js"></script>
          by writing on the <html> element the key holding its own address,
          and here we read that key in the destination language's dictionary.
          It is not a special case for the guide: it is a mechanism serving
-         any future page born as several files. */
-      var pageKey = document.documentElement.getAttribute('data-page-href');
-      var target = pageKey ? lookup(next, pageKey) : null;
+         any future page born as several files.
+         It concerns the language alone: the currency does not change which
+         file you are on, it changes the numbers inside it. */
+      var target = null;
+      if (name === 'lang') {
+        var pageKey = document.documentElement.getAttribute('data-page-href');
+        if (pageKey) target = lookup(next, pageKey);
+      }
       try {
-        localStorage.setItem('dashboardLang', next);
+        localStorage.setItem(pref.store, next);
         sessionStorage.setItem('skipPageIntro', '1');
-        /* Dopo il ricaricamento il fuoco deve tornare sullo switch: chi
-           naviga da tastiera lo ha appena premuto, e ritrovarsi il fuoco
-           in cima al documento vorrebbe dire rifare tutta la strada.
-           [EN] After the reload the focus must return to the switch:
-           whoever navigates by keyboard has just pressed it, and finding
-           the focus back at the top of the document would mean walking
-           the whole way again. */
-        sessionStorage.setItem('focusAfterLangSwitch', '1');
+        /* Dopo il ricaricamento il fuoco deve tornare sulla combo che si e'
+           appena usata -- non su una qualsiasi: chi naviga da tastiera ha
+           premuto quella, e ritrovarsi il fuoco altrove vorrebbe dire
+           rifare la strada. Per questo si salva il NOME della preferenza e
+           non un semplice "si": con due combo affiancate, "si" non basta
+           piu' a dire quale.
+           [EN] After the reload the focus must return to the combo just
+           used -- not to any one of them: whoever navigates by keyboard
+           pressed that one, and finding the focus elsewhere would mean
+           walking the way again. Hence we save the NAME of the preference
+           and not a plain "yes": with two combos side by side, "yes" no
+           longer says which. */
+        sessionStorage.setItem('focusAfterPrefSwitch', name);
       } catch (e) {}
       if (typeof window.__saveStateForReload === 'function') {
         try { window.__saveStateForReload(); } catch (e) {}
@@ -1375,88 +1571,131 @@ I18N_APPLY = r"""  <script>
         }
       }
 
-      /* La combo della lingua: si marca la voce attiva, la si copia dentro
-         il bottone che apre, e si collegano apertura, scelta e chiusura.
-         aria-selected viene messo qui e non nell'HTML generato perche'
-         quale lingua sia attiva si sa solo adesso: cuocerlo nel markup
-         vorrebbe dire generare tre pagine diverse per ogni lingua, che e'
-         esattamente cio' che questo disegno evita.
-         [EN] The language combo: mark the active entry, copy it into the
+      /* Le combo dell'intestazione: si marca la voce attiva, la si copia
+         dentro il bottone che apre, e si collegano apertura, scelta e
+         chiusura. Sono due -- lingua e valuta -- e questo codice non sa
+         quali siano: legge data-pref su ciascuna e chiede a window.__prefs
+         qual e' il valore attivo di quella preferenza. Una combo in piu'
+         non aggiunge una riga qui.
+         aria-selected viene messo adesso e non nell'HTML generato perche'
+         quale voce sia attiva si sa solo a runtime: cuocerlo nel markup
+         vorrebbe dire generare una pagina diversa per ogni combinazione di
+         lingua e valuta, che e' esattamente cio' che questo disegno evita.
+         [EN] The header combos: mark the active entry, copy it into the
          button that opens the list, and wire opening, choosing and
-         closing. aria-selected is set here and not in the generated HTML
-         because which language is active is known only now: baking it into
-         the markup would mean generating three different pages per
-         language, which is exactly what this design avoids. */
-      var restore = false;
+         closing. There are two -- language and currency -- and this code
+         does not know which: it reads data-pref on each one and asks
+         window.__prefs what the active value of that preference is. One
+         more combo adds no line here.
+         aria-selected is set now and not in the generated HTML because
+         which entry is active is known only at runtime: baking it into the
+         markup would mean generating a different page for every
+         combination of language and currency, which is exactly what this
+         design avoids. */
+      var focusPref = null;
       try {
-        restore = !!sessionStorage.getItem('focusAfterLangSwitch');
-        if (restore) sessionStorage.removeItem('focusAfterLangSwitch');
+        focusPref = sessionStorage.getItem('focusAfterPrefSwitch');
+        if (focusPref) sessionStorage.removeItem('focusAfterPrefSwitch');
       } catch (e) {}
 
-      var combo = document.getElementById('lang-combo');
+      /* Aprire e chiudere e' un'operazione sola, definita fuori dal ciclo
+         perche' serve anche a una combo per agire su un'altra: aprendo la
+         seconda si chiude la prima. Con una funzione per combo, chiusa
+         dentro il proprio giro di ciclo, nessuna saprebbe come chiudere le
+         altre.
+         [EN] Opening and closing is a single operation, defined outside the
+         loop because a combo needs it to act on another one too: opening
+         the second closes the first. With one function per combo, sealed
+         inside its own turn of the loop, none of them would know how to
+         close the others. */
+      function setOpen(combo, si) {
+        combo.classList.toggle('open', si);
+        combo.querySelector('.pref-menu').hidden = !si;
+        combo.querySelector('.pref-trigger')
+             .setAttribute('aria-expanded', si ? 'true' : 'false');
+      }
+
       var current = null;
-      if (combo) {
-        var trigger = document.getElementById('lang-trigger');
-        var menu = document.getElementById('lang-menu');
-        var options = menu.querySelectorAll('.lang-option[data-lang]');
-        var attiva = null;
+      var combos = document.querySelectorAll('.pref-combo[data-pref]');
+      for (i = 0; i < combos.length; i++) {
+        (function (combo) {
+          var name = combo.getAttribute('data-pref');
+          var pref = (window.__prefs || {})[name];
+          if (!pref) return;
+          var trigger = combo.querySelector('.pref-trigger');
+          var menu = combo.querySelector('.pref-menu');
+          var options = menu.querySelectorAll('.pref-option[data-value]');
+          var attiva = null;
 
-        for (i = 0; i < options.length; i++) {
-          (function (opt) {
-            var active = opt.getAttribute('data-lang') === window.LANG;
-            opt.setAttribute('aria-selected', active ? 'true' : 'false');
-            if (active) attiva = opt;
-            opt.addEventListener('click', function () {
-              switchLanguage(opt.getAttribute('data-lang'));
-            });
-          })(options[i]);
-        }
-
-        /* Il bottone mostra la voce attiva copiandone il contenuto invece
-           di ricostruirlo: bandiera e nome sono gia' nel documento,
-           generati una volta sola da render_header, e una seconda copia
-           sarebbe una seconda cosa da tenere allineata alla prima.
-           [EN] The button shows the active entry by copying its content
-           rather than rebuilding it: flag and name are already in the
-           document, generated once by render_header, and a second copy
-           would be a second thing to keep in step with the first. */
-        if (attiva) {
-          trigger.querySelector('.lang-current').innerHTML = attiva.innerHTML;
-        }
-        current = trigger;
-
-        function apri(si) {
-          combo.classList.toggle('open', si);
-          menu.hidden = !si;
-          trigger.setAttribute('aria-expanded', si ? 'true' : 'false');
-        }
-
-        trigger.addEventListener('click', function (e) {
-          /* Senza fermare l'evento, il click che apre l'elenco arriverebbe
-             subito dopo al documento, che lo leggerebbe come "click fuori"
-             e lo richiuderebbe all'istante.
-             [EN] Without stopping the event, the click that opens the list
-             would immediately reach the document, which would read it as a
-             "click outside" and close it again at once. */
-          e.stopPropagation();
-          apri(menu.hidden);
-        });
-
-        document.addEventListener('click', function (e) {
-          if (!menu.hidden && !combo.contains(e.target)) apri(false);
-        });
-
-        /* Esc chiude e riporta il fuoco sul bottone: chi ha aperto l'elenco
-           da tastiera deve ritrovarsi dov'era, non in cima al documento.
-           [EN] Esc closes and returns focus to the button: whoever opened
-           the list from the keyboard must end up where they were, not at
-           the top of the document. */
-        document.addEventListener('keydown', function (e) {
-          if (e.key === 'Escape' && !menu.hidden) {
-            apri(false);
-            trigger.focus();
+          for (var j = 0; j < options.length; j++) {
+            (function (opt) {
+              var active = opt.getAttribute('data-value') === pref.value;
+              opt.setAttribute('aria-selected', active ? 'true' : 'false');
+              if (active) attiva = opt;
+              opt.addEventListener('click', function () {
+                window.switchPref(name, opt.getAttribute('data-value'));
+              });
+            })(options[j]);
           }
-        });
+
+          /* Il bottone mostra la voce attiva copiandone il contenuto invece
+             di ricostruirlo: bandiera, simbolo e nome sono gia' nel
+             documento, generati una volta sola da render_header, e una
+             seconda copia sarebbe una seconda cosa da tenere allineata alla
+             prima.
+             [EN] The button shows the active entry by copying its content
+             rather than rebuilding it: flag, symbol and name are already in
+             the document, generated once by render_header, and a second
+             copy would be a second thing to keep in step with the first. */
+          if (attiva) {
+            trigger.querySelector('.pref-current').innerHTML = attiva.innerHTML;
+          }
+          if (focusPref === name) current = trigger;
+
+          trigger.addEventListener('click', function (e) {
+            /* Aprire una combo chiude le altre: due elenchi aperti insieme
+               sono due domande fatte contemporaneamente, e chi guarda non
+               sa piu' a quale delle due sta rispondendo.
+               Non basta lasciar correre il click fino al documento: il
+               gestore qui sotto ferma l'evento, e senza fermarlo qualunque
+               altro ascoltatore della pagina si ritroverebbe fra i piedi un
+               click che non lo riguarda.
+               [EN] Opening a combo closes the others: two lists open at once
+               are two questions asked at the same time, and the person
+               looking no longer knows which of the two they are answering.
+               Letting the click run up to the document is not enough: the
+               handler below stops the event, and without stopping it any
+               other listener on the page would find itself handed a click
+               that is none of its business. */
+            e.stopPropagation();
+            var aperte = document.querySelectorAll('.pref-combo.open');
+            for (var k = 0; k < aperte.length; k++) {
+              if (aperte[k] !== combo) setOpen(aperte[k], false);
+            }
+            setOpen(combo, menu.hidden);
+          });
+
+          /* Un click fuori chiude l'elenco: e' il modo in cui ci si aspetta
+             di poterlo abbandonare senza scegliere niente.
+             [EN] A click outside closes the list: it is the way one expects
+             to be able to leave it without choosing anything. */
+          document.addEventListener('click', function (e) {
+            if (!menu.hidden && !combo.contains(e.target)) setOpen(combo, false);
+          });
+
+          /* Esc chiude e riporta il fuoco sul bottone: chi ha aperto
+             l'elenco da tastiera deve ritrovarsi dov'era, non in cima al
+             documento.
+             [EN] Esc closes and returns focus to the button: whoever opened
+             the list from the keyboard must end up where they were, not at
+             the top of the document. */
+          document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape' && !menu.hidden) {
+              setOpen(combo, false);
+              trigger.focus();
+            }
+          });
+        })(combos[i]);
       }
 
       /* Il fuoco e' l'unica cosa qui dentro che NON va fatta subito.
@@ -1477,7 +1716,7 @@ I18N_APPLY = r"""  <script>
          The translations, on the contrary, must stay here and cannot wait
          (why is in the comment above I18N_BOOT): so the two are separated,
          each at the moment it needs. */
-      if (restore && current) {
+      if (current) {
         if (document.readyState === 'loading') {
           document.addEventListener('DOMContentLoaded', function () {
             current.focus();
