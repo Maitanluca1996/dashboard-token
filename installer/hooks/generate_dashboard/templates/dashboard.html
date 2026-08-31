@@ -426,7 +426,47 @@ __HEADER_CSS__
      charts' first series, and follows the light/dark theme on its own: it
      is the only line needed, against the dozens of ::-webkit-slider-* of a
      hand-written style. */
-  .range-control > input[type="range"] { width: 100%; accent-color: var(--series-1); margin: 0; }
+  /* La corsa e la fascia di cio' che il periodo esclude stanno una sopra
+     l'altra, quindi il contenitore fa da riferimento: l'input resta com'e'
+     e la fascia gli si posa sopra, senza intercettare il dito.
+     [EN] The track and the band of what the period rules out sit one on
+     top of the other, so the container is the reference: the input stays
+     as it is and the band lies over it, without intercepting the finger. */
+  .range-control > .range-track { position: relative; }
+  .range-control > .range-track > input[type="range"] { display: block; width: 100%; accent-color: var(--series-1); margin: 0; }
+  /* Il tratto di corsa oltre il periodo scelto: rigato, come si sbarra
+     una casella che non si puo' riempire. Non e' un pezzo di corsa
+     colorato diversamente -- quello si leggerebbe come un secondo valore
+     -- ed e' spesso quanto la corsa, non quanto tutto il controllo.
+     Il pomello si ferma comunque prima (vedi rangeCapIndex): la fascia
+     dice perche', non lo impedisce.
+     La larghezza: le posizioni utili non partono dal bordo, ma da mezzo
+     pomello dentro -- 8px per lato -- quindi la frazione da coprire si
+     calcola su quel che resta della corsa, non sull'intera larghezza.
+     [EN] The stretch of track beyond the chosen period: hatched, the way
+     one crosses out a box that cannot be filled in. It is not a piece of
+     track in a different color -- that would read as a second value --
+     and it is as thick as the track, not as the whole control.
+     The thumb stops before it anyway (see rangeCapIndex): the band says
+     why, it does not enforce it.
+     The width: the usable positions do not start at the edge, but half a
+     thumb in -- 8px a side -- so the fraction to cover is computed on
+     what is left of the track, not on the whole width. */
+  .range-blocked {
+    position: absolute;
+    top: 50%;
+    right: 8px;
+    width: calc(var(--range-blocked, 0) * (100% - 16px));
+    height: 6px;
+    transform: translateY(-50%);
+    border-radius: 3px;
+    pointer-events: none;
+    background:
+      repeating-linear-gradient(135deg, var(--text-muted) 0 1px, transparent 1px 4px),
+      var(--control-bg);
+    opacity: 0.55;
+  }
+  .range-blocked[hidden] { display: none; }
   /* Gli estremi scritti sotto la corsa dicono dove si arriva senza dover
      trascinare fino in fondo per scoprirlo. Griglia 1fr-auto-1fr e non un
      flex con space-between: cosi' la durata al centro e' centrata sulla
@@ -1892,8 +1932,11 @@ __SITE_HEADER__
            there by mistake. -->
       <div class="filter-row chart-control range-control">
         <label for="range-filter">Periodo:</label>
-        <input type="range" id="range-filter" min="0" max="0" step="1" value="0"
-               list="range-ticks" aria-label="Ampiezza della finestra di tempo">
+        <div class="range-track">
+          <input type="range" id="range-filter" min="0" max="0" step="1" value="0"
+                 list="range-ticks" aria-label="Ampiezza della finestra di tempo">
+          <div class="range-blocked" id="range-blocked" hidden></div>
+        </div>
         <datalist id="range-ticks"></datalist>
         <!-- Gli estremi ai lati e la durata scelta in mezzo, sotto la corsa:
              la durata sta al centro perche' e' l'unica delle tre che cambia,
@@ -5057,11 +5100,124 @@ __SITE_HEADER__
     return RANGE_STEPS.length - 1;
   }
 
+  /* Il periodo scelto in alto, in istanti: da quando a quando. I periodi
+     a calendario finiscono adesso; un mese o un giorno passato finiscono
+     dove finiscono loro. Senza periodo, null.
+     [EN] The period chosen at the top, in instants: from when to when.
+     Calendar periods end now; a past month or day end where they end.
+     With no period, null. */
+  function selectedPeriodWindow() {
+    var el = document.getElementById('period-filter');
+    var p = PERIODS[el && el.value];
+    if (!p) { return null; }
+    return {
+      period: p,
+      from: p.from().getTime(),
+      to: p.to ? p.to().getTime() : Date.now()
+    };
+  }
+
+  function periodSpanHours(win) {
+    return Math.max(1, Math.ceil((win.to - win.from) / 3600000));
+  }
+
+  /* Fin dove puo' arrivare il cursore. Filtrando su un giorno, una finestra
+     di sette giorni non mostra sette giorni: mostra lo stesso giorno con
+     sei giorni di vuoto intorno. Le posizioni oltre il periodo non
+     disegnerebbero niente di piu', quindi la corsa si ferma sulla prima
+     tacca che il periodo copre per intero -- che li' vale il periodo esatto
+     (vedi currentRangeStep), non la durata scritta sulla scala.
+     [EN] How far the slider can go. Filtering on a single day, a seven-day
+     window does not show seven days: it shows that same day with six days
+     of emptiness around it. The positions beyond the period would draw
+     nothing more, so the track stops at the first stop the period covers
+     entirely -- where it stands for the exact period (see
+     currentRangeStep), not for the duration written on the ladder. */
+  function rangeCapIndex() {
+    var win = selectedPeriodWindow();
+    if (!win) { return RANGE_STEPS.length - 1; }
+    var span = periodSpanHours(win);
+    for (var i = 0; i < RANGE_STEPS.length; i++) {
+      if (RANGE_STEPS[i].hours >= span) { return i; }
+    }
+    return RANGE_STEPS.length - 1;
+  }
+
   function currentRangeStep() {
     var el = document.getElementById('range-filter');
     var idx = parseInt(el && el.value, 10);
     if (isNaN(idx) || idx < 0 || idx >= RANGE_STEPS.length) { idx = defaultRangeIdx(); }
+    var cap = rangeCapIndex();
+    if (idx > cap) { idx = cap; }
+    // All'ultima posizione utile la finestra e' il periodo intero e porta
+    // il suo nome: "Ultimi 3 mesi" su un agosto gia' chiuso sarebbe una
+    // durata che nessuno ha chiesto e che il filtro non lascerebbe
+    // comunque passare.
+    // [EN] At the last usable position the window is the whole period and
+    // carries its name: "Ultimi 3 mesi" on an August already over would be
+    // a duration nobody asked for and that the filter would not let
+    // through anyway.
+    var win = selectedPeriodWindow();
+    if (win && idx === cap) {
+      return {
+        hours: periodSpanHours(win),
+        label: win.period.label,
+        short: win.period.short || win.period.label
+      };
+    }
     return RANGE_STEPS[idx];
+  }
+
+  /* Tiene il cursore d'accordo col periodo scelto in alto. Cambiando
+     periodo -- da un clic su una barra del giorno o del mese, o dalla
+     tendina -- il grafico si porta sull'intero periodo nuovo: e' cio' che
+     si e' appena chiesto di guardare. Restando lo stesso periodo, invece,
+     la posizione scelta a mano resta dov'e', e si limita al tetto.
+     [EN] Keeps the slider in agreement with the period chosen at the top.
+     On a period change -- from a click on a day or month bar, or from the
+     dropdown -- the chart moves to the whole new period: that is what one
+     has just asked to look at. If the period stays the same, instead, the
+     hand-picked position stays where it is, and only bows to the cap. */
+  var lastRangePeriod = null;
+  var rangeSyncedOnce = false;
+
+  function syncRangeToPeriod() {
+    var el = document.getElementById('range-filter');
+    if (!el) { return; }
+    var key = document.getElementById('period-filter').value;
+    var cap = rangeCapIndex();
+    var last = RANGE_STEPS.length - 1;
+    // Solo verso un periodo, non via da uno: togliendo il filtro il
+    // grafico non deve spalancarsi su tutto lo storico, che nessuno ha
+    // chiesto -- la finestra scelta a mano resta quella.
+    // [EN] Only towards a period, not away from one: dropping the filter
+    // must not fling the chart open onto the whole history, which nobody
+    // asked for -- the hand-picked window stays as it is.
+    if (rangeSyncedOnce && key && key !== lastRangePeriod) { el.value = String(cap); }
+    else if (parseInt(el.value, 10) > cap) { el.value = String(cap); }
+    lastRangePeriod = key;
+    rangeSyncedOnce = true;
+    // Una posizione sola utile: il cursore non ha piu' niente da scegliere
+    // e si spegne del tutto, invece di restare trascinabile a vuoto.
+    // [EN] A single usable position: the slider has nothing left to choose
+    // and switches off entirely, instead of staying draggable for nothing.
+    el.disabled = cap <= 0;
+    var band = document.getElementById('range-blocked');
+    if (band) {
+      band.hidden = cap >= last;
+      band.style.setProperty('--range-blocked', last > 0 ? String((last - cap) / last) : '0');
+    }
+    // L'estremo destro dice dove si arriva: col periodo attivo e' il
+    // periodo stesso, non "tutto".
+    // [EN] The right end says how far one gets: with an active period it is
+    // the period itself, not "tutto".
+    var maxEl = document.getElementById('range-max');
+    if (maxEl) {
+      var top = RANGE_STEPS[cap];
+      var win = selectedPeriodWindow();
+      maxEl.textContent = win ? (win.period.short || win.period.label) : (top ? top.short : '');
+    }
+    updateRangeValueLabel();
   }
 
   function populateRangeSlider() {
@@ -5735,7 +5891,16 @@ __SITE_HEADER__
     var titleEl = document.getElementById('line-chart-title');
     if (titleEl) { titleEl.textContent = unit.lineTitle; }
     var logScale = currentScale() === 'log';
-    var nowMs = Date.now();
+    // La finestra finisce dove finisce il periodo scelto: su un giorno o un
+    // mese gia' chiusi, "adesso meno N ore" cade tutta fuori dal filtro, e
+    // il grafico resterebbe vuoto proprio sul giorno che si e' appena
+    // cliccato. Senza periodo, come sempre: fino ad adesso.
+    // [EN] The window ends where the chosen period ends: on a day or month
+    // already over, "now minus N hours" falls entirely outside the filter,
+    // and the chart would stay empty right on the day one has just clicked.
+    // With no period, as always: up to now.
+    var periodWin = selectedPeriodWindow();
+    var nowMs = periodWin ? Math.min(Date.now(), periodWin.to) : Date.now();
     var windowMs = windowHours * 3600 * 1000;
     var bucketMs = windowMs / LINE_CHART_BUCKETS;
     // Fasce orarie fisse, non ancorate al secondo esatto in cui si carica la
@@ -6626,6 +6791,7 @@ __SITE_HEADER__
     // chart must be born already on the new one instead of being redrawn
     // right afterwards.
     syncBar2Groups();
+    syncRangeToPeriod();
     BAR_CHARTS.forEach(function (cfg) { renderBarChart(ft, cfg); });
     renderLineChart(ft);
     renderTurnsTable(ft, fo);
@@ -6777,6 +6943,14 @@ __SITE_HEADER__
 
   document.getElementById('range-filter').addEventListener('input', function () {
     hideTooltip();
+    // Il tetto si rimette qui e non solo alla fine del trascinamento: la
+    // fascia rigata dice dove ci si ferma, e il pomello deve fermarcisi
+    // mentre lo si trascina, non tornare indietro dopo.
+    // [EN] The cap is reapplied here and not only at the end of the drag:
+    // the hatched band says where one stops, and the thumb must stop there
+    // while being dragged, not jump back afterwards.
+    var cap = rangeCapIndex();
+    if (parseInt(this.value, 10) > cap) { this.value = String(cap); }
     updateRangeValueLabel();
     renderLineChart(currentFilteredTurns);
   });
