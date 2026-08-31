@@ -655,6 +655,11 @@ NAV_ITEMS = [
     {
         "id": "guide",
         "key": "nav.guide",
+        # Unica voce con un collegamento che cambia con la lingua: la
+        # guida esiste in due file, uno per lingua (vedi config.py).
+        # [EN] The only entry whose link changes with the language: the
+        # guide exists as two files, one per language (see config.py).
+        "hrefKey": "nav.guideHref",
         "href": "guida-costi.html",
         "label": "Guida ai costi",
         "icon": '<svg class="nav-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 1 1 7.072 0l-.548.547A3.374 3.374 0 0 0 14 18.469V19a2 2 0 1 1-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path></svg>',
@@ -835,8 +840,23 @@ def render_header(active_id, refresh_control=False):
         # written one below the other inside round brackets): it builds
         # the <a> link of this single menu item, with the SVG icon and
         # the text inside.
+        # Se questa voce ha un collegamento che cambia con la lingua, la
+        # si marca perche' la passata di traduzione lo riscriva. L'href
+        # scritto nell'HTML resta quello italiano, ed e' quello che si
+        # segue se il dizionario non si carica: un collegamento rotto
+        # sarebbe una degradazione peggiore di un collegamento in
+        # un'altra lingua.
+        # [EN] If this entry has a link that changes with the language,
+        # we mark it so the translation pass rewrites it. The href
+        # written into the HTML stays the Italian one, and that is the
+        # one followed if the dictionary does not load: a broken link
+        # would be a worse degradation than a link in another language.
+        href_attr = ""
+        if item.get("hrefKey"):
+            href_attr = f' data-i18n-href="{item["hrefKey"]}"'
+
         tabs_html.append(
-            f'      <a href="{item["href"]}" class="nav-tab{active_cls}"{aria_current}>\n'
+            f'      <a href="{item["href"]}"{href_attr} class="nav-tab{active_cls}"{aria_current}>\n'
             f'        {item["icon"]}\n'
             f'        <span class="nav-text" data-i18n="{item["key"]}">{item["label"]}</span>\n'
             f'      </a>'
@@ -1121,13 +1141,25 @@ I18N_BOOT = r"""  <script src="site-i18n.js"></script>
        "chart.avgOthers" on the page is a report anyone recognises, whereas
        a silent fallback to Italian would be a bug that ships unnoticed.
        The full reasoning is in i18n.py's docstring. */
-    window.tr = function (key, arg) {
-      var node = DICT;
+    /* La ricerca di una chiave, in una lingua qualsiasi. Sta fuori da tr()
+       perche' serve anche a switchLanguage, che deve leggere il dizionario
+       della lingua verso cui si sta andando, non di quella attuale.
+       [EN] Key lookup, in any language. It lives outside tr() because
+       switchLanguage needs it too: that one has to read the dictionary of
+       the language being switched TO, not the current one. */
+    function lookup(lang, key) {
+      var node = I18N.strings[lang];
       var parts = key.split('.');
       for (var i = 0; i < parts.length; i++) {
-        if (!node || typeof node !== 'object' || !(parts[i] in node)) return key;
+        if (!node || typeof node !== 'object' || !(parts[i] in node)) return null;
         node = node[parts[i]];
       }
+      return node;
+    }
+
+    window.tr = function (key, arg) {
+      var node = lookup(LANG, key);
+      if (node === null) return key;
       if (node && typeof node === 'object') {
         /* Chiave a due forme senza il numero per sceglierle: si torna
            indietro con la chiave invece di tirare a indovinare.
@@ -1163,6 +1195,24 @@ I18N_BOOT = r"""  <script src="site-i18n.js"></script>
        per-page special case is needed here. */
     window.switchLanguage = function (next) {
       if (next === LANG || LIST.indexOf(next) < 0) return;
+      /* Quasi tutte le pagine esistono in un file solo e si traducono
+         ricaricandosi. La guida no: e' prosa lunga e vive in un file per
+         lingua, quindi ricaricare lo stesso file darebbe testo inglese
+         dentro una cornice italiana. Una pagina cosi' lo dichiara scrivendo
+         sull'elemento <html> la chiave che contiene il proprio indirizzo, e
+         qui si va a leggerla nel dizionario della lingua di destinazione.
+         Non e' un caso speciale per la guida: e' un meccanismo che vale per
+         qualunque pagina futura che nasca in piu' file.
+         [EN] Almost every page exists as a single file and translates
+         itself by reloading. The guide does not: it is long prose and lives
+         as one file per language, so reloading the same file would give
+         English text inside an Italian frame. Such a page declares itself
+         by writing on the <html> element the key holding its own address,
+         and here we read that key in the destination language's dictionary.
+         It is not a special case for the guide: it is a mechanism serving
+         any future page born as several files. */
+      var pageKey = document.documentElement.getAttribute('data-page-href');
+      var target = pageKey ? lookup(next, pageKey) : null;
       try {
         localStorage.setItem('dashboardLang', next);
         sessionStorage.setItem('skipPageIntro', '1');
@@ -1178,7 +1228,11 @@ I18N_BOOT = r"""  <script src="site-i18n.js"></script>
       if (typeof window.__saveStateForReload === 'function') {
         try { window.__saveStateForReload(); } catch (e) {}
       }
-      location.reload();
+      if (typeof target === 'string' && target) {
+        location.assign(target);
+      } else {
+        location.reload();
+      }
     };
 
     /* L'ora di generazione, scritta nella lingua attiva e nel fuso di chi

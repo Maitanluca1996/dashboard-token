@@ -20,6 +20,46 @@ symbols.
 """
 
 
+# I separatori li tiene il profilo di formattazione della lingua (FMT in
+# lang_it.py / lang_en.py), lo stesso da cui li legge il JavaScript delle
+# pagine. Non sono duplicati qui: una convenzione tipografica scritta in due
+# posti e' una convenzione che prima o poi si contraddice.
+# [EN] The separators are held by the language's formatting profile (FMT in
+# lang_it.py / lang_en.py), the same one the pages' JavaScript reads them
+# from. They are not duplicated here: a typographic convention written in
+# two places is a convention that sooner or later contradicts itself.
+def _sep(lang, which):
+    from . import i18n
+    return i18n.lookup(lang, which, "FMT")
+
+
+def num(value, decimals=2, lang="it"):
+    """Numero con i separatori della lingua indicata.
+
+    [EN] Number with the given language's separators."""
+    # NIENTE separatore delle migliaia, di proposito: questa funzione
+    # formatta prezzi unitari, rapporti e moltiplicatori -- numeri piccoli
+    # -- e raggrupparli sarebbe rumore. Chi vuole le migliaia raggruppate
+    # chiama thousands() qui sotto. E' esattamente il comportamento che
+    # aveva it_num prima di imparare le lingue: cambiarlo qui avrebbe
+    # riscritto di soppiatto tutti i numeri della guida.
+    # [EN] NO thousands separator, deliberately: this function formats unit
+    # prices, ratios and multipliers -- small numbers -- and grouping them
+    # would be noise. Whoever wants grouped thousands calls thousands()
+    # below. It is exactly the behaviour it_num had before it learned
+    # languages: changing it here would have quietly rewritten every number
+    # in the guide.
+    return (("{:." + str(decimals) + "f}").format(value)
+            .replace(".", _sep(lang, "dec")))
+
+
+def thousands(value, lang="it"):
+    """Intero con il separatore delle migliaia della lingua indicata.
+
+    [EN] Integer with the given language's thousands separator."""
+    return "{:,}".format(int(value)).replace(",", _sep(lang, "thou"))
+
+
 def it_num(value, decimals=2):
     """Numero con la virgola decimale, come nel resto dell'interfaccia.
 
@@ -49,7 +89,14 @@ def it_num(value, decimals=2):
     # that format to the number, producing something like "3.14" (still
     # with the dot, American style). ".replace(".", ",")" at the end
     # replaces that dot with the Italian comma.
-    return ("{:." + str(decimals) + "f}").format(value).replace(".", ",")
+    # Da quando esistono due lingue, il lavoro vero lo fa num(): questa
+    # resta come scorciatoia per i punti di chiamata che l'italiano lo
+    # vogliono per definizione. Una sola implementazione, cosi' le due non
+    # possono divergere.
+    # [EN] Since there are two languages, the real work is done by num():
+    # this stays as a shorthand for the call sites that want Italian by
+    # definition. One implementation only, so the two cannot diverge.
+    return num(value, decimals, "it")
 
 
 def it_thousands(value):
@@ -67,4 +114,6 @@ def it_thousands(value):
     # the number to be an integer before formatting it (no decimals). As
     # above, ".replace(",", ".")" turns the American comma into the
     # Italian dot, producing "1.234.567".
-    return "{:,}".format(int(value)).replace(",", ".")
+    # Come sopra: il lavoro lo fa thousands(), questa e' la scorciatoia.
+    # [EN] As above: the work is done by thousands(), this is the shorthand.
+    return thousands(value, "it")

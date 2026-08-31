@@ -1,0 +1,489 @@
+<!doctype html>
+<!-- Questa pagina esiste in un file per lingua: l'attributo dice
+     allo switch dove andare invece di ricaricare (vedi header.py).
+     [EN] This page exists as one file per language: the attribute
+     tells the switch where to go instead of reloading (see
+     header.py). -->
+<html lang="en" data-page-href="nav.guideHref">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🪙</text></svg>" />
+<title data-i18n="page.guide">Guida all'ottimizzazione dei costi &mdash; Claude Code</title>
+<style>
+__GUIDE_CSS__
+</style>
+__I18N_BOOT__
+__REVEAL_BOOT__
+</head>
+<body>
+<div class="wrap">
+__SITE_HEADER__
+
+  <div class="page-title-block">
+    <h1>Cost optimisation guide</h1>
+    <p class="page-desc">Practical levers for cutting the cost of a session, followed by the mechanisms &mdash; context usage, caching, prices, billing modes &mdash; that produce it.</p>
+  </div>
+
+  <div class="sec open" data-reveal id="in-breve">
+    <button class="sec-summary" type="button" aria-expanded="true" aria-controls="in-breve-body">
+      <svg class="sec-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+      <div class="sec-head-text">
+        <span class="sec-eyebrow">Practical guide</span>
+        <h2>In short</h2>
+        <p class="sec-sub">A working checklist for everyday use of the tool.</p>
+      </div>
+    </button>
+    <div class="sec-body" id="in-breve-body"><div class="sec-body-inner">
+    <div class="panel check-panel">
+      <div class="check-groups">
+        <div class="check-group">
+          <h3><span class="cg-num">1</span>Before starting</h3>
+          <ul>
+            <li>Is the open session still of use to the next request? If not, <code>/clear</code>.</li>
+            <li>Is the place to act on already known? Naming it is worth more than any other optimisation.</li>
+            <li>Is the task mechanical, ordinary or hard? Choose the model accordingly.</li>
+            <li>Are there MCP servers running that the current project does not use?</li>
+          </ul>
+        </div>
+        <div class="check-group">
+          <h3><span class="cg-num">2</span>While working</h3>
+          <ul>
+            <li>Long logs or dumps: name the file, do not paste its contents.</li>
+            <li>Broad searches through the code: delegate them to a sub-agent.</li>
+            <li>Two failed attempts on the same point: stop, start again clean, move up a model if needed.</li>
+            <li>Verification: run the test instead of asking the model to confirm.</li>
+          </ul>
+        </div>
+        <div class="check-group">
+          <h3><span class="cg-num">3</span>Every so often</h3>
+          <ul>
+            <li>Review <code>CLAUDE.md</code>: does it hold only what is needed almost always?</li>
+            <li>Check the ratio of fresh tokens to total tokens on the dashboard.</li>
+            <li>Watch the average fresh tokens per interaction: if it grows, sessions are running too long.</li>
+            <li>Check that the price list matches current prices.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="keybox">
+      <p class="kb-label">FIRST THING TO DO</p>
+      <p>Close the session with <code>/clear</code> when the subject changes. The cost of a session grows with the square of its length (explained in &laquo;How the cost builds up&raquo; below): it is the single action with the greatest effect on the overall bill.</p>
+    </div>
+    </div></div>
+  </div>
+
+  <div class="sec open" data-reveal id="leve">
+    <button class="sec-summary" type="button" aria-expanded="true" aria-controls="leve-body">
+      <svg class="sec-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+      <div class="sec-head-text">
+        <span class="sec-eyebrow">Practical guide</span>
+        <h2>The levers, in order of impact</h2>
+        <p class="sec-sub">Ordered by real effect on cost, not by ease. They apply to pay-as-you-go billing (per-token API) &mdash; the note at the end of the section explains what changes on a flat plan.</p>
+      </div>
+    </button>
+    <div class="sec-body" id="leve-body"><div class="sec-body-inner">
+
+    <article class="lever">
+      <div class="lever-main">
+        <span class="lever-rank">1</span>
+        <div class="lever-body">
+          <div class="lever-top"><span class="impact impact-alto">High impact</span><h3>Close the session when the subject changes</h3></div>
+          <div class="prose">
+            <p>A <code>/clear</code> between two unrelated activities brings the resent context back to almost nothing. Keeping alive a session that has been through five different subjects means paying for all five at every turn.</p>
+            <p>The criterion is the change of subject, not the time elapsed: if the next request needs nothing of what came before, there is no reason to carry it along. It is the lever with the greatest effect on the overall bill, because of the quadratic mechanism described in &laquo;How the cost builds up&raquo;.</p>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <article class="lever">
+      <div class="lever-main">
+        <span class="lever-rank">2</span>
+        <div class="lever-body">
+          <div class="lever-top"><span class="impact impact-alto">High impact</span><h3>Point at the exact spot instead of making it search</h3></div>
+          <div class="prose">
+            <p>&laquo;Fix the login bug&raquo; forces exploration: searches, whole files read, attempts, all of it resent at every following turn. <code>auth.ts:42, the token expires before the refresh</code> reaches the same result without loading anything superfluous.</p>
+            <p>It takes a few seconds more to phrase and can keep tens of thousands of tokens out of the permanent context, never resent for all the turns that follow.</p>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <article class="lever">
+      <div class="lever-main">
+        <span class="lever-rank">3</span>
+        <div class="lever-body">
+          <div class="lever-top"><span class="impact impact-alto">High impact</span><h3>Stop fruitless attempts by the second one</h3></div>
+          <div class="prose">
+            <p>When the model repeats variations of the same fix without getting closer to the solution, every further turn costs more and succeeds less often, because the context fills up with failed attempts.</p>
+            <p>The right move: interrupt, start again from a clean context carrying what the failure taught, move up a model if warranted. It avoids the most expensive and least productive tail of spending.</p>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <article class="lever">
+      <div class="lever-main">
+        <span class="lever-rank">4</span>
+        <div class="lever-body">
+          <div class="lever-top"><span class="impact impact-medio">Medium impact</span><h3>Keep <code>CLAUDE.md</code> lean</h3></div>
+          <div class="prose">
+            <p>Included <strong>at every turn of every session</strong>. Two thousand tokens of useful conventions pay for themselves at once; ten thousand tokens of discursive documentation are a permanent fixed tax multiplied by every turn of the whole team. Only what is needed almost always belongs there.</p>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <article class="lever">
+      <div class="lever-main">
+        <span class="lever-rank">5</span>
+        <div class="lever-body">
+          <div class="lever-top"><span class="impact impact-medio">Medium impact</span><h3>Turn off MCP servers that are not in use</h3></div>
+          <div class="prose">
+            <p>Every MCP server puts its tools' schemas into the context at every turn, whether or not they get used. Keeping only those useful to the current project takes a one-off check and produces a steady saving over time.</p>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <article class="lever">
+      <div class="lever-main">
+        <span class="lever-rank">6</span>
+        <div class="lever-body">
+          <div class="lever-top"><span class="impact impact-medio">Medium impact</span><h3>Delegate exploration to a sub-agent</h3></div>
+          <div class="prose">
+            <p>A sub-agent works in a context of its own and returns only the conclusion. It pays off when the search is broad and the answer is short; it does not on small tasks, where the cost of starting one exceeds the saving.</p>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <article class="lever">
+      <div class="lever-main">
+        <span class="lever-rank">7</span>
+        <div class="lever-body">
+          <div class="lever-top"><span class="impact impact-medio">Medium impact</span><h3>Name the files instead of pasting their contents</h3></div>
+          <div class="prose">
+            <p>A stack trace pasted into the chat stays in the context until the end of the session. The same file left on disk, with a pointer to where to look, gets read selectively and costs a fraction &mdash; a single large paste can cost more than the entire session containing it.</p>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <article class="lever">
+      <div class="lever-main">
+        <span class="lever-rank">8</span>
+        <div class="lever-body">
+          <div class="lever-top"><span class="impact impact-medio">Medium impact</span><h3>Work in continuous blocks</h3></div>
+          <div class="prose">
+            <p>The cache has a default TTL of five minutes. Three turns close together reuse the context at a tenth of the price; the same three turns spread across the morning pay for it almost in full every time &mdash; up to about <strong>__EX_RATIO__&times;</strong> on the input cost of a long session.</p>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <article class="lever">
+      <div class="lever-main">
+        <span class="lever-rank">9</span>
+        <div class="lever-body">
+          <div class="lever-top"><span class="impact impact-basso">Low impact</span><h3>Plan once and execute for a long stretch</h3></div>
+          <div class="prose">
+            <p>On broad work, an initial planning pass produces an outline that execution follows without second thoughts, instead of ten changes of direction each resending the whole context. It pays off on large jobs; it is overhead on small ones.</p>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <article class="lever">
+      <div class="lever-main">
+        <span class="lever-rank">10</span>
+        <div class="lever-body">
+          <div class="lever-top"><span class="impact impact-basso">Low impact</span><h3>Have the machine verify, not the model</h3></div>
+          <div class="prose">
+            <p>Asking for confirmation that something is correct costs a turn of reasoning and produces an opinion. Running the test costs almost nothing and produces a fact. Small but frequent: good practice regardless of cost.</p>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <div class="callout"><span class="callout-title">A flat plan changes little</span><p>These priorities stay the same. A flat plan's allowance is weighted by model, so a pricier model eats into it at roughly the same rate as it would eat into a pay-as-you-go budget: it is not a free token. The one real difference is that <strong>if you never come close to the plan's limit, optimising is pointless</strong> &mdash; below the threshold, go ahead and use the best model with no further arithmetic. Near the limit, though, exactly the same levers above apply, with the unit of measure changed from euros to minutes of blocked work.</p></div>
+    </div></div>
+  </div>
+
+  <div class="sec open" data-reveal id="antipattern">
+    <button class="sec-summary" type="button" aria-expanded="true" aria-controls="antipattern-body">
+      <svg class="sec-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+      <div class="sec-head-text">
+        <span class="sec-eyebrow">Practical guide</span>
+        <h2>Anti-patterns</h2>
+        <p class="sec-sub">Behaviours that look prudent and are not, or that cost a great deal without showing it.</p>
+      </div>
+    </button>
+    <div class="sec-body" id="antipattern-body"><div class="sec-body-inner">
+    <div class="antis">
+      <div class="anti"><h3>The eternal session</h3>
+        <p>One session kept open for days across different subjects. It is the most expensive way to use the tool and it also degrades the quality of the answers.</p></div>
+      <div class="anti"><h3>The cheap model on principle</h3>
+        <p>Always choosing the least expensive model to save money, and getting three failed attempts instead of one that works. You pay more, in money and in time.</p></div>
+      <div class="anti"><h3>Micro-saving at your own expense</h3>
+        <p>Spending five minutes phrasing the shortest possible request to save a few cents. Your working time is worth orders of magnitude more.</p></div>
+      <div class="anti"><h3>The encyclopaedic <code>CLAUDE.md</code></h3>
+        <p>Extensive documentation placed where it is re-read at every turn. An invisible fixed cost multiplied by every developer and every session.</p></div>
+      <div class="anti"><h3>Compaction that just happens to you</h3>
+        <p>Letting automatic compaction step in halfway through a line of reasoning instead of closing it or compacting at a natural boundary.</p></div>
+      <div class="anti"><h3>&laquo;It is flat anyway&raquo;</h3>
+        <p>Assuming that with a subscription the pricier model is free. It eats the allowance at the same rate: the bill arrives as a block, not as an invoice.</p></div>
+    </div>
+    </div></div>
+  </div>
+
+  <div class="group-divider" data-reveal><span class="gd-title">How it works</span><span class="gd-line"></span></div>
+
+  <div class="sec" data-reveal id="modello">
+    <button class="sec-summary" type="button" aria-expanded="false" aria-controls="modello-body">
+      <svg class="sec-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+      <div class="sec-head-text">
+        <span class="sec-eyebrow">Theory</span>
+        <h2>How the cost builds up</h2>
+        <p class="sec-sub">The context resent at every turn, not the output generated, is the dominant cost item in an agentic session.</p>
+      </div>
+    </button>
+    <div class="sec-body" id="modello-body"><div class="sec-body-inner">
+
+    <div class="panel prose">
+      <p>The natural intuition is that you pay for what Claude writes. In an agentic coding session it is almost the opposite: <strong>the dominant cost is the context resent at every turn</strong> &mdash; system instructions, <code>CLAUDE.md</code>, tool schemas, files read, command output, every previous message.</p>
+      <p>One unintuitive consequence follows: <strong>the cost of a session does not grow in proportion to its length, but much faster</strong>. If every turn adds a more or less constant amount of context, the total resent after n turns grows like n&sup2;. Doubling the length of a session quadruples its cost.</p>
+    </div>
+
+    <div class="keybox">
+      <p class="kb-label">A WORKED EXAMPLE</p>
+      <p>A session adding about 3,000 tokens of context per turn, carried on for <strong>40 turns</strong>, resends roughly <strong>2.46 million</strong> tokens in total. The same 40 interactions split into <strong>4 sessions of 10 turns</strong> resend <strong>660,000</strong>: <strong>3.7 times less</strong>, for exactly the same work done.</p>
+    </div>
+
+    <div class="panel">
+      <h3>Prompt caching fixes part of the problem</h3>
+      <p class="hint">Repeated context gets cached and reading it back costs a fraction. The multipliers apply to the input price and are the same for every model.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Item</th><th class="num">Multiplier</th><th>When you pay it</th></tr></thead>
+          <tbody>
+            <tr><td class="model-name">Input tokens</td><td class="num">1.00&times;</td>
+              <td>New content, never seen before in this session.</td></tr>
+            <tr><td class="model-name">Cache write</td><td class="num">__CW__&times;</td>
+              <td>The first time a block of context is stored. Default TTL 5 minutes.</td></tr>
+            <tr class="row-hi"><td class="model-name">Cache read</td><td class="num">__CR__&times;</td>
+              <td>Every reuse of the block while the cache is valid. <strong>Ten times cheaper.</strong></td></tr>
+            <tr><td class="model-name">Output tokens</td><td class="num">&mdash;</td>
+              <td>Priced separately, typically 5&times; the input price of the same model.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="panel prose">
+      <p>In practice: a session of __EX_TURNS__ turns over __EX_CTX__ tokens of context costs about <strong>__EX_NOCACHE__</strong>
+        in input alone without cache, and about <strong>__EX_CACHE__</strong> with the cache warm &mdash; a difference of
+        <strong>__EX_RATIO__&times;</strong> (computed on __BASE_LABEL__, at the price list's current prices).
+        The one condition: <strong>the cache expires</strong>. A twenty-minute break mid-work lets it go
+        cold, and the next turn starts again at full price.</p>
+      <p>The dashboard measures exactly this: the <strong>Fresh tokens</strong> card compared with
+        <strong>Total tokens (with cache)</strong>. If the ratio leans heavily towards the totals, the cache is
+        doing its job.</p>
+    </div>
+    </div></div>
+  </div>
+
+  <div class="sec" data-reveal id="modelli">
+    <button class="sec-summary" type="button" aria-expanded="false" aria-controls="modelli-body">
+      <svg class="sec-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+      <div class="sec-head-text">
+        <span class="sec-eyebrow">Theory</span>
+        <h2>Cheap model or expensive model?</h2>
+        <p class="sec-sub">The break-even point between unit price and expected usage, computed on the price list's current prices.</p>
+      </div>
+    </button>
+    <div class="sec-body" id="modelli-body"><div class="sec-body-inner">
+
+    <div class="panel">
+      <p class="hint">A cheaper model only pays off if its extra usage stays below the ratio between
+        the two prices. Thresholds computed against <strong>__BASE_LABEL__</strong> as the reference, at the prices
+        currently in the price list ($ per million tokens).</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr>
+            <th>Model</th><th class="num">Input</th><th class="num">Output</th>
+            <th class="num">Ratio</th><th>Break-even</th>
+          </tr></thead>
+          <tbody>
+            __PRICE_ROWS__
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    __PROMO_BLOCK__
+
+    <div class="panel prose">
+      <h3>Token usage depends on the model</h3>
+      <p>The token count is <strong>not independent of the model</strong>. A weaker model on a hard
+        task does not simply use a little more: it takes wrong turns, re-reads files, tries corrections,
+        and every attempt is one more turn resending all the context accumulated so far.</p>
+    </div>
+
+    <div class="panel prose">
+      <h3>A cheap model's failure is paid for in working time</h3>
+      <p>This item appears on no price list: when the cheapest model does not get to the end of the task,
+        the difference is paid in developer time, not only in tokens. An hour of human work is worth, as an
+        order of magnitude, as much as <strong>tens of hours</strong> of intensive Claude Code use.</p>
+    </div>
+
+    <div class="panel">
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Kind of task</th><th>Model</th><th>Why</th></tr></thead>
+          <tbody>
+            <tr><td class="model-name">Mechanical and specified</td><td>Haiku</td>
+              <td>Renames, reformatting, pulling data out of logs, repetitive edits with a clear rule.
+                Usage is almost identical to the reference model's, so the saving is real.</td></tr>
+            <tr class="row-hi"><td class="model-name">Ordinary development</td><td>Sonnet</td>
+              <td>The correct default for most of the work. It needs no justification.</td></tr>
+            <tr><td class="model-name">Hard or high-risk</td><td>Opus</td>
+              <td>Non-obvious debugging, architectural refactoring, reasoning about unfamiliar code. It pays for
+                itself as soon as it cuts the number of turns past the threshold in the table above.</td></tr>
+            <tr><td class="model-name">Already failed once</td><td>Move up a model</td>
+              <td>Insisting with the same model on a task it has already got wrong is the most
+                reliable way to burn tokens with nothing to show.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    </div></div>
+  </div>
+
+  <div class="sec" data-reveal id="scenari">
+    <button class="sec-summary" type="button" aria-expanded="false" aria-controls="scenari-body">
+      <svg class="sec-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+      <div class="sec-head-text">
+        <span class="sec-eyebrow">Theory</span>
+        <h2>Pay-as-you-go or flat subscription</h2>
+        <p class="sec-sub">A comparison of the two billing modes and what each one means in practice.</p>
+      </div>
+    </button>
+    <div class="sec-body" id="scenari-body"><div class="sec-body-inner">
+
+    <div class="scen-grid">
+      <div class="scen scen-ppu">
+        <p class="scen-kicker">SCENARIO A</p>
+        <h3>Pay as you go</h3>
+        <p class="scen-who">Pay-as-you-go API billing &middot; per token</p>
+        <dl>
+          <dt>SCARCE RESOURCE</dt><dd>Money, continuously and proportionally.</dd>
+          <dt>MARGINAL COST OF A TOKEN</dt><dd>Constant and always positive. Every token used appears on the invoice.</dd>
+          <dt>SHAPE OF THE CURVE</dt><dd>Linear. No threshold and no ceiling: the tenth million tokens costs what the first did.</dd>
+          <dt>SIGNAL TO WATCH</dt><dd>Total spending, on the invoice and on the dashboard.</dd>
+        </dl>
+      </div>
+      <div class="scen scen-flat">
+        <p class="scen-kicker">SCENARIO B</p>
+        <h3>Flat subscription</h3>
+        <p class="scen-who">Subscription plan &middot; fixed monthly fee</p>
+        <dl>
+          <dt>SCARCE RESOURCE</dt><dd>The plan's usage allowance, which refills in windows.</dd>
+          <dt>MARGINAL COST OF A TOKEN</dt><dd><strong>Zero up to the limit, then blocking.</strong> It is a step function, not a straight line.</dd>
+          <dt>SHAPE OF THE CURVE</dt><dd>Flat, then a wall. Past the threshold you do not pay more: you simply stop.</dd>
+          <dt>SIGNAL TO WATCH</dt><dd>How many times a month you end up blocked before the window refills.</dd>
+        </dl>
+      </div>
+    </div>
+
+    <div class="keybox">
+      <p class="kb-label">IN SHORT</p>
+      <p><strong>On a flat subscription an expensive model is not free.</strong> Plan allowances are not counted
+        in messages: they are weighted by model, and a pricier model eats the allowance at roughly the same
+        rate as it would eat a pay-as-you-go budget. So there is no token budget to save by
+        paying more: they are not two separate currencies, they are the same currency with two labels.</p>
+      <p>The real asymmetry is a different one, and it is the step: <strong>if you never touch the plan's
+        limit, optimising has no value at all</strong>. The token saved does not turn into money, does not
+        accumulate and serves no purpose, while the time spent saving it is a dead loss. Below the threshold the
+        right strategy is to use the best model and think no further.</p>
+      <p>The moment you start reaching the limit, though, the allowance goes back to behaving like money:
+        from there on <strong>exactly the same levers</strong> as the pay-as-you-go scenario apply, with the unit
+        of measure changed from euros to minutes of blocked work.</p>
+    </div>
+
+    <div class="panel">
+      <h3>What changes in practice</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Aspect</th><th>Pay as you go</th><th>Flat</th></tr></thead>
+          <tbody>
+            <tr><td class="model-name">Below the threshold</td>
+              <td>There is no below-the-threshold: you always pay, so every waste removed is money saved right away.</td>
+              <td>Optimising is <strong>counterproductive</strong>: it costs time and produces no benefit at all.</td></tr>
+            <tr><td class="model-name">Choosing the expensive model</td>
+              <td>Justified by the arithmetic in the previous section: fewer turns and a lower risk of failure.</td>
+              <td>Justified the same way, but the currency is the allowance. <strong>It is not a neutral choice.</strong></td></tr>
+            <tr><td class="model-name">Exploratory attempts</td>
+              <td>They have a price. Better to fence them off with a sub-agent or a dedicated session.</td>
+              <td>With allowance to spare there is no reason to hold back: it is the best use of a
+                resource that would otherwise expire unused.</td></tr>
+            <tr class="row-hi"><td class="model-name">The shared rule</td>
+              <td colspan="2">In both scenarios the principle is identical: <strong>cut the waste, never the use</strong>.
+                A turn spent resending useless context is waste. A turn spent solving a real problem
+                is not, and must not be cut in either case.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    </div></div>
+  </div>
+
+  <div class="group-divider" data-reveal><span class="gd-title">References</span><span class="gd-line"></span></div>
+
+  <div class="sec" data-reveal id="note">
+    <button class="sec-summary" type="button" aria-expanded="false" aria-controls="note-body">
+      <svg class="sec-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+      <div class="sec-head-text">
+        <h2>Notes on sources</h2>
+      </div>
+    </button>
+    <div class="sec-body" id="note-body"><div class="sec-body-inner">
+    <div class="panel">
+      <p class="hint"><strong>Prices and thresholds.</strong> Every value on this page is computed automatically from the
+        price list in <code>generate_dashboard/pricing.py</code> at regeneration time: the break-even thresholds in the
+        &laquo;Cheap model or expensive model?&raquo; section and the worked example in &laquo;How the cost builds up&raquo;
+        update by themselves when prices change, with no edits to the text.
+        The full price list is on its <a href="pricing.html">own page</a>.</p>
+      <p class="hint"><strong>Cache.</strong> The multipliers used (__CW__&times; on write, __CR__&times; on read) are
+        the ones the dashboard computes costs with, at the default TTL of 5 minutes. Cache options with a longer TTL
+        and a higher write cost exist, and are not covered by the current calculation.</p>
+      <p class="hint"><strong>Subscription plan limits.</strong> Described qualitatively on purpose: thresholds,
+        refill windows and per-model weights are revised from time to time. The reasoning on this page &mdash;
+        model-weighted allowance, step-shaped marginal cost &mdash; holds regardless of the exact values, but the
+        specific numbers should be checked against the plan actually in use.</p>
+      <p class="hint"><strong>Worked examples.</strong> The figures in the theory sections are there to give the order of
+        magnitude of the ratios between items, not to predict a bill. Real usage data is on the
+        <a href="dashboard.html">dashboard</a>.</p>
+    </div>
+    </div></div>
+  </div>
+
+</div>
+<script>
+  // Accordion: click sul bottone di testata apre/chiude la sezione,
+  // animata via CSS (grid-template-rows 0fr -> 1fr), niente JS di misura.
+  // [EN] Accordion: clicking the header button opens/closes the section,
+  // [EN] animated via CSS (grid-template-rows 0fr -> 1fr), no measuring JS.
+  document.querySelectorAll('.sec-summary').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var sec = btn.closest('.sec');
+      var isOpen = sec.classList.toggle('open');
+      btn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+    });
+  });
+</script>
+__I18N_APPLY__
+__REVEAL_JS__
+</body>
+</html>

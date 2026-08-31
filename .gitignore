@@ -32,6 +32,7 @@ dist-onedir/
 dashboard.html
 pricing.html
 guida-costi.html
+cost-guide.html
 dashboard-data.js
 site-meta.js
 site-i18n.js

@@ -277,12 +277,55 @@ def _selftest():
     from generate_dashboard import backfill  # noqa: F401
     from generate_dashboard import templating
 
-    for name in ("dashboard.html", "pricing.html", "guide.html"):
+    for name in ("dashboard.html", "pricing.html", "guide.html",
+                 "guide.en.html"):
         body = templating.load_template(name)
         if not body.strip():
             print("FALLITO: template {} vuoto".format(name))
             return 1
         print("  template {}: {} byte".format(name, len(body)))
+
+    # Le due guide sono lo stesso documento in due lingue, e devono restare
+    # la stessa STRUTTURA: e' il prezzo di averle come due file invece che
+    # come un template solo tradotto a runtime (il perche' di quella scelta
+    # e' nel docstring di render_guide.render).
+    # Il confronto guarda gli id delle sezioni, che sono anche le ancore dei
+    # collegamenti interni e i bersagli degli aria-controls dei bottoni: se
+    # divergono, in una delle due lingue un bottone smette di dire a quale
+    # riquadro appartiene, e un collegamento porta nel vuoto. Sono guasti
+    # che nessuno nota rileggendo la traduzione, e che invece qui saltano
+    # fuori subito.
+    # Lo stile non ha bisogno di controlli: vive in guide_css.py, e i due
+    # template lo richiamano invece di portarselo scritto dentro.
+    # [EN] The two guides are the same document in two languages, and must
+    # stay the same STRUCTURE: that is the price of having them as two files
+    # rather than one template translated at runtime (why that choice was
+    # made is in render_guide.render's docstring).
+    # The comparison looks at the sections' ids, which are also the anchors
+    # of the internal links and the targets of the buttons' aria-controls:
+    # if they diverge, in one of the two languages a button stops saying
+    # which panel it belongs to, and a link leads nowhere. These are faults
+    # nobody notices while re-reading the translation, and which instead
+    # show up here immediately.
+    # The style needs no check: it lives in guide_css.py, and the two
+    # templates call it in rather than carrying it written inside.
+    import re
+
+    def _ids(name):
+        body = templating.load_template(name)
+        return (sorted(re.findall(r'id="([^"]+)"', body)),
+                sorted(re.findall(r'aria-controls="([^"]+)"', body)))
+
+    it_ids, it_ctrl = _ids("guide.html")
+    en_ids, en_ctrl = _ids("guide.en.html")
+    if it_ids != en_ids or it_ctrl != en_ctrl:
+        print("FALLITO: guide.html e guide.en.html hanno strutture diverse")
+        print("  solo in guide.html:    {}".format(
+            sorted(set(it_ids + it_ctrl) - set(en_ids + en_ctrl))))
+        print("  solo in guide.en.html: {}".format(
+            sorted(set(en_ids + en_ctrl) - set(it_ids + it_ctrl))))
+        return 1
+    print("  guide.html / guide.en.html: {} sezioni allineate".format(len(it_ctrl)))
 
     print("selftest OK ({})".format(version.VERSION))
     return 0

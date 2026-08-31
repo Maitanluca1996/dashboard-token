@@ -165,6 +165,17 @@ LANG = _CONFIG.get("lang") or ""
 OUT_HTML = os.path.join(OUT_DIR, "dashboard.html")
 OUT_PRICING_HTML = os.path.join(OUT_DIR, "pricing.html")
 OUT_GUIDE_HTML = os.path.join(OUT_DIR, "guida-costi.html")
+# La guida esiste in due file, uno per lingua, e non in uno solo tradotto a
+# runtime come le altre due pagine: e' prosa lunga, non etichette, e il
+# perche' della scelta sta nel docstring di templates/guide.en.html --
+# ovvero nello script che l'ha generata. Il nome del file inglese e' in
+# inglese: chi ci arriva da un link deve poterlo riconoscere.
+# [EN] The guide exists as two files, one per language, and not as a single
+# one translated at runtime like the other two pages: it is long prose, not
+# labels, and the reason for the choice is explained where that file was
+# generated. The English file has an English name: whoever arrives from a
+# link should be able to recognise it.
+OUT_GUIDE_HTML_EN = os.path.join(OUT_DIR, "cost-guide.html")
 
 # File JS separati, caricati dalle pagine con <script src="...">: tenendo
 # fuori dai 3 file .html sia i dati di sessione (grosso payload che cambia

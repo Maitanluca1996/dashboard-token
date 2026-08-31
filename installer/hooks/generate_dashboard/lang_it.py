@@ -484,6 +484,24 @@ UI = {
                 "comunque come stima di riferimento.",
     },
 
+    "guide": {
+        "verdictBase": "Riferimento del confronto.",
+        "verdictCheaper": "Conviene finch&eacute; consuma <strong>meno di "
+                          "{mult}&times;</strong> i token di {base}.",
+        "verdictPricier": "Conviene se consuma <strong>meno del {pct}%</strong> "
+                          "dei token di {base}.",
+        "promoTitle": "Le soglie qui sopra cambieranno",
+        "promoBody": "Il modello di riferimento ({label}) ha una nota di "
+                     "listino attiva: <em>{note}</em>. Le soglie di "
+                     "convenienza sono calcolate sul prezzo "
+                     "<strong>attualmente</strong> in tariffario, quindi "
+                     "cambieranno automaticamente quando il listino in "
+                     "<code>generate_dashboard/pricing.py</code> verr&agrave; "
+                     "aggiornato. Finch&eacute; non lo si aggiorna, per&ograve;, "
+                     "sia questa pagina sia i costi della dashboard restano "
+                     "fermi al prezzo promozionale.",
+    },
+
     "footer": {
         "generated": "File generato da ~/.claude/hooks/generate_dashboard/, "
                      "richiamato dall'hook Stop.",
@@ -494,6 +512,9 @@ UI = {
         "dashboard": "Dashboard",
         "pricing": "Tariffario",
         "guide": "Guida ai costi",
+        # Il collegamento, non solo l'etichetta: la guida e' due file.
+        # [EN] The link, not just the label: the guide is two files.
+        "guideHref": "guida-costi.html",
     },
 }
 

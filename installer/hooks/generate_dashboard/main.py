@@ -131,4 +131,13 @@ def main():
     # page.
     render_dashboard.render(tokens, ops)
     render_pricing.render()
-    render_guide.render()
+    # La guida una volta per lingua: e' l'unica pagina che esiste in due
+    #    file invece di essere tradotta nel browser (il perche' e' nel
+    #    docstring di render_guide.render). Le altre due si traducono da
+    #    sole a runtime e restano un file ciascuna.
+    # [EN] The guide once per language: it is the only page existing as two
+    # files instead of being translated in the browser (why is in
+    # render_guide.render's docstring). The other two translate themselves
+    # at runtime and stay one file each.
+    for lingua in i18n.LANGS:
+        render_guide.render(lingua)
