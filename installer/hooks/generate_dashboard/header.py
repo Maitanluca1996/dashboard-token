@@ -675,7 +675,28 @@ NAV_ITEMS = [
 # It is the same reason templating.py uses .replace() instead of
 # .format() on the templates (see the docstring there).
 HEADER_SCRIPT = """  <script>
-  document.getElementById('meta-timestamp').textContent = GENERATED_AT;
+  /* L'ora si scrive due volte in due modi, e si prende il primo che
+     riesce: l'istante formattato nella lingua attiva, oppure -- se il
+     dizionario non si e' caricato e fmtGeneratedAt non esiste -- il testo
+     italiano gia' pronto che main.py scrive comunque. Senza questo
+     ripiego, un dizionario mancante lascerebbe uno spazio vuoto accanto al
+     pallino verde, che e' peggio di una data nella lingua sbagliata.
+     [EN] The time is written twice in two ways, and the first that works
+     wins: the instant formatted in the active language, or -- if the
+     dictionary did not load and fmtGeneratedAt does not exist -- the
+     ready-made Italian text main.py writes anyway. Without this fallback,
+     a missing dictionary would leave a blank next to the green dot, which
+     is worse than a date in the wrong language. */
+  (function () {
+    var el = document.getElementById('meta-timestamp');
+    if (!el) return;
+    if (typeof GENERATED_AT_ISO !== 'undefined' &&
+        typeof window.fmtGeneratedAt === 'function') {
+      var text = window.fmtGeneratedAt(GENERATED_AT_ISO);
+      if (text) { el.textContent = text; return; }
+    }
+    if (typeof GENERATED_AT !== 'undefined') el.textContent = GENERATED_AT;
+  })();
   /* Pubblica l'altezza dell'intestazione come variabile CSS --header-h.
      Serve a chi deve agganciarsi SOTTO di lei (la barra dei filtri della
      dashboard): un valore fisso si romperebbe, perche' l'altezza cambia
@@ -1147,6 +1168,35 @@ I18N_BOOT = r"""  <script src="site-i18n.js"></script>
         try { window.__saveStateForReload(); } catch (e) {}
       }
       location.reload();
+    };
+
+    /* L'ora di generazione, scritta nella lingua attiva e nel fuso di chi
+       guarda. new Date() su un istante ISO fa la conversione di fuso da
+       sola, per qualunque fuso e con le regole giuste: e' il motivo per
+       cui il fuso NON segue la lingua, ma il computer di chi legge (vedi
+       il punto 6 nel docstring di i18n.py).
+       La forma e' la stessa nelle due lingue -- "25 ago 2026, 10:40" e
+       "25 Aug 2026, 10:40" -- quindi cambia solo la tabella dei mesi, che
+       arriva dal profilo di formattazione.
+       [EN] The generation time, written in the active language and in the
+       viewer's time zone. new Date() on an ISO instant does the zone
+       conversion by itself, for any zone and with the right rules: it is
+       why the zone does NOT follow the language, but the reader's computer
+       (see point 6 in i18n.py's docstring).
+       The shape is the same in both languages -- "25 ago 2026, 10:40" and
+       "25 Aug 2026, 10:40" -- so only the month table changes, and that
+       comes from the formatting profile. */
+    window.fmtGeneratedAt = function (iso) {
+      var d = new Date(iso);
+      /* Un istante che il browser non sa leggere non deve buttare giu'
+         tutto: si restituisce vuoto e chi chiama ripiega.
+         [EN] An instant the browser cannot read must not bring everything
+         down: we return empty and the caller falls back. */
+      if (isNaN(d.getTime())) return '';
+      var months = window.FMT.monthsShort || [];
+      function pad(n) { return (n < 10 ? '0' : '') + n; }
+      return d.getDate() + ' ' + months[d.getMonth()] + ' ' + d.getFullYear() +
+             ', ' + pad(d.getHours()) + ':' + pad(d.getMinutes());
     };
 
     document.documentElement.lang = LANG;

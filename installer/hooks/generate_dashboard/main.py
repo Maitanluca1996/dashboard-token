@@ -29,6 +29,7 @@ every turn with "import generate_dashboard; generate_dashboard.main()".
 """
 import json
 import os
+from datetime import datetime, timezone
 
 from . import config
 from . import data
@@ -65,9 +66,40 @@ def main():
     # site-meta.js as a JS variable: the shared header (header.py) reads
     # it at runtime in the browser, so the time text no longer ends up
     # "frozen" inside the 3 .html files.
+    #    Due variabili e non una, e non e' ridondanza.
+    #    GENERATED_AT_ISO e' l'istante nudo, in UTC: e' quello che il
+    #    browser formatta, nella lingua attiva e nel fuso di chi guarda.
+    #    Deve essere un istante e non un testo perche' la lingua si sceglie
+    #    DOPO che questo file e' stato scritto -- un testo gia' formattato
+    #    non si potrebbe piu' ritradurre, ed e' esattamente il motivo per
+    #    cui prima qui c'era solo l'italiano.
+    #    GENERATED_AT resta il testo italiano gia' pronto, e serve da
+    #    ripiego: se il dizionario delle traduzioni non si carica, la
+    #    pagina resta in italiano e la data insieme a lei, invece di
+    #    lasciare uno spazio vuoto accanto al pallino verde. E' lo stesso
+    #    principio per cui il testo italiano resta scritto nel markup.
+    #    Effetto collaterale voluto: formattando nel browser, l'ora
+    #    dell'intestazione finisce nel fuso di chi legge, come gia' fanno
+    #    tutte le altre ore della pagina. Prima era l'unica a non farlo.
+    # [EN] Two variables and not one, and it is not redundancy.
+    # GENERATED_AT_ISO is the bare instant, in UTC: it is what the browser
+    # formats, in the active language and in the viewer's time zone. It has
+    # to be an instant and not a text because the language is chosen AFTER
+    # this file has been written -- an already formatted text could not be
+    # re-translated, which is exactly why only Italian used to be here.
+    # GENERATED_AT stays the ready-made Italian text, and serves as a
+    # fallback: if the translation dictionary fails to load, the page stays
+    # in Italian and the date with it, instead of leaving a blank next to
+    # the green dot. It is the same principle by which the Italian text
+    # stays written in the markup.
+    # Intended side effect: by formatting in the browser, the header time
+    # ends up in the reader's time zone, as all the other times on the page
+    # already do. It used to be the only one that did not.
     generated_at = timeutils.generated_at_now()
+    generated_at_iso = datetime.now(timezone.utc).isoformat(timespec="seconds")
     with open(config.OUT_META_JS, "w", encoding="utf-8") as f:
         f.write("var GENERATED_AT = " + json.dumps(generated_at) + ";\n")
+        f.write("var GENERATED_AT_ISO = " + json.dumps(generated_at_iso) + ";\n")
 
     # 3-bis. Le stringhe tradotte, tutte le lingue insieme, in un unico
     #    site-i18n.js che le tre pagine caricano nel loro <head>. Il
