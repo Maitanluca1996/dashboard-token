@@ -498,6 +498,33 @@ UI = {
                 "locale, in $ per milione di token (input, output, cache)",
         "colModel": "Modello",
         "colIdNote": "ID / note",
+
+        # La sezione dei cambi. I codici delle valute (USD, EUR, GBP)
+        # non sono qui: li scrive render_pricing.py dal registro in
+        # i18n.py, e non si traducono in nessuna lingua.
+        # ratesHint finisce con i due punti perche' la data la segue
+        # in un elemento a parte: e' un valore, non una parola, e
+        # cucirlo dentro la frase vorrebbe dire che ogni lingua deve
+        # metterlo nello stesso punto della frase.
+        # [EN] The rates section. The currency codes (USD, EUR, GBP)
+        # are not here: render_pricing.py writes them from the
+        # registry in i18n.py, and they are translated in no
+        # language.
+        # ratesHint ends with a colon because the date follows it in
+        # a separate element: it is a value, not a word, and sewing
+        # it into the sentence would mean every language has to put
+        # it at the same point of that sentence.
+        "ratesH2": "Cambi tra le valute",
+        "ratesDesc": "Quanto vale una unità della valuta in riga, "
+                     "espressa nella valuta in colonna. La dashboard "
+                     "calcola tutto in dollari e converte con questi "
+                     "rapporti nella valuta scelta nell'intestazione.",
+        "ratesCorner": "1 unità di",
+        "ratesHint": "Cambi fissati a mano e non aggiornati in tempo "
+                     "reale: la dashboard si genera senza mai andare "
+                     "in rete, quindi non c'è nessun servizio di "
+                     "cambi da interrogare. Si aggiornano modificando "
+                     "USD_RATES in pricing.py. Ultimo aggiornamento:",
         "hint": "Cache write = 1,25&times; il prezzo input con TTL 5 minuti, "
                 "<strong>2&times; con TTL 1 ora</strong> (quella usata da "
                 "Claude Code, e quindi la quasi totalita' delle scritture di "

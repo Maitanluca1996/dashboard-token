@@ -19,8 +19,71 @@ page is static (it has no interactive filters to run in the browser):
 producing the ready-made HTML once at generation time is enough.
 """
 from . import config
+from . import i18n
 from . import pricing
 from . import templating
+
+
+# La griglia dei cambi: una riga per valuta di partenza, una colonna per
+# valuta di arrivo, e in ogni cella quanto vale una unita' della prima
+# espressa nella seconda.
+#
+# Tutti i cambi che conosciamo partono dal dollaro (pricing.USD_RATES), ma
+# la tabella deve dire anche quanto vale un euro in sterline. Si ricava dai
+# due che abbiamo: passando dal dollaro, un'unita' di "da" vale 1/rate[da]
+# dollari, e quei dollari valgono rate[a] unita' di "a". Quindi il rapporto
+# e' rate[a] / rate[da] -- il dollaro sparisce nel mezzo, ed e' il motivo
+# per cui basta una colonna di cambi e non una matrice da mantenere.
+#
+# La diagonale viene 1.0 da sola, senza doverla scrivere come caso a parte:
+# rate[x] / rate[x]. Le celle diagonali ricevono comunque una classe
+# propria, ma per il colore, non per il calcolo.
+#
+# I numeri restano in forma "1.1628", col punto decimale, come i prezzi in
+# dollari nella tabella qui sopra: la pagina e' un file solo per tutte le
+# lingue, quindi qualunque numero cotto qui dentro dalla generazione non
+# puo' seguire la lingua scelta a runtime. Quattro decimali perche' un
+# cambio a due ("0,86") perde abbastanza da spostare gli importi.
+# [EN] The rate grid: one row per source currency, one column per target
+# currency, and in each cell what one unit of the first is worth expressed
+# in the second.
+#
+# Every rate we know starts from the dollar (pricing.USD_RATES), but the
+# table must also say what a euro is worth in pounds. It follows from the
+# two we have: going through the dollar, one unit of "from" is worth
+# 1/rate[from] dollars, and those dollars are worth rate[to] units of "to".
+# So the ratio is rate[to] / rate[from] -- the dollar cancels in the
+# middle, and that is why one column of rates is enough and no matrix has
+# to be maintained.
+#
+# The diagonal comes out as 1.0 by itself, with no special case to write:
+# rate[x] / rate[x]. Diagonal cells still get their own class, but for the
+# colour, not for the arithmetic.
+#
+# The numbers stay in "1.1628" form, with a dot decimal, like the dollar
+# prices in the table above: the page is a single file for every language,
+# so any number baked in here at generation time cannot follow the
+# language chosen at runtime. Four decimals because a rate at two ("0.86")
+# loses enough to move the amounts.
+def _rate_grid():
+    codes = [c for c in i18n.CURRENCIES if c in pricing.USD_RATES]
+    head = "".join(
+        '        <th class="num">%s</th>' % i18n.CURRENCY_CODES[c]
+        for c in codes
+    )
+    rows = []
+    for src in codes:
+        cells = []
+        for dst in codes:
+            ratio = pricing.USD_RATES[dst] / pricing.USD_RATES[src]
+            klass = "num rate-self" if src == dst else "num"
+            cells.append('<td class="%s">%.4f</td>' % (klass, ratio))
+        rows.append(
+            '        <tr style="--row-i:%d">'
+            '<td class="rate-from">1 %s</td>%s</tr>'
+            % (len(rows), i18n.CURRENCY_CODES[src], "".join(cells))
+        )
+    return head, "\n".join(rows)
 
 
 def render():
@@ -116,6 +179,11 @@ def render():
     # someone opens it and looks at the source). It is the "inverse"
     # operation of a split: from a list of pieces to a single string.
     html = html.replace("__ROWS__", "\n        ".join(rows))
+
+    rate_head, rate_rows = _rate_grid()
+    html = html.replace("__RATE_HEAD__", rate_head)
+    html = html.replace("__RATE_ROWS__", rate_rows)
+    html = html.replace("__RATES_DATE__", pricing.USD_RATES_DATE)
 
     with open(config.OUT_PRICING_HTML, "w", encoding="utf-8") as f:
         f.write(html)

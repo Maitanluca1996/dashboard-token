@@ -284,10 +284,10 @@ FLAGS = {
 # simbolo sia lo dice la valuta, ed e' lo stesso in ogni lingua.
 #
 # I costi arrivano tutti in dollari, perche' in dollari e' il listino:
-# l'euro e' una conversione a cambio fisso (vedi pricing.USD_TO_EUR).
+# le altre sono conversioni a cambio fisso (vedi pricing.USD_RATES).
 # Per questo il ripiego e' il dollaro e non la valuta del paese di chi
 # guarda -- e' il dato originale, non una preferenza.
-CURRENCIES = ["usd", "eur"]
+CURRENCIES = ["usd", "eur", "gbp"]
 
 CURRENCY_DEFAULT = "usd"
 
@@ -309,7 +309,7 @@ CURRENCY_DEFAULT = "usd"
 # moneyGap); WHICH symbol it is comes from the currency, and it is the
 # same in every language.
 # Costs all arrive in dollars, because the price list is in dollars: the
-# euro is a fixed-rate conversion (see pricing.USD_TO_EUR). Hence the
+# others are fixed-rate conversions (see pricing.USD_RATES). Hence the
 # fallback is the dollar and not the viewer's country currency -- it is
 # the original datum, not a preference.
 # Symbol and ISO code for each currency. Neither is translated: "$" and
@@ -320,11 +320,13 @@ CURRENCY_DEFAULT = "usd"
 CURRENCY_SYMBOLS = {
     "usd": "$",
     "eur": "€",
+    "gbp": "£",
 }
 
 CURRENCY_CODES = {
     "usd": "USD",
     "eur": "EUR",
+    "gbp": "GBP",
 }
 
 

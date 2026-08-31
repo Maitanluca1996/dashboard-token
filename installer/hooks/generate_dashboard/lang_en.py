@@ -309,6 +309,23 @@ UI = {
                 "table, in $ per million tokens (input, output, cache)",
         "colModel": "Model",
         "colIdNote": "ID / notes",
+
+        # Vedi lang_it.py: i codici delle valute non stanno qui, e
+        # ratesHint finisce con i due punti perché la data la segue.
+        # [EN] See lang_it.py: the currency codes are not here, and
+        # ratesHint ends with a colon because the date follows it.
+        "ratesH2": "Rates between the currencies",
+        "ratesDesc": "What one unit of the currency in the row is "
+                     "worth, expressed in the currency in the column. "
+                     "The dashboard computes everything in dollars "
+                     "and converts with these ratios into the "
+                     "currency chosen in the header.",
+        "ratesCorner": "1 unit of",
+        "ratesHint": "Rates fixed by hand and not updated in real "
+                     "time: the dashboard is generated without ever "
+                     "going online, so there is no exchange-rate "
+                     "service to query. They are updated by editing "
+                     "USD_RATES in pricing.py. Last updated:",
         "hint": "Cache write = 1.25&times; the input price with a 5-minute "
                 "TTL, <strong>2&times; with a 1-hour TTL</strong> (the one "
                 "Claude Code uses, and therefore almost every cache write) "

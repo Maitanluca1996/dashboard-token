@@ -2040,17 +2040,17 @@ __I18N_APPLY__
     return (cinqueMin / 1e6) * p.cacheWrite + (unOra / 1e6) * p.cacheWrite1h;
   }
   var DEFAULT_MODEL_KEY = payload.defaultModelKey;
-  // Cambio $ -> EUR fissato a mano in pricing.py (non e' un cambio in
-  // tempo reale: la pagina e' generata offline). Il "|| 1" e' solo una
-  // rete di sicurezza per una dashboard rigenerata con un payload vecchio,
-  // privo del campo: meglio euro sbagliati ma leggibili che tutti gli
-  // importi a zero.
-  // [EN] USD -> EUR rate fixed by hand in pricing.py (it is not a live
-  // [EN] rate: the page is generated offline). The "|| 1" is just a safety
-  // [EN] net for a dashboard regenerated with an old payload missing the
-  // [EN] field: better wrong-but-readable euros than every amount at zero.
-  var USD_TO_EUR = payload.usdToEur || 1;
-  var USD_TO_EUR_DATE = payload.usdToEurDate || '';
+  // Quanto vale un dollaro in ciascuna valuta offerta, fissato a mano in
+  // pricing.py (non sono cambi in tempo reale: la pagina e' generata
+  // offline). Il dollaro c'e' anche lui, con cambio 1: cosi' convertire e'
+  // sempre una moltiplicazione e non esiste un caso "questa valuta non si
+  // converte" da ricordarsi.
+  // [EN] What a dollar is worth in each offered currency, fixed by hand in
+  // [EN] pricing.py (these are not live rates: the page is generated
+  // [EN] offline). The dollar is in there too, at a rate of 1: this way
+  // [EN] converting is always a multiplication and there is no "this
+  // [EN] currency does not convert" case to remember.
+  var USD_RATES = payload.usdRates || {};
 
   // Il transcript a volte riporta l'ID modello con un suffisso data (es.
   // "claude-haiku-4-5-20251001" invece di "claude-haiku-4-5"): un lookup
@@ -2204,7 +2204,17 @@ __I18N_APPLY__
   // [EN] with a space; in English before and attached), the symbol by the
   // [EN] currency: two different things, in two different registries.
   var CURRENCY = window.CURRENCY || 'usd';
-  var CUR_RATE = (CURRENCY === 'eur') ? USD_TO_EUR : 1;
+  // Il "|| 1" e' una rete di sicurezza per una pagina rigenerata con un
+  // payload vecchio, privo della tabella: meglio importi sbagliati ma
+  // leggibili che tutti a zero. Non copre una valuta senza cambio, che
+  // mostrerebbe dollari sotto un altro simbolo: quella la ferma il
+  // selftest, che confronta i due elenchi prima che la pagina esista.
+  // [EN] The "|| 1" is a safety net for a page regenerated with an old
+  // payload lacking the table: better wrong-but-readable amounts than
+  // every one at zero. It does not cover a currency with no rate, which
+  // would show dollars under another symbol: that one is stopped by the
+  // selftest, which compares the two lists before the page exists.
+  var CUR_RATE = USD_RATES[CURRENCY] || 1;
   var CUR_SYMBOL = window.CURRENCY_SYMBOL || '';
   var SYMBOL_BEFORE = fmtOpt('moneySymbolBefore', false);
   var MONEY_GAP = fmtOpt('moneyGap', ' ');

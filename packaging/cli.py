@@ -373,6 +373,33 @@ def _selftest():
         return 1
     print("  guide.html / guide.en.html: {} sezioni allineate".format(len(it_ctrl)))
 
+    # Ogni valuta offerta nella combo deve avere un cambio, un simbolo e un
+    # codice. Senza cambio verrebbe convertita a 1.0, cioe' mostrerebbe
+    # importi in dollari con sopra un altro simbolo: nessun errore, nessuna
+    # pagina rotta, solo numeri sbagliati che sembrano giusti. E' il tipo di
+    # difetto che si nota mesi dopo, quindi si ferma qui.
+    # [EN] Every currency offered in the combo must have a rate, a symbol
+    # and a code. With no rate it would be converted at 1.0, that is, it
+    # would show dollar amounts with another symbol on them: no error, no
+    # broken page, just wrong numbers that look right. It is the kind of
+    # flaw noticed months later, so it is stopped here.
+    from generate_dashboard import i18n, pricing
+    mancanti = [
+        (c, [nome for nome, tabella in (("USD_RATES", pricing.USD_RATES),
+                                        ("CURRENCY_SYMBOLS", i18n.CURRENCY_SYMBOLS),
+                                        ("CURRENCY_CODES", i18n.CURRENCY_CODES))
+             if c not in tabella])
+        for c in i18n.CURRENCIES
+    ]
+    mancanti = [(c, dove) for c, dove in mancanti if dove]
+    if mancanti:
+        print("FALLITO: valute senza tutti i dati che servono")
+        for c, dove in mancanti:
+            print("  {}: manca da {}".format(c, ", ".join(dove)))
+        return 1
+    print("  valute: {} complete (cambi del {})".format(
+        len(i18n.CURRENCIES), pricing.USD_RATES_DATE))
+
     print("selftest OK ({})".format(version.VERSION))
     return 0
 
