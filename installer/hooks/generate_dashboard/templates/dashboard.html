@@ -781,6 +781,30 @@ __HEADER_CSS__
     color: var(--text-muted);
   }
   .legend-item { display: inline-flex; align-items: center; gap: 6px; }
+  .legend-item[data-series] { cursor: pointer; }
+  .legend-item[data-series]:focus-visible {
+    outline: 2px solid var(--series-1);
+    outline-offset: 2px;
+    border-radius: 6px;
+  }
+  .legend-item.muted { opacity: 0.4; }
+  /* Isolare una serie: tutto il resto sbiadisce invece di sparire, cosi' si
+     continua a vedere dove la serie scelta stia rispetto alle altre --
+     nasconderle toglierebbe proprio il confronto per cui si isola.
+     [EN] Isolating a series: everything else fades instead of disappearing,
+     so one keeps seeing where the chosen series sits relative to the others
+     -- hiding them would remove the very comparison one isolates for. */
+  .chart.isolating [data-series] { opacity: 0.12; transition: opacity 0.15s ease; }
+  .chart.isolating [data-series].on { opacity: 1; }
+  /* Isolare zittisce anche i tooltip delle altre: lasciarli vivi sotto un
+     disegno sbiadito farebbe comparire il dettaglio di una serie che si e'
+     appena chiesto di mettere da parte.
+     [EN] Isolating also silences the others' tooltips: leaving them alive
+     under a faded drawing would pop up the detail of a series one has just
+     asked to set aside. */
+  .chart.isolating .dot-hit:not(.on),
+  .chart.isolating .stem-hit:not(.on),
+  .chart.isolating .line-hit:not(.on) { pointer-events: none; }
   .legend-swatch {
     width: 10px;
     height: 10px;
@@ -803,14 +827,18 @@ __HEADER_CSS__
     fill: none;
     stroke-width: 2;
     stroke-linejoin: round;
-    /* La linea sta sopra la propria area, che e' cliccabile: senza questo
-       ruberebbe i clic proprio sul bordo superiore del riquadro, cioe' dove
-       e' piu' naturale mirare. Lasciando passare gli eventi, il clic arriva
-       sempre all'area sottostante.
-       [EN] The line sits on top of its own area, which is clickable:
-       without this it would steal clicks right along the top edge of the
-       shape, i.e. exactly where it is most natural to aim. By letting
-       events pass through, the click always reaches the area below. */
+    /* La linea disegnata non e' mai il bersaglio: si traccia con
+       un'animazione su stroke-dashoffset, e finche' l'animazione corre
+       sarebbe cliccabile solo il tratto gia' comparso -- un bersaglio che
+       cambia forma sotto il mouse. A ricevere il clic e' .line-hit qui
+       sotto, oppure l'area riempita dove c'e'; nessuno dei due si anima e
+       nessuno dei due si vede.
+       [EN] The drawn line is never the target: it is traced with an
+       animation on stroke-dashoffset, and while the animation runs only the
+       stretch already shown would be clickable -- a target changing shape
+       under the mouse. What receives the click is .line-hit below, or the
+       filled area where there is one; neither animates and neither is
+       visible. */
     pointer-events: none;
     stroke-dasharray: 3000;
     stroke-dashoffset: 3000;
@@ -860,6 +888,31 @@ __HEADER_CSS__
      "fill: transparent" with "pointer-events: all" is the standard way to
      make an unseen surface clickable. */
   .dot-hit { fill: transparent; pointer-events: all; cursor: pointer; }
+  /* Lo stelo del marcatore di sessione. Semitrasparente di proposito: due
+     steli che si accavallano non si sommano in un blocco pieno, e le teste
+     -- opache e colorate -- restano l'elemento che si legge.
+     [EN] The session marker's stem. Semi-transparent on purpose: two
+     overlapping stems do not add up into a solid block, and the heads --
+     opaque and colored -- stay the element one reads. */
+  .stem { stroke-width: 2; stroke-linecap: round; opacity: 0.55; pointer-events: none; }
+  /* I marcatori senza nome fanno da sfondo agli altri: piu' piccoli, meno
+     pieni e senza l'alone che stacca i colorati dal fondo. Si agisce su
+     fill-opacity e non su opacity, che e' gia' impegnata dall'animazione
+     d'ingresso di .dot.
+     [EN] The unnamed markers act as a backdrop for the others: smaller, less
+     solid and without the halo that lifts the colored ones off the
+     background. This works on fill-opacity and not on opacity, which is
+     already taken by .dot's entrance animation. */
+  .dot-quiet { fill-opacity: 0.6; stroke-width: 0.75; }
+  /* Bersagli invisibili larghi: lo stelo di un marcatore e il corridoio
+     lungo una polilinea. Stesso principio di .dot-hit -- una superficie che
+     non si vede ma riceve il puntatore -- applicata a una fascia verticale e
+     a un contorno.
+     [EN] Wide invisible targets: a marker's stem and the corridor along a
+     polyline. Same principle as .dot-hit -- a surface that is not seen but
+     receives the pointer -- applied to a vertical band and to an outline. */
+  .stem-hit { fill: transparent; pointer-events: all; cursor: pointer; }
+  .line-hit { fill: none; stroke: transparent; stroke-width: 12; pointer-events: stroke; cursor: pointer; }
   @keyframes bar-grow { from { transform: scaleY(0); } to { transform: scaleY(1); } }
   @keyframes line-draw { to { stroke-dashoffset: 0; } }
   @keyframes area-fadein { to { opacity: 1; } }
@@ -1439,20 +1492,20 @@ __SITE_HEADER__
   </div>
 
   <div class="panel" data-reveal>
-    <!-- Titolo da solo sulla sua riga e i due controlli sulla successiva,
-         invece del solito titolo-a-sinistra-controlli-a-destra: qui i
-         controlli sono due e uno e' un cursore, che di larghezza ne vuole.
-         Messi in fila accanto al titolo non ci starebbero, e a capo
-         separatamente si leggerebbero come due cose scollegate -- mentre
-         sono le due meta' della stessa domanda ("cosa raggruppo" e "su
-         quanto tempo").
-         [EN] Title alone on its row and the two controls on the next one,
-         instead of the usual title-left-controls-right: here the controls
-         are two and one is a slider, which wants width. Lined up next to
-         the title they would not fit, and wrapping separately they would
-         read as two disconnected things -- while they are the two halves of
-         the same question ("what do I group by" and "over how much
-         time"). -->
+    <!-- Titolo da solo sulla sua riga e i controlli sulla successiva,
+         invece del solito titolo-a-sinistra-controlli-a-destra: sono tre e
+         uno e' un cursore, che di larghezza ne vuole. Messi in fila accanto
+         al titolo non ci starebbero, e a capo separatamente si leggerebbero
+         come tre cose scollegate -- mentre sono le tre facce della stessa
+         domanda ("cosa raggruppo", "su quanto tempo" e "con che metro lo
+         misuro").
+         [EN] Title alone on its row and the controls on the next one,
+         instead of the usual title-left-controls-right: there are three and
+         one is a slider, which wants width. Lined up next to the title they
+         would not fit, and wrapping separately they would read as three
+         disconnected things -- while they are the three faces of the same
+         question ("what do I group by", "over how much time" and "by which
+         yardstick do I measure it"). -->
     <div class="chart-header">
       <h2 id="line-chart-title">Andamento costo nel tempo</h2>
     </div>
@@ -1473,6 +1526,36 @@ __SITE_HEADER__
           <option value="project">Per progetto</option>
         </select>
       </div>
+      <!-- Un controllo a segmenti e non una casella da spuntare: in tutta la
+           pagina la scelta binaria si fa cosi', e introdurre una casella per
+           una voce sola aggiungerebbe un linguaggio di controllo nuovo per
+           niente.
+           [EN] A segmented control and not a checkbox: everywhere on this
+           page a binary choice is made this way, and introducing a checkbox
+           for a single entry would add a new control language for
+           nothing. -->
+      <div class="filter-row chart-control">
+        <label>Scala:</label>
+        <div class="segmented-control" id="scale-filter-custom">
+          <div class="indicator"></div>
+          <button type="button" data-value="linear" class="active">Lineare</button>
+          <button type="button" data-value="log">Log</button>
+        </div>
+        <select id="scale-filter" style="display:none">
+          <option value="linear" selected>Lineare</option>
+          <option value="log">Log</option>
+        </select>
+      </div>
+      <!-- Il cursore per ultimo di proposito: e' l'unico dei tre che di
+           larghezza ne vuole, quindi quando la riga va stretta e' lui a
+           finire a capo, dove una riga intera la riempie. Mandandoci invece
+           il controllo piu' piccolo, quello resterebbe da solo in fondo con
+           l'aria di esserci finito per sbaglio.
+           [EN] The slider last on purpose: it is the only one of the three
+           that wants width, so when the row gets tight it is the one to wrap,
+           where it fills a whole row. Sending the smallest control down there
+           instead would leave it alone at the bottom looking like it ended up
+           there by mistake. -->
       <div class="filter-row chart-control range-control">
         <label for="range-filter">Periodo:</label>
         <input type="range" id="range-filter" min="0" max="0" step="1" value="0"
@@ -1494,7 +1577,7 @@ __SITE_HEADER__
         </div>
       </div>
     </div>
-    <p class="hint" id="line-chart-hint">Campionato in ~24 intervalli di tempo uguali (es. 15 min a testa su 6 ore, 1h su 24 ore); passa il mouse su un punto per il dettaglio (il nome della sessione e' nel tooltip).</p>
+    <p class="hint" id="line-chart-hint">Campionato in ~24 intervalli di tempo uguali (es. 15 min a testa su 6 ore, 1h su 24 ore); una linea per ciascuna delle sessioni più costose del periodo, tutte le altre sommate in un’unica linea grigia; passa il mouse su un punto per il dettaglio.</p>
     <div id="line-chart"></div>
   </div>
 
@@ -2279,7 +2362,20 @@ __SITE_HEADER__
   // compatibilita'): riusato da Periodo e Modalita' del grafico a linea.
   // [EN] Generic segmented control (buttons + hidden <select> for
   // [EN] compatibility): reused by the line chart's Periodo and Modalita'.
-  function wireSegmentedControl(containerId, selectId) {
+  // "onChange" e' facoltativo: senza, il controllo rifiltra e ridisegna
+  // tutta la pagina, che e' quel che serve a chi cambia i dati mostrati
+  // (unita', modalita', raggruppamenti). Chi invece tocca un solo grafico lo
+  // passa e ridisegna solo quello -- passare da applyFilters() vorrebbe dire
+  // riscorrere l'intero storico e rifare due grafici a barre che non
+  // c'entrano, che e' esattamente cio' che il cursore del periodo evita.
+  // [EN] "onChange" is optional: without it the control refilters and
+  // [EN] redraws the whole page, which is what someone changing the shown
+  // [EN] data needs (unit, mode, groupings). Whoever instead touches a
+  // [EN] single chart passes it and redraws only that one -- going through
+  // [EN] applyFilters() would mean rescanning the whole history and redoing
+  // [EN] two bar charts that have nothing to do with it, which is exactly
+  // [EN] what the period slider avoids.
+  function wireSegmentedControl(containerId, selectId, onChange) {
     var container = document.getElementById(containerId);
     var select = document.getElementById(selectId);
     if (!container || !select) return;
@@ -2291,7 +2387,7 @@ __SITE_HEADER__
         btn.classList.add('active');
         positionSegmentedIndicator(container);
         select.value = btn.getAttribute('data-value');
-        applyFilters();
+        if (onChange) { onChange(); } else { applyFilters(); }
       });
     });
     positionSegmentedIndicator(container);
@@ -2992,6 +3088,11 @@ __SITE_HEADER__
     }
   };
 
+  function currentScale() {
+    var el = document.getElementById('scale-filter');
+    return (el && el.value) === 'log' ? 'log' : 'linear';
+  }
+
   function currentUnit() {
     var el = document.getElementById('unit-filter');
     return UNIT_MODES[el && el.value] || UNIT_MODES.usd;
@@ -3430,14 +3531,49 @@ __SITE_HEADER__
       fills: colorKeys.map(function (c) {
         return (c === null || !info.map[c]) ? OTHER_COLOR : info.map[c].stroke;
       }),
-      legend: barLegendHtml(info, group)
+      legend: chartLegendHtml(info, group)
     };
   }
 
-  function barLegendHtml(info, group) {
+  // Una sola legenda per tutti i grafici della pagina. "opts" e' facoltativo:
+  // labelFn traduce l'id di gruppo in un nome leggibile (serve al grafico a
+  // linea, dove l'id di una sessione e' un uuid; le barre hanno gia' nomi
+  // umani), interactive rende le voci un comando -- cliccarle isola la
+  // propria serie nel disegno.
+  // [EN] A single legend for every chart on the page. "opts" is optional:
+  // labelFn turns the group id into a readable name (needed by the line
+  // chart, where a session's id is a uuid; the bars already have human
+  // names), interactive turns the entries into a command -- clicking one
+  // isolates its own series in the drawing.
+  function chartLegendHtml(info, group, opts) {
+    var labelFn = (opts && opts.labelFn) || function (gid) { return gid; };
+    var interactive = !!(opts && opts.interactive);
+    // Quante serie stanno davvero dentro la voce grigia. Di norma sono
+    // quante ne conta la legenda, ma chi ha gia' fuso la coda in una serie
+    // sola (il grafico a linea) qui ne vede una e deve dire quante erano.
+    // [EN] How many series the gray entry actually holds. Normally as many
+    // [EN] as the legend counts, but whoever already merged the tail into a
+    // [EN] single series (the line chart) sees one here and has to say how
+    // [EN] many there were.
+    var otherCount = (opts && opts.otherCount) || 0;
     var items = [];
     var nOther = 0;
-    info.order.forEach(function (gid) {
+    function entry(color, text, full, idx) {
+      // L'indice della serie, non il gid: il gid di una sessione e' un uuid
+      // (ripetuto in decine di attributi sarebbe markup a vuoto) e la chiave
+      // della coda contiene un NUL, che in un attributo non e' ammesso.
+      // [EN] The series index, not the gid: a session's gid is a uuid
+      // (repeated across dozens of attributes it would be markup for
+      // nothing) and the tail's key contains a NUL, not allowed inside an
+      // attribute.
+      var attrs = '';
+      if (interactive) {
+        attrs = ' title="' + esc(full) + '" data-series="' + idx + '" role="button" tabindex="0"';
+      }
+      return '<span class="legend-item"' + attrs + '><span class="legend-swatch" style="background:' +
+        color + '"></span>' + esc(text) + '</span>';
+    }
+    info.order.forEach(function (gid, idx) {
       // Oltre l'ottavo, assignGroupColors da' a tutti lo stesso grigio:
       // elencarli uno per uno produrrebbe otto voci di legenda identiche.
       // Si contano e si riassumono in una riga sola.
@@ -3445,12 +3581,20 @@ __SITE_HEADER__
       // [EN] gray: listing them one by one would produce eight identical
       // [EN] legend entries. They are counted and summed up in a single row.
       if (info.map[gid].stroke === OTHER_COLOR) { nOther += 1; return; }
-      items.push('<span class="legend-item"><span class="legend-swatch" style="background:' +
-        info.map[gid].stroke + '"></span>' + esc(gid) + '</span>');
+      var name = labelFn(gid);
+      items.push(entry(info.map[gid].stroke, name, gid === name ? name : gid, idx));
     });
     if (nOther) {
-      items.push('<span class="legend-item"><span class="legend-swatch" style="background:' +
-        OTHER_COLOR + '"></span>' + esc(group.legendOtherLabel(nOther)) + '</span>');
+      var label = group.legendOtherLabel(otherCount || nOther);
+      // Un identificativo condiviso e non un indice: la voce grigia vale per
+      // tutte le serie grigie insieme (nel grafico a linea sono gia' fuse in
+      // una, nello scatter sono ancora tante), e isolandola devono
+      // accendersi tutte.
+      // [EN] A shared identifier and not an index: the gray entry stands for
+      // [EN] every gray series together (in the line chart they are already
+      // [EN] merged into one, in the scatter they are still many), and
+      // [EN] isolating it must light them all up.
+      items.push(entry(OTHER_COLOR, label, label, LEGEND_OTHER_ID));
     }
     return items.length ? '<div class="chart-legend">' + items.join('') + '</div>' : '';
   }
@@ -3594,18 +3738,45 @@ __SITE_HEADER__
     'var(--series-5)', 'var(--series-6)', 'var(--series-7)', 'var(--series-8)'];
   var SESSION_FILLS = ['var(--series-1-fill)', 'var(--series-2-fill)', 'var(--series-3-fill)', 'var(--series-4-fill)',
     'var(--series-5-fill)', 'var(--series-6-fill)', 'var(--series-7-fill)', 'var(--series-8-fill)'];
+  var LEGEND_OTHER_ID = 'other';
   var OTHER_COLOR = 'var(--series-other)';
   var OTHER_FILL = 'var(--series-other-fill)';
 
+  // L'ottavo colore e' anche il tetto delle serie che si possono
+  // distinguere: legarlo alla lunghezza della palette invece di scriverlo a
+  // mano evita che i due numeri divergano il giorno in cui la palette
+  // cresce.
+  // [EN] The eighth color is also the cap on how many series can be told
+  // [EN] apart: tying it to the palette length instead of writing it out by
+  // [EN] hand keeps the two numbers from drifting apart the day the palette
+  // [EN] grows.
+  var LINE_MAX_SERIES = SESSION_COLORS.length;
+
+  // Chiave sentinella della serie di coda ("tutte le altre messe insieme").
+  // Stesso trucco di BAR_ALTRI_KEY: il NUL non puo' comparire in un uuid di
+  // sessione, in un nome di modello ne' in un percorso di progetto, quindi
+  // non collidera' mai con un gruppo vero.
+  // [EN] Sentinel key of the tail series ("all the others put together").
+  // [EN] Same trick as BAR_ALTRI_KEY: NUL cannot appear in a session uuid,
+  // [EN] a model name or a project path, so it will never collide with a
+  // [EN] real group.
+  var LINE_TAIL_KEY = '\u0000altre';
+
   // Generico: assegna un colore per ogni id di gruppo distinto, nell'ordine
-  // di prima comparsa. Riusato sia in modalita' "Per sessione" (gid = sid)
-  // sia "Per modello" (gid = nome modello) -- l'aggregato invece collassa
-  // sempre a un unico gruppo, quindi non attraversa mai il ramo multi-linea.
-  // [EN] Generic: assigns a color to each distinct group id, in order of
-  // [EN] first appearance. Reused both in "Per sessione" mode (gid = sid)
-  // [EN] and "Per modello" (gid = model name) -- the aggregate instead
-  // [EN] always collapses to a single group, so it never goes through the
-  // [EN] multi-line branch.
+  // in cui il chiamante glieli passa -- e' lui a scegliere il criterio. Il
+  // grafico a barre li passa nell'ordine del proprio asse; quello a linea
+  // per costo decrescente, cosi' le tinte finiscono alle serie che pesano
+  // invece che alle prime capitate. Dall'ottava in poi tutte grigie: oltre
+  // la palette non ci sono tinte validate, e inventarne produrrebbe colori
+  // che non si distinguono fra loro ne' sul tema chiaro ne' su quello scuro.
+  // [EN] Generic: assigns a color to each distinct group id, in the order
+  // [EN] the caller hands them over -- the criterion is the caller's. The
+  // [EN] bar chart passes them in its axis order; the line chart by
+  // [EN] descending cost, so the hues land on the series that weigh
+  // [EN] something instead of on the first ones that showed up. From the
+  // [EN] eighth on, all gray: past the palette there are no validated hues,
+  // [EN] and making some up would produce colors telling apart neither on
+  // [EN] the light theme nor on the dark one.
   function assignGroupColors(groupIds) {
     var order = [];
     var seen = {};
@@ -3614,7 +3785,7 @@ __SITE_HEADER__
     });
     var map = {};
     order.forEach(function (g, idx) {
-      map[g] = idx < SESSION_COLORS.length
+      map[g] = idx < LINE_MAX_SERIES
         ? { stroke: SESSION_COLORS[idx], fill: SESSION_FILLS[idx] }
         : { stroke: OTHER_COLOR, fill: OTHER_FILL };
     });
@@ -3645,6 +3816,37 @@ __SITE_HEADER__
   // [EN] Grouped by "keyFn(turn)" (session, model, or a single constant
   // [EN] group for the aggregate), so each group keeps its own polyline.
   var LINE_CHART_BUCKETS = 24;
+
+  // Il riquadro del grafico a linea e quello, piu' alto, dello scatter.
+  // Una polilinea usa l'altezza per mostrare un andamento, e 200 unita'
+  // bastano; lo scatter la usa per separare fra loro decine di marcatori che
+  // condividono la stessa fascia oraria, e li' l'altezza E' la leggibilita'.
+  // Stesso precedente del grafico a barre, che in modalita' progetto cresce
+  // per far posto alle etichette inclinate.
+  // [EN] The line chart's box and the scatter's taller one. A polyline uses
+  // [EN] height to show a trend, and 200 units are enough; the scatter uses
+  // [EN] it to separate dozens of markers sharing the same time slot, and
+  // [EN] there height IS legibility. Same precedent as the bar chart, which
+  // [EN] in project mode grows to make room for the tilted labels.
+  var LINE_CHART_HEIGHT = 200;
+  var LINE_SCATTER_HEIGHT = 300;
+
+  // Finche' nessuno ha toccato l'interruttore della scala, la sceglie il
+  // grafico: logaritmica per lo scatter, lineare per le linee. Non e' una
+  // preferenza indovinata, e' che le due forme hanno bisogni diversi -- una
+  // nuvola di sessioni copre tre ordini di grandezza e in lineare sta tutta
+  // appiccicata alla base, mentre un andamento nel tempo si legge in
+  // lineare. Al primo clic sull'interruttore l'automatismo si spegne per
+  // sempre: da li' in poi comanda chi guarda.
+  // [EN] Until nobody has touched the scale switch, the chart picks it:
+  // [EN] logarithmic for the scatter, linear for the lines. It is not a
+  // [EN] guessed preference, it is that the two shapes have different needs
+  // [EN] -- a cloud of sessions spans three orders of magnitude and on a
+  // [EN] linear scale sits entirely glued to the baseline, while a trend
+  // [EN] over time reads linear. On the first click on the switch the
+  // [EN] automatism switches off for good: from there on the viewer is in
+  // [EN] charge.
+  var scaleChosenByHand = false;
 
   // Le tacche del cursore del periodo. Non e' una corsa continua in ore: da
   // "3 ore" a "tutto lo storico" ci sono tre ordini di grandezza, e su una
@@ -3821,6 +4023,229 @@ __SITE_HEADER__
     return list;
   }
 
+  // Graduatoria dei gruppi DENTRO la finestra disegnata, in una passata sui
+  // secchi. I totali della finestra sono gia' li' dentro: ricavarli di nuovo
+  // dai turni sarebbe una seconda scansione dell'intero storico per un
+  // risultato che si ha gia' in mano.
+  // Si misura con unit.valueOf e non con .cost secco per la stessa ragione
+  // per cui lo fa il grafico a barre: in token la graduatoria puo' venire
+  // diversa che in dollari, e colorare secondo una classifica che non
+  // corrisponde all'asse sarebbe una bugia.
+  // Lo spareggio e' deterministico (chi compare prima, poi il confronto tra
+  // le chiavi): a parita' di valore un ordinamento instabile farebbe
+  // cambiare le tinte da un ridisegno all'altro senza che sia cambiato
+  // niente.
+  // "slots" -- in quanti intervalli distinti compare ciascun gruppo -- si
+  // accumula qui perche' costa zero e serve piu' avanti a capire se una
+  // "linea per sessione" sia ancora una linea (vedi seriesAreDegenerate).
+  // [EN] Ranking of the groups INSIDE the drawn window, in one pass over
+  // [EN] the buckets. The window totals are already in there: deriving them
+  // [EN] again from the turns would be a second scan of the whole history
+  // [EN] for a result already in hand.
+  // [EN] It measures with unit.valueOf and not with a bare .cost for the
+  // [EN] same reason the bar chart does: in tokens the ranking may come out
+  // [EN] different than in dollars, and coloring by a ranking that does not
+  // [EN] match the axis would be a lie.
+  // [EN] The tie-break is deterministic (who shows up first, then comparing
+  // [EN] the keys): on equal values an unstable sort would make the hues
+  // [EN] change from one redraw to the next with nothing having changed.
+  // [EN] "slots" -- in how many distinct intervals each group appears -- is
+  // [EN] accumulated here because it costs nothing and is needed later to
+  // [EN] tell whether a "line per session" is still a line (see
+  // [EN] seriesAreDegenerate).
+  function rankGroupsInWindow(buckets, unit) {
+    var value = {}, slots = {}, first = {};
+    buckets.forEach(function (b) {
+      var g = b.groupId;
+      if (!(g in value)) { value[g] = 0; slots[g] = 0; first[g] = b.start; }
+      value[g] += unit.valueOf(b);
+      slots[g] += 1;
+      if (b.start < first[g]) { first[g] = b.start; }
+    });
+    var order = Object.keys(value);
+    order.sort(function (a, b) {
+      if (value[b] !== value[a]) { return value[b] - value[a]; }
+      if (first[a] !== first[b]) { return first[a] - first[b]; }
+      return a < b ? -1 : (a > b ? 1 : 0);
+    });
+    return { order: order, value: value, slots: slots, first: first };
+  }
+
+  function newLineBucket(groupId, start, end) {
+    return {
+      groupId: groupId, start: start, end: end,
+      tot: 0, cost: 0, count: 0, turns: [],
+      i: 0, o: 0, cw: 0, cr: 0, costI: 0, costO: 0, costCw: 0, costCr: 0
+    };
+  }
+
+  function mergeLineBuckets(dst, src) {
+    dst.tot += src.tot; dst.cost += src.cost; dst.count += src.count;
+    dst.i += src.i; dst.o += src.o; dst.cw += src.cw; dst.cr += src.cr;
+    dst.costI += src.costI; dst.costO += src.costO;
+    dst.costCw += src.costCw; dst.costCr += src.costCr;
+    if (src.start < dst.start) { dst.start = src.start; }
+    if (src.end > dst.end) { dst.end = src.end; }
+    src.turns.forEach(function (t) { dst.turns.push(t); });
+    return dst;
+  }
+
+  // Le serie oltre la palette diventano una sola. Senza questo restano
+  // decine di polilinee dello stesso identico grigio, sovrapposte l'una
+  // all'altra: non si distinguono fra loro, non si possono seguire, e
+  // insieme fanno una macchia che copre anche le serie colorate sotto. Una
+  // linea sola, invece, e' leggibile e dice una cosa vera ("tutto il resto,
+  // sommato").
+  // La coda si SOMMA, mentre nel grafico a barre e' una media (vedi
+  // makeRankArrange): li' la barra di coda compete in graduatoria con le
+  // altre e sommata diventerebbe da sola la piu' alta, schiacciando proprio
+  // quelle che il grafico deve mostrare. Qui l'asse dice "quanto si e' speso
+  // in questo intervallo": la somma di chi resta E' quel numero, e non
+  // compete con nessuno.
+  // [EN] The series past the palette become one. Without this, dozens of
+  // [EN] polylines in the exact same gray remain, overlapping one another:
+  // [EN] they cannot be told apart, cannot be followed, and together they
+  // [EN] make a smudge covering the colored series underneath too. A single
+  // [EN] line, instead, is legible and says something true ("all the rest,
+  // [EN] summed").
+  // [EN] The tail is SUMMED, while in the bar chart it is an average (see
+  // [EN] makeRankArrange): there the tail bar competes in the ranking with
+  // [EN] the others and, summed, would become the tallest on its own,
+  // [EN] squashing exactly the ones the chart must show. Here the axis says
+  // [EN] "how much was spent in this interval": the sum of what is left IS
+  // [EN] that number, and it competes with no one.
+  function collapseTailSeries(buckets, keepIds) {
+    var keep = {};
+    keepIds.forEach(function (g) { keep[g] = true; });
+    var out = [];
+    var tail = {};
+    var tailIds = {};
+    var nTail = 0;
+    buckets.forEach(function (b) {
+      if (keep[b.groupId]) { out.push(b); return; }
+      if (!tailIds[b.groupId]) { tailIds[b.groupId] = true; nTail += 1; }
+      // Il secchio di coda parte SEMPRE nuovo, mai riusando il primo secchio
+      // scartato: quello e' lo stesso oggetto che sta nella lista in
+      // ingresso, e sommarci dentro gli altri lo corromperebbe. "start" e'
+      // derivato dall'indice dell'intervallo, quindi e' gia' una chiave
+      // d'intervallo esatta.
+      // [EN] The tail bucket ALWAYS starts fresh, never reusing the first
+      // [EN] discarded bucket: that is the very object sitting in the input
+      // [EN] list, and summing the others into it would corrupt it. "start"
+      // [EN] is derived from the interval index, so it already is an exact
+      // [EN] interval key.
+      var t = tail[b.start] || (tail[b.start] = newLineBucket(LINE_TAIL_KEY, b.start, b.end));
+      mergeLineBuckets(t, b);
+    });
+    Object.keys(tail).forEach(function (k) { out.push(tail[k]); });
+    // La polilinea si appoggia all'ordine cronologico che bucketTurns
+    // garantisce: i secchi di coda sono stati accodati in fondo, quindi
+    // l'invariante va ristabilita.
+    // [EN] The polyline relies on the chronological order bucketTurns
+    // [EN] guarantees: the tail buckets were appended at the end, so the
+    // [EN] invariant has to be restored.
+    out.sort(function (a, b) { return a.start - b.start; });
+    return { buckets: out, nTail: nTail };
+  }
+
+  // La "linea per sessione" e' degenere quando la maggior parte delle serie
+  // non ha abbastanza punti per essere una linea: per tracciarne una ne
+  // servono almeno due, e su finestre larghe un intervallo dura giorni
+  // mentre una sessione dura ore, quindi quasi ogni sessione cade tutta
+  // dentro un intervallo solo. Il criterio misura esattamente quello --
+  // quante serie occupano un intervallo soltanto -- invece di dedurlo da una
+  // soglia in ore: cosi' vale per qualunque ampiezza di finestra e qualunque
+  // densita' d'uso, e se un domani LINE_CHART_BUCKETS cambia lo segue da
+  // solo. La meta' non e' una costante tarata: e' il punto oltre il quale il
+  // disegno e' fatto piu' di pallini isolati che di linee, cioe' quello in
+  // cui chiamarlo "grafico a linea" non e' piu' vero.
+  // [EN] The "line per session" is degenerate when most series lack the
+  // [EN] points to be a line: tracing one takes at least two, and on wide
+  // [EN] windows an interval lasts days while a session lasts hours, so
+  // [EN] almost every session falls entirely inside a single interval. The
+  // [EN] criterion measures exactly that -- how many series occupy a single
+  // [EN] interval -- instead of inferring it from a threshold in hours: this
+  // [EN] way it holds for any window width and any usage density, and if
+  // [EN] LINE_CHART_BUCKETS ever changes it follows on its own. The half is
+  // [EN] not a tuned constant: it is the point past which the drawing is
+  // [EN] made more of isolated dots than of lines, i.e. the one where
+  // [EN] calling it a "line chart" is no longer true.
+  // Il progetto di un punto-sessione. Tutti i turni di un marcatore
+  // appartengono alla stessa sessione, quindi al primo si legge il progetto
+  // di tutti.
+  // [EN] A session-point's project. All the turns of a marker belong to the
+  // [EN] same session, so the first one tells the project of them all.
+  function projectOfPoint(p) {
+    return p.turns.length ? projectOf(p.turns[0]) : SENZA_PROGETTO;
+  }
+
+  // I progetti della nuvola, in ordine di peso. Stesso criterio e stesso
+  // spareggio della graduatoria delle sessioni: e' la stessa domanda ("chi
+  // conta di piu' qui dentro"), posta un gradino piu' in alto.
+  // [EN] The cloud's projects, in order of weight. Same criterion and same
+  // [EN] tie-break as the session ranking: it is the same question ("who
+  // [EN] counts most in here"), asked one step higher.
+  function rankProjectsOfPoints(points, unit) {
+    var value = {};
+    points.forEach(function (p) {
+      var k = projectOfPoint(p);
+      value[k] = (value[k] || 0) + unit.valueOf(p);
+    });
+    var order = Object.keys(value);
+    order.sort(function (a, b) {
+      if (value[b] !== value[a]) { return value[b] - value[a]; }
+      return a < b ? -1 : (a > b ? 1 : 0);
+    });
+    return { order: order, value: value };
+  }
+
+  function seriesAreDegenerate(rank) {
+    var ids = rank.order;
+    if (ids.length < 2) { return false; }
+    var single = 0;
+    ids.forEach(function (g) { if (rank.slots[g] < 2) { single += 1; } });
+    return single * 2 > ids.length;
+  }
+
+  // Un punto per gruppo invece che per intervallo, nella STESSA forma di un
+  // secchio: cosi' l'asse, i tooltip e il posizionamento sull'asse dei tempi
+  // lo digeriscono senza dover sapere che e' un'altra cosa.
+  // "start" ed "end" non sono piu' i bordi di un intervallo campionato ma il
+  // primo e l'ultimo turno del gruppo dentro la finestra. Il marcatore si
+  // pianta sullo start perche' e' l'istante che si puo' indicare e
+  // verificare: "la sessione delle 14:30" si ritrova nella tabella, "la
+  // sessione la cui mediana cade alle 14:30" no.
+  // [EN] One point per group instead of per interval, in the SAME shape as a
+  // [EN] bucket: this way the axis, the tooltips and the placement on the
+  // [EN] time axis digest it without having to know it is something else.
+  // [EN] "start" and "end" are no longer the edges of a sampled interval but
+  // [EN] the group's first and last turn inside the window. The marker
+  // [EN] plants itself on the start because that is the instant one can
+  // [EN] point at and check: "the 14:30 session" can be found again in the
+  // [EN] table, "the session whose median falls at 14:30" cannot.
+  function scatterPoints(buckets, order) {
+    var byId = {};
+    buckets.forEach(function (b) {
+      var p = byId[b.groupId] ||
+        (byId[b.groupId] = newLineBucket(b.groupId, Infinity, -Infinity));
+      mergeLineBuckets(p, b);
+    });
+    var out = [];
+    order.forEach(function (g) {
+      var p = byId[g];
+      if (!p) { return; }
+      var lo = Infinity, hi = -Infinity;
+      p.turns.forEach(function (t) {
+        var ms = parseTs(t.ts);
+        if (ms < lo) { lo = ms; }
+        if (ms > hi) { hi = ms; }
+      });
+      if (lo !== Infinity) { p.start = lo; p.end = hi; }
+      out.push(p);
+    });
+    return out;
+  }
+
   // Il tooltip NON mostra subito il testo delle richieste (nome sessione in
   // primo piano) -- l'elenco dei singoli turni e' consultabile aprendo il
   // dettaglio (click su "Mostra le iterazioni"), senza affollare la vista
@@ -3872,7 +4297,26 @@ __SITE_HEADER__
     session: {
       keyFn: function (t) { return t.sid; },
       titleFn: function (b) { return sessionLabel(b.groupId); },
-      scopeLabel: 'Totale dell’intera sessione'
+      scopeLabel: 'Totale dell’intera sessione',
+      // Nella legenda serve un nome leggibile: l'id di una sessione e' un
+      // uuid. Il taglio non serve a farci stare le voci (la legenda va a
+      // capo da sola) ma a impedire che un titolo lunghissimo si prenda una
+      // riga intera; il nome per intero resta nel "title" nativo.
+      // [EN] The legend needs a readable name: a session's id is a uuid.
+      // [EN] The cut is not there to fit the entries (the legend wraps on
+      // [EN] its own) but to keep a very long title from taking a whole row
+      // [EN] to itself; the full name stays in the native "title".
+      legendLabel: function (gid) { return ellipsize(sessionLabel(gid), 28); },
+      legendOtherLabel: function (n) { return 'altre ' + n + ' sessioni'; },
+      // Solo qui: su finestre larghe le sessioni non hanno abbastanza
+      // intervalli per essere linee (vedi seriesAreDegenerate). Modelli e
+      // progetti sono pochi valori distinti che coprono tutta la finestra, e
+      // l'aggregato e' una serie sola: le loro linee restano linee.
+      // [EN] Only here: on wide windows sessions lack the intervals to be
+      // [EN] lines (see seriesAreDegenerate). Models and projects are a few
+      // [EN] distinct values covering the whole window, and the aggregate is
+      // [EN] a single series: their lines stay lines.
+      scatterWhenSparse: true
     },
     aggregate: {
       keyFn: function () { return '__all__'; },
@@ -3892,7 +4336,9 @@ __SITE_HEADER__
       // [EN] future multiple raw keys appear for the same model.
       keyFn: function (t) { return modelShortLabel(t.model); },
       titleFn: function (b) { return b.groupId; },
-      scopeLabel: 'Totale per questo modello'
+      scopeLabel: 'Totale per questo modello',
+      legendLabel: function (gid) { return ellipsize(gid, 28); },
+      legendOtherLabel: function (n) { return 'altri ' + n + ' modelli'; }
     },
     project: {
       // Il progetto sta un gradino sopra la sessione: piu' sessioni dello
@@ -3905,16 +4351,30 @@ __SITE_HEADER__
       // [EN] while the bar chart above gives its total.
       keyFn: projectOf,
       titleFn: function (b) { return b.groupId; },
-      scopeLabel: 'Totale dell’intero progetto'
+      scopeLabel: 'Totale dell’intero progetto',
+      legendLabel: function (gid) { return ellipsize(gid, 28); },
+      legendOtherLabel: function (n) { return 'altri ' + n + ' progetti'; }
     }
   };
 
   var LINE_CHART_HINTS = {
-    session: 'Campionato in ~24 intervalli di tempo uguali (es. 15 min a testa su 6 ore, 1h su 24 ore); una linea per sessione, passa il mouse su un punto per il dettaglio.',
+    session: 'Campionato in ~24 intervalli di tempo uguali (es. 15 min a testa su 6 ore, 1h su 24 ore); una linea per ciascuna delle sessioni più costose del periodo, tutte le altre sommate in un’unica linea grigia; passa il mouse su un punto per il dettaglio.',
     aggregate: 'Campionato in ~24 intervalli di tempo uguali (es. 15 min a testa su 6 ore, 1h su 24 ore); tutte le sessioni sommate in un’unica linea, passa il mouse su un punto per il dettaglio.',
     model: 'Campionato in ~24 intervalli di tempo uguali (es. 15 min a testa su 6 ore, 1h su 24 ore); una linea per modello, passa il mouse su un punto per il dettaglio.',
     project: 'Campionato in ~24 intervalli di tempo uguali (es. 15 min a testa su 6 ore, 1h su 24 ore); una linea per progetto, passa il mouse su un punto per il dettaglio.'
   };
+
+  // Su finestre larghe il disegno non e' piu' fatto di linee, e l'hint non
+  // puo' continuare a parlare di intervalli campionati: qui un marcatore e'
+  // una sessione intera, non una fetta di tempo.
+  // [EN] On wide windows the drawing is no longer made of lines, and the
+  // [EN] hint cannot keep talking about sampled intervals: here one marker
+  // [EN] is a whole session, not a slice of time.
+  var LINE_SCATTER_HINT = 'Finestra troppo ampia perché una sessione occupi più di un intervallo: ogni sessione è un marcatore, piantato sul suo primo turno e alto quanto è costata. Il colore dice il progetto; hanno un’asta le sessioni più costose del periodo.';
+
+  var LEGEND_HINT = 'Clicca su una voce della legenda per isolarla nel disegno (le altre sbiadiscono e i loro tooltip tacciono, così nelle zone fitte si punta senza sbagliare).';
+
+  var LOG_SCALE_HINT = 'Asse verticale logaritmico: distanze uguali sono rapporti uguali; i valori a zero stanno sulla linea di base.';
 
   // Somma di TUTTI i turni di un gruppo (una sessione, un modello, o
   // l'insieme completo), presi dai turni gia' filtrati per
@@ -3926,33 +4386,71 @@ __SITE_HEADER__
   // [EN] project/session/account but WITHOUT the chart's time window: "how
   // [EN] much did the session cost" means in full, not just the slice
   // [EN] currently drawn.
-  function groupTotals(turnsList, keyFn, groupId) {
-    var acc = {
+  function newGroupAcc() {
+    return {
       tot: 0, cost: 0, count: 0, i: 0, o: 0, cw: 0, cr: 0,
       costI: 0, costO: 0, costCw: 0, costCr: 0,
       firstTs: '', lastTs: '', turns: []
     };
+  }
+
+  function addTurnToAcc(acc, t) {
+    var p = priceFor(t.model);
+    acc.tot += t.tot;
+    acc.cost += turnCostUsd(t);
+    acc.count += 1;
+    acc.i += t.i; acc.o += t.o; acc.cw += t.cw; acc.cr += t.cr;
+    acc.costI += (t.i / 1e6) * p.input;
+    acc.costO += (t.o / 1e6) * p.output;
+    acc.costCw += cacheWriteCostUsd(t, p);
+    acc.costCr += (t.cr / 1e6) * p.cacheRead;
+    // I timestamp sono stringhe ISO ("2026-08-25T10:40:00Z"): anno, mese e
+    // giorno in quest'ordine, quindi il confronto alfabetico tra due di
+    // esse coincide con il confronto cronologico -- niente Date() qui.
+    // [EN] Timestamps are ISO strings ("2026-08-25T10:40:00Z"): year,
+    // [EN] month and day in that order, so alphabetical comparison
+    // [EN] between two of them matches chronological order -- no Date()
+    // [EN] here.
+    if (!acc.firstTs || t.ts < acc.firstTs) acc.firstTs = t.ts;
+    if (t.ts > acc.lastTs) acc.lastTs = t.ts;
+    acc.turns.push(t);
+  }
+
+  // Tutti i totali di gruppo in una passata sola, non una passata per
+  // gruppo: la versione precedente riscorreva l'intero storico ogni volta
+  // che una serie chiedeva il proprio totale, e le serie disegnate possono
+  // essere molte -- nello scatter ce n'e' una per sessione. La differenza
+  // si sente ad ogni scatto del cursore del periodo, che ridisegna solo
+  // questo grafico proprio per restare fluido.
+  // [EN] All group totals in a single pass, not one pass per group: the
+  // [EN] previous version rescanned the whole history every time a series
+  // [EN] asked for its own total, and the drawn series can be many -- in
+  // [EN] scatter mode there is one per session. The difference shows on
+  // [EN] every notch of the period slider, which redraws only this chart
+  // [EN] precisely to stay smooth.
+  function allGroupTotals(turnsList, keyFn) {
+    var out = {};
     turnsList.forEach(function (t) {
-      if (keyFn(t) !== groupId) return;
-      var p = priceFor(t.model);
-      acc.tot += t.tot;
-      acc.cost += turnCostUsd(t);
-      acc.count += 1;
-      acc.i += t.i; acc.o += t.o; acc.cw += t.cw; acc.cr += t.cr;
-      acc.costI += (t.i / 1e6) * p.input;
-      acc.costO += (t.o / 1e6) * p.output;
-      acc.costCw += cacheWriteCostUsd(t, p);
-      acc.costCr += (t.cr / 1e6) * p.cacheRead;
-      // I timestamp sono stringhe ISO ("2026-08-25T10:40:00Z"): anno, mese e
-      // giorno in quest'ordine, quindi il confronto alfabetico tra due di
-      // esse coincide con il confronto cronologico -- niente Date() qui.
-      // [EN] Timestamps are ISO strings ("2026-08-25T10:40:00Z"): year,
-      // [EN] month and day in that order, so alphabetical comparison
-      // [EN] between two of them matches chronological order -- no Date()
-      // [EN] here.
-      if (!acc.firstTs || t.ts < acc.firstTs) acc.firstTs = t.ts;
-      if (t.ts > acc.lastTs) acc.lastTs = t.ts;
-      acc.turns.push(t);
+      var k = keyFn(t);
+      addTurnToAcc(out[k] || (out[k] = newGroupAcc()), t);
+    });
+    return out;
+  }
+
+  // Ripiega una lista di secchi nella stessa forma che allGroupTotals
+  // restituisce, cosi' groupTooltipData e renderGroupTooltip non devono
+  // sapere che dietro questa serie non c'e' un gruppo vero dei turni: la
+  // coda "altre N sessioni" non e' prodotta da nessuna keyFn, quindi i suoi
+  // totali si possono ricavare solo dai secchi gia' disegnati.
+  // [EN] Folds a list of buckets into the same shape allGroupTotals
+  // [EN] returns, so groupTooltipData and renderGroupTooltip need not know
+  // [EN] there is no real group of turns behind this series: the "other N
+  // [EN] sessions" tail is produced by no keyFn, so its totals can only be
+  // [EN] derived from the already drawn buckets.
+  function totalsFromBuckets(pts) {
+    var acc = newGroupAcc();
+    pts.forEach(function (b) {
+      b.turns.forEach(function (t) { addTurnToAcc(acc, t); });
     });
     return acc;
   }
@@ -3990,12 +4488,89 @@ __SITE_HEADER__
     };
   }
 
-  var AREA_CLICK_HINTS = {
-    session: 'Clicca sull’area colorata (o su un punto) di una sessione per il costo totale dell’intera sessione.',
+  // Il nome vecchio (AREA_CLICK_HINTS) parlava di un'area che con piu' serie
+  // non esiste piu': il riempimento resta solo dove la serie e' una sola.
+  // Solo l'aggregato continua quindi a nominarla.
+  // [EN] The old name (AREA_CLICK_HINTS) spoke of an area that with several
+  // [EN] series no longer exists: the fill only survives where the series is
+  // [EN] a single one. So only the aggregate keeps naming it.
+  var GROUP_CLICK_HINTS = {
+    session: 'Clicca sulla linea (o su un punto) di una sessione per il costo totale dell’intera sessione.',
     aggregate: 'Clicca sull’area colorata (o su un punto) per il costo totale complessivo.',
-    model: 'Clicca sull’area colorata (o su un punto) di un modello per il suo costo totale.',
-    project: 'Clicca sull’area colorata (o su un punto) di un progetto per il costo totale dell’intero progetto.'
+    model: 'Clicca sulla linea (o su un punto) di un modello per il suo costo totale.',
+    project: 'Clicca sulla linea (o su un punto) di un progetto per il costo totale dell’intero progetto.'
   };
+
+  var SCATTER_CLICK_HINT = 'Clicca su un marcatore per il costo totale della sessione.';
+
+  // L'asse verticale come oggetto invece che come due formule sparse: chi
+  // disegna chiede dove sta un valore (y) e quali tacche stampare (ticks),
+  // senza sapere se la scala sia lineare o logaritmica.
+  // In logaritmica le tacche stanno sulle potenze di dieci e non a distanza
+  // uguale sullo schermo: fmtMoneyAxis sceglie la precisione da "scale" per
+  // tutto l'asse, e valori non tondi darebbero etichette con precisioni
+  // miste, che si leggono come una svista. Potenze di dieci vuol dire
+  // etichette sempre tonde -- ed e' anche il modo in cui un asse
+  // logaritmico si legge di solito. Per questo le tacche possono essere meno
+  // di quattro: sono quante decadi ci sono, non un numero fisso.
+  // Il tetto di tre decadi: sotto tre ordini di grandezza dal massimo un
+  // punto e' comunque appoggiato alla linea di base, e un'etichetta d'asse
+  // che si formatta come "0,00" e' peggio di nessuna etichetta.
+  // I valori a zero (e quelli sotto la decade piu' bassa) finiscono sulla
+  // linea di base: su un asse logaritmico lo zero e' infinitamente in basso,
+  // e la base e' l'unico posto finito dove metterlo -- che poi e' gia' dove
+  // lo mette l'asse lineare, cosi' cambiando scala quel punto non salta.
+  // La funzione riceve numeri e restituisce numeri: la formattazione resta
+  // di unit.axis, quindi vale per dollari, euro e token senza rami.
+  // [EN] The vertical axis as an object instead of two scattered formulas:
+  // [EN] whoever draws asks where a value sits (y) and which ticks to print
+  // [EN] (ticks), without knowing whether the scale is linear or log.
+  // [EN] In log the ticks sit on powers of ten and not at equal distances on
+  // [EN] screen: fmtMoneyAxis picks the precision from "scale" for the whole
+  // [EN] axis, and non-round values would give labels with mixed precisions,
+  // [EN] which read as an oversight. Powers of ten means always-round labels
+  // [EN] -- and it is also how a log axis is usually read. This is why there
+  // [EN] can be fewer than four ticks: they are as many as there are
+  // [EN] decades, not a fixed number.
+  // [EN] The three-decade cap: below three orders of magnitude from the max
+  // [EN] a point rests on the baseline anyway, and an axis label formatting
+  // [EN] as "0,00" is worse than no label.
+  // [EN] Zero values (and those under the lowest decade) end up on the
+  // [EN] baseline: on a log axis zero is infinitely far down, and the base
+  // [EN] is the only finite place to put it -- which is also where the
+  // [EN] linear axis already puts it, so switching scale that point does not
+  // [EN] jump.
+  // [EN] The function takes numbers and returns numbers: formatting stays
+  // [EN] with unit.axis, so it holds for dollars, euros and tokens with no
+  // [EN] branches.
+  function makeValueAxis(maxVal, minPositive, logScale, padT, plotH) {
+    var baseY = padT + plotH;
+    if (!logScale) {
+      return {
+        scale: maxVal,
+        y: function (v) { return padT + plotH * (1 - v / maxVal); },
+        ticks: [0, maxVal / 3, maxVal * 2 / 3, maxVal]
+      };
+    }
+    var hi = Math.pow(10, Math.ceil(Math.log(maxVal) / Math.LN10));
+    var lo = (minPositive > 0)
+      ? Math.pow(10, Math.floor(Math.log(minPositive) / Math.LN10))
+      : hi / 1000;
+    lo = Math.max(lo, hi / 1000);
+    if (!(lo < hi)) { lo = hi / 10; }
+    var span = Math.log(hi / lo);
+    var ticks = [];
+    for (var v = lo; v <= hi * 1.000001; v *= 10) { ticks.push(v); }
+    return {
+      scale: hi,
+      y: function (val) {
+        if (!(val > lo)) { return baseY; }
+        var yy = padT + plotH * (1 - Math.log(val / lo) / span);
+        return Math.min(baseY, Math.max(padT, yy));
+      },
+      ticks: ticks
+    };
+  }
 
   function renderLineChart(filteredTurns) {
     var el = document.getElementById('line-chart');
@@ -4006,11 +4581,30 @@ __SITE_HEADER__
     var unit = currentUnit();
     var titleEl = document.getElementById('line-chart-title');
     if (titleEl) { titleEl.textContent = unit.lineTitle; }
+    var logScale = currentScale() === 'log';
     var hintEl = document.getElementById('line-chart-hint');
-    if (hintEl) {
-      hintEl.textContent = (LINE_CHART_HINTS[modeKey] || LINE_CHART_HINTS.session) +
-        ' ' + AREA_CLICK_HINTS[modeKey] + ' ' + exchangeNote();
+    // L'hint si scrive due volte di proposito: la prima qui, prima di
+    // qualunque uscita anticipata (il ramo "dati insufficienti"), o
+    // cambiando modalita' su una finestra vuota resterebbe quello di prima;
+    // la seconda piu' sotto, quando si sa davvero cosa si sta per disegnare
+    // -- se le serie siano linee o marcatori, se ci sia una coda, se l'asse
+    // sia logaritmico -- cose che dipendono dai dati e non solo dai
+    // controlli.
+    // [EN] The hint is written twice on purpose: the first time here, before
+    // [EN] any early exit (the "not enough data" branch), or switching mode
+    // [EN] on an empty window would leave the previous one; the second
+    // [EN] further down, when it is actually known what is about to be drawn
+    // [EN] -- whether the series are lines or markers, whether there is a
+    // [EN] tail, whether the axis is logarithmic -- things depending on the
+    // [EN] data and not only on the controls.
+    function writeHint(parts) {
+      if (!hintEl) { return; }
+      hintEl.textContent = parts.concat([exchangeNote()]).filter(Boolean).join(' ');
     }
+    writeHint([
+      LINE_CHART_HINTS[modeKey] || LINE_CHART_HINTS.session,
+      GROUP_CLICK_HINTS[modeKey] || GROUP_CLICK_HINTS.session
+    ]);
     var nowMs = Date.now();
     var windowMs = windowHours * 3600 * 1000;
     var bucketMs = windowMs / LINE_CHART_BUCKETS;
@@ -4050,11 +4644,143 @@ __SITE_HEADER__
       return;
     }
 
-    var width = 640, height = 200;
+    var width = 640;
     var padL = 76, padR = 8, padT = 12, padB = 22;
-    var plotW = width - padL - padR, plotH = height - padT - padB;
-    var maxVal = Math.max.apply(null, buckets.map(function (b) { return unit.valueOf(b); })) || 1;
+    var plotW = width - padL - padR;
+
+    // Tutti i totali "di tutta la vita" in una volta: li chiedera' ogni
+    // serie disegnata, e nello scatter le serie sono tante.
+    // [EN] All the "whole life" totals in one go: every drawn series will
+    // [EN] ask for them, and in scatter mode the series are many.
+    var allTotals = allGroupTotals(filteredTurns, mode.keyFn);
+
+    // La graduatoria decide due cose insieme: a chi vanno le tinte (alle
+    // serie che pesano, non alle prime capitate) e se il disegno a linea
+    // abbia ancora senso su questa finestra.
+    // [EN] The ranking decides two things at once: who gets the hues (the
+    // [EN] series that weigh something, not the first ones that showed up)
+    // [EN] and whether the line drawing still makes sense on this window.
+    var rank = rankGroupsInWindow(buckets, unit);
+    var scatter = !!mode.scatterWhenSparse && seriesAreDegenerate(rank);
+    var series, points = null, drawOrder, nTail;
+    // Di norma il colore identifica la serie stessa e la legenda parla la
+    // lingua della modalita' attiva. Lo scatter e' l'unico caso in cui le due
+    // cose divergono, e qui sotto le riassegna.
+    // [EN] Normally color identifies the series itself and the legend speaks
+    // [EN] the active mode's language. The scatter is the only case where the
+    // [EN] two diverge, and it reassigns them below.
+    var legendMode = mode;
+    var colorKeyOf = function (b) { return b.groupId; };
+    var stemmed = {};
+
+    if (scatter) {
+      // Nello scatter la coda NON si collassa. Il collasso cura un problema
+      // del disegno a linea -- N polilinee identiche sovrapposte che
+      // diventano una macchia -- e qui di polilinee non ce n'e' nessuna: N
+      // pallini ad altezze diverse sono informazione, non macchia (si vede
+      // la nuvola bassa delle sessioni che costano poco, che e' meta' della
+      // risposta). E sommandola, la coda diventerebbe il marcatore piu' alto
+      // del grafico e schiaccerebbe proprio le sessioni che il grafico deve
+      // far vedere.
+      // [EN] In scatter mode the tail is NOT collapsed. The collapse cures a
+      // [EN] line-drawing problem -- N identical overlapping polylines
+      // [EN] turning into a smudge -- and here there are no polylines at
+      // [EN] all: N dots at different heights are information, not a smudge
+      // [EN] (you see the low cloud of cheap sessions, which is half the
+      // [EN] answer). And summed, the tail would become the tallest marker
+      // [EN] on the chart and would squash exactly the sessions the chart
+      // [EN] has to show.
+      points = scatterPoints(buckets, rank.order);
+      series = points;
+
+      // Qui il colore cambia mestiere: smette di dire QUALE sessione e passa
+      // a dire DI CHI E'. Con poche sessioni una tinta a testa e' un nome, e
+      // la legenda si legge; con centinaia non lo e' piu' -- nessuno tiene a
+      // mente centoquaranta tinte, e oltre l'ottava non ce ne sono nemmeno
+      // di distinguibili, quindi la stragrande maggioranza dei marcatori
+      // finirebbe dello stesso grigio: un canale acceso che non dice niente.
+      // I progetti invece sono pochi e hanno un nome, quindi come categoria
+      // funzionano: il colore torna a portare informazione, la legenda torna
+      // consultabile, e isolarne uno dirada la nuvola abbastanza da poterci
+      // puntare dentro col mouse.
+      // Il "quali contano" non si perde, cambia canale: se lo prende l'asta
+      // (vedi drawScatterMarker), che va alle sessioni piu' costose del
+      // periodo. Un canale per variabile, invece di due significati sullo
+      // stesso.
+      // [EN] Here color changes job: it stops saying WHICH session and moves
+      // [EN] to saying WHOSE it is. With few sessions one hue each is a name,
+      // [EN] and the legend reads; with hundreds it is not -- nobody holds a
+      // [EN] hundred and forty hues in mind, and past the eighth there are
+      // [EN] not even distinguishable ones, so the vast majority of markers
+      // [EN] would come out the same gray: a channel switched on saying
+      // [EN] nothing. Projects, instead, are few and have names, so as a
+      // [EN] category they work: color carries information again, the legend
+      // [EN] becomes consultable again, and isolating one thins the cloud
+      // [EN] enough to point inside it with the mouse.
+      // [EN] The "which ones count" is not lost, it changes channel: the stem
+      // [EN] takes it over (see drawScatterMarker), going to the window's
+      // [EN] most expensive sessions. One channel per variable, instead of
+      // [EN] two meanings on the same one.
+      var projRank = rankProjectsOfPoints(points, unit);
+      drawOrder = projRank.order;
+      nTail = Math.max(0, projRank.order.length - LINE_MAX_SERIES);
+      legendMode = CHART_MODES.project;
+      colorKeyOf = projectOfPoint;
+      rank.order.slice(0, LINE_MAX_SERIES).forEach(function (sid) { stemmed[sid] = true; });
+    } else {
+      var collapsed = collapseTailSeries(buckets, rank.order.slice(0, LINE_MAX_SERIES));
+      series = collapsed.buckets;
+      nTail = collapsed.nTail;
+      drawOrder = rank.order.slice(0, LINE_MAX_SERIES);
+      if (nTail) { drawOrder = drawOrder.concat([LINE_TAIL_KEY]); }
+    }
+
+    // L'altezza si sa solo adesso: dipende da quale delle due forme si sta
+    // per disegnare, non dai controlli.
+    // [EN] The height is known only now: it depends on which of the two
+    // [EN] shapes is about to be drawn, not on the controls.
+    var height = scatter ? LINE_SCATTER_HEIGHT : LINE_CHART_HEIGHT;
+    var plotH = height - padT - padB;
     var baseY = padT + plotH;
+
+    if (!scaleChosenByHand) {
+      logScale = scatter;
+      var scaleSel = document.getElementById('scale-filter');
+      var wanted = logScale ? 'log' : 'linear';
+      // L'interruttore si muove insieme: se scegliesse il grafico e il
+      // controllo continuasse a dire un'altra cosa, sarebbe il controllo a
+      // mentire.
+      // [EN] The switch moves along: if the chart chose and the control kept
+      // [EN] saying something else, the control would be the one lying.
+      if (scaleSel && scaleSel.value !== wanted) {
+        scaleSel.value = wanted;
+        setSegmentedControl('scale-filter-custom', wanted);
+      }
+    }
+
+    // Il massimo si calcola su cio' che si disegna davvero, non sui secchi
+    // grezzi: dopo il collasso il secchio di coda e' una somma e puo' essere
+    // piu' alto di qualunque secchio di partenza, e nello scatter le altezze
+    // sono i totali di sessione, non quelli d'intervallo. Prenderlo prima
+    // vorrebbe dire un asse che non corrisponde a cio' che si vede.
+    // Nella stessa passata esce anche il minimo strettamente positivo, che
+    // serve alla scala logaritmica per sapere dove far partire l'asse.
+    // [EN] The maximum is computed on what is actually drawn, not on the raw
+    // [EN] buckets: after the collapse the tail bucket is a sum and can be
+    // [EN] taller than any starting bucket, and in scatter mode the heights
+    // [EN] are session totals, not interval ones. Taking it earlier would
+    // [EN] mean an axis not matching what is on screen.
+    // [EN] The same pass also yields the strictly positive minimum, which
+    // [EN] the log scale needs to know where to start the axis.
+    var maxVal = 0, minPositive = Infinity;
+    series.forEach(function (b) {
+      var v = unit.valueOf(b);
+      if (v > maxVal) { maxVal = v; }
+      if (v > 0 && v < minPositive) { minPositive = v; }
+    });
+    maxVal = maxVal || 1;
+    if (minPositive === Infinity) { minPositive = maxVal; }
+    var axis = makeValueAxis(maxVal, minPositive, logScale, padT, plotH);
 
     // Asse X sulla finestra di tempo FISSA scelta (non sul range dei dati
     // effettivi): cosi' un intervallo senza attivita' resta uno spazio vuoto
@@ -4064,24 +4790,69 @@ __SITE_HEADER__
     // [EN] range): this way an interval with no activity stays an empty
     // [EN] space in the correct position, instead of squeezing the chart
     // [EN] only where there is data.
-    function xOf(b) { return padL + (((b.start + b.end) / 2) - startMs) / windowMs * plotW; }
-    function yOf(b) { return padT + plotH * (1 - unit.valueOf(b) / maxVal); }
+    // xAt sta a parte perche' lo scatter piazza il marcatore su un istante
+    // preciso, non sul centro di un intervallo campionato.
+    // [EN] xAt stands apart because the scatter plants the marker on a
+    // [EN] precise instant, not on the center of a sampled interval.
+    function xAt(ms) { return padL + (ms - startMs) / windowMs * plotW; }
+    function xOf(b) { return xAt((b.start + b.end) / 2); }
+    function yOf(b) { return axis.y(unit.valueOf(b)); }
 
-    var colorInfo = assignGroupColors(buckets.map(function (b) { return b.groupId; }));
+    var colorInfo = assignGroupColors(drawOrder);
     var multiSeries = colorInfo.order.length > 1;
+    // Il riempimento sotto la curva sopravvive solo con una serie sola e in
+    // scala lineare. Con piu' serie le aree si accavallano e fanno fango --
+    // e' il motivo per cui il grafico era illeggibile. In scala logaritmica
+    // l'area sotto la curva non e' proporzionale a niente, e riempirla
+    // suggerirebbe una lettura "quanto in totale" che sarebbe falsa.
+    // [EN] The fill under the curve only survives with a single series and
+    // [EN] on a linear scale. With several series the areas overlap into mud
+    // [EN] -- it is why the chart was unreadable. On a log scale the area
+    // [EN] under the curve is proportional to nothing, and filling it would
+    // [EN] suggest a "how much in total" reading that would be false.
+    var wantFill = !multiSeries && !logScale;
+    // L'indice della serie: e' quello che va negli attributi data-series, su
+    // cui si appoggia l'isolamento dalla legenda.
+    // [EN] The series index: it is what goes into the data-series
+    // [EN] attributes, on which isolation from the legend relies.
+    var seriesIdx = {};
+    colorInfo.order.forEach(function (g, k) {
+      seriesIdx[g] = colorInfo.map[g].stroke === OTHER_COLOR ? LEGEND_OTHER_ID : k;
+    });
+
+    // La coda non e' un gruppo dei turni: nessuna keyFn la produce, quindi
+    // titleFn non saprebbe come chiamarla.
+    // [EN] The tail is not a group of the turns: no keyFn produces it, so
+    // [EN] titleFn would not know what to call it.
+    function seriesTitle(b) {
+      return b.groupId === LINE_TAIL_KEY ? tailLabelOf(mode) : mode.titleFn(b);
+    }
+
+    function tailLabelOf(m) {
+      return m.legendOtherLabel ? m.legendOtherLabel(nTail) : ('altri ' + nTail);
+    }
+
+    writeHint([
+      scatter ? LINE_SCATTER_HINT : (LINE_CHART_HINTS[modeKey] || LINE_CHART_HINTS.session),
+      scatter ? SCATTER_CLICK_HINT : (GROUP_CLICK_HINTS[modeKey] || GROUP_CLICK_HINTS.session),
+      multiSeries ? LEGEND_HINT : '',
+      logScale ? LOG_SCALE_HINT : ''
+    ]);
 
     var svg = '<svg viewBox="0 0 ' + width + ' ' + height + '" class="chart" role="img" aria-label="' + esc(unit.aria) + ' nel tempo">';
-    for (var i = 0; i < 4; i++) {
-      var frac = i / 3;
-      var y = padT + plotH * (1 - frac);
-      // Come nel grafico a barre: niente Math.round, che azzererebbe tutte
-      // le tacche di un asse in valuta da pochi centesimi.
-      // [EN] As in the bar chart: no Math.round, which would zero out every
-      // [EN] tick of a currency axis worth a few cents.
-      var val = maxVal * frac;
+    // Le tacche le decide l'asse: quattro equispaziate in lineare, una per
+    // decade in logaritmica. Come nel grafico a barre, niente Math.round,
+    // che azzererebbe tutte le tacche di un asse in valuta da pochi
+    // centesimi.
+    // [EN] The ticks are the axis's call: four evenly spaced on a linear
+    // [EN] scale, one per decade on a log one. As in the bar chart, no
+    // [EN] Math.round, which would zero out every tick of a currency axis
+    // [EN] worth a few cents.
+    axis.ticks.forEach(function (val) {
+      var y = axis.y(val);
       svg += '<line x1="' + padL + '" y1="' + y.toFixed(1) + '" x2="' + (width - padR) + '" y2="' + y.toFixed(1) + '" class="gridline" />';
-      svg += '<text x="' + (padL - 6) + '" y="' + (y + 3).toFixed(1) + '" class="axis-label" text-anchor="end">' + esc(unit.axis(val, maxVal)) + '</text>';
-    }
+      svg += '<text x="' + (padL - 6) + '" y="' + (y + 3).toFixed(1) + '" class="axis-label" text-anchor="end">' + esc(unit.axis(val, axis.scale)) + '</text>';
+    });
 
     // Etichette sull'asse X: senza, la finestra di tempo scelta non avrebbe
     // alcun riferimento visivo su dove si trovi "ora" o l'inizio della
@@ -4109,11 +4880,26 @@ __SITE_HEADER__
     // [EN] knows nothing of the time window) and returns the index with
     // [EN] which area and dots will recall it on click.
     function registerGroupTooltip(gid, pts) {
-      var totals = groupTotals(filteredTurns, mode.keyFn, gid);
       var windowCost = 0, windowCount = 0;
       pts.forEach(function (b) { windowCost += b.cost; windowCount += b.count; });
-      var title = mode.titleFn({ groupId: gid, turns: totals.turns });
-      groupTooltips.push(groupTooltipData(totals, title, mode.scopeLabel, windowCost, windowCount, rangeStep.label));
+      // La coda non e' un gruppo dei turni: nessuna keyFn la produce, quindi
+      // per lei un totale "di tutta la vita" non esiste. Il suo totale
+      // onesto e' quello della finestra, che sta gia' nei secchi -- e
+      // passandolo anche come costo della finestra la nota sul periodo si
+      // spegne da sola (vedi groupTooltipData), invece di stampare due volte
+      // lo stesso numero.
+      // [EN] The tail is not a group of the turns: no keyFn produces it, so
+      // [EN] a "whole life" total does not exist for it. Its honest total is
+      // [EN] the window one, already in the buckets -- and by passing it as
+      // [EN] the window cost too, the period note switches itself off (see
+      // [EN] groupTooltipData) instead of printing the same number twice.
+      var isTail = gid === LINE_TAIL_KEY;
+      var totals = isTail ? totalsFromBuckets(pts) : (allTotals[gid] || newGroupAcc());
+      var title = isTail ? tailLabelOf(mode) : mode.titleFn({ groupId: gid, turns: totals.turns });
+      var scope = isTail ? 'Totale nel periodo mostrato' : mode.scopeLabel;
+      groupTooltips.push(groupTooltipData(totals, title, scope,
+        isTail ? totals.cost : windowCost,
+        isTail ? totals.count : windowCount, rangeStep.label));
       return groupTooltips.length - 1;
     }
 
@@ -4130,10 +4916,68 @@ __SITE_HEADER__
     // [EN] longer showed their tooltip, for no visible reason. With all the
     // [EN] dots on top, every dot is always reachable.
     var svgDots = '';
+    // I bersagli larghi (steli dello scatter, corridoi lungo le linee) vanno
+    // sotto quelli piccoli: se il rettangolo di uno stelo finisse sopra il
+    // pallino di un marcatore vicino, il clic sul pallino diventerebbe il
+    // clic sullo stelo dell'altro.
+    // [EN] The wide targets (scatter stems, corridors along the lines) go
+    // [EN] below the small ones: if a stem's rectangle ended up above a
+    // [EN] neighbouring marker's dot, clicking the dot would become clicking
+    // [EN] the other one's stem.
+    var svgBandHits = '';
     // I bersagli invisibili vanno sopra a tutto il resto, punti compresi.
     // [EN] The invisible hit targets go above everything else, dots
     // [EN] included.
     var svgHits = '';
+
+    // Il ritardo a cascata e' una cortesia, non un'informazione: oltre una
+    // certa lunghezza smette di far leggere l'ordine e diventa solo attesa.
+    // Con un marcatore per sessione i punti possono essere centinaia, quindi
+    // il ritardo si tosa invece di crescere all'infinito.
+    // [EN] The cascading delay is a courtesy, not information: past a
+    // [EN] certain length it stops conveying order and becomes just waiting.
+    // [EN] With one marker per session the dots can number in the hundreds,
+    // [EN] so the delay is capped instead of growing without bound.
+    function dotDelay(idx) { return Math.min(idx * 0.05, 0.6).toFixed(2); }
+
+    // Il pallino e il suo bersaglio, uguali per la linea e per lo scatter:
+    // li' e' la testa di un intervallo campionato, qui quella di un
+    // marcatore di sessione, ma il gesto e il markup sono gli stessi.
+    // Due tooltip sullo stesso punto, con due gesti diversi e nessuna
+    // ambiguita': il passaggio del mouse mostra il dettaglio (data-tooltip),
+    // il clic il totale del gruppo (data-group-tooltip). Stanno sul
+    // bersaglio invisibile, non sul pallino disegnato, cosi' non dipendono
+    // dall'animazione d'ingresso.
+    // [EN] The dot and its target, the same for the line and for the
+    // [EN] scatter: there it is the head of a sampled interval, here that of
+    // [EN] a session marker, but the gesture and the markup are the same.
+    // [EN] Two tooltips on the same dot, with two different gestures and no
+    // [EN] ambiguity: hovering shows the detail (data-tooltip), clicking the
+    // [EN] group total (data-group-tooltip). They sit on the invisible
+    // [EN] target, not on the drawn dot, so they do not depend on the
+    // [EN] entrance animation.
+    function addDot(b, x, stroke, gi, k, idx, quiet) {
+      var y = yOf(b);
+      var r = quiet ? 2.5 : 3.5;
+      svgDots += '<circle cx="' + x.toFixed(1) + '" cy="' + y.toFixed(1) + '" r="' + r + '" class="dot' +
+        (quiet ? ' dot-quiet' : '') + '" data-series="' + k +
+        '" style="fill: ' + stroke + '; animation-delay: ' + dotDelay(idx) + 's"></circle>';
+      // Bersaglio piu' stretto per i pallini della nuvola: r=6 e' tarato su un
+      // grafico a linee, dove i punti di una serie sono al massimo
+      // ventiquattro. Qui sono centinaia e in una giornata fitta i bersagli
+      // si coprono a vicenda, cosi' il puntatore becca sempre l'ultimo
+      // disegnato invece di quello che si sta mirando. Stretto quanto basta
+      // perche' restino distinti, comunque piu' largo del pallino.
+      // [EN] A narrower target for the cloud's dots: r=6 is tuned on a line
+      // [EN] chart, where a series' points are at most twenty-four. Here they
+      // [EN] are hundreds and on a busy day the targets cover one another, so
+      // [EN] the pointer always catches the last drawn instead of the one
+      // [EN] being aimed at. Narrow enough that they stay distinct, still
+      // [EN] wider than the dot.
+      svgHits += '<circle cx="' + x.toFixed(1) + '" cy="' + y.toFixed(1) + '" r="' + (quiet ? 4 : 6) + '" class="dot-hit" data-series="' + k +
+        '" data-tooltip="' + tooltipAttr(bucketTooltipData(b, seriesTitle(b), windowHours)) +
+        '" data-group-tooltip="' + gi + '"></circle>';
+    }
 
     function drawSeries(pts, stroke, fill, gid) {
       if (!pts.length) return;
@@ -4148,36 +4992,112 @@ __SITE_HEADER__
       // [EN] clickable dots it would be the only one unable to show its
       // [EN] total.
       var gi = registerGroupTooltip(gid, pts);
+      var k = seriesIdx[gid];
       if (pts.length >= 2) {
         var d = 'M ' + pts.map(function (b) { return xOf(b).toFixed(1) + ' ' + yOf(b).toFixed(1); }).join(' L ');
-        var a = d + ' L ' + xOf(pts[pts.length - 1]).toFixed(1) + ' ' + baseY +
-          ' L ' + xOf(pts[0]).toFixed(1) + ' ' + baseY + ' Z';
-        svg += '<path d="' + a + '" class="area" style="fill: ' + fill + ';" data-group-tooltip="' + gi + '" />';
-        svg += '<path d="' + d + '" class="line" style="stroke: ' + stroke + ';" />';
+        if (wantFill) {
+          var a = d + ' L ' + xOf(pts[pts.length - 1]).toFixed(1) + ' ' + baseY +
+            ' L ' + xOf(pts[0]).toFixed(1) + ' ' + baseY + ' Z';
+          svg += '<path d="' + a + '" class="area" style="fill: ' + fill + ';" data-group-tooltip="' + gi + '" data-series="' + k + '" />';
+        }
+        svg += '<path d="' + d + '" class="line" style="stroke: ' + stroke + ';" data-series="' + k + '" />';
+        if (!wantFill) {
+          // Senza riempimento il clic perderebbe il bersaglio largo che
+          // l'area gli dava. Lo sostituisce un corridoio invisibile lungo il
+          // tratto: e' lo stesso trucco di .dot-hit, applicato al contorno
+          // invece che alla superficie. Ed e' un bersaglio migliore di
+          // quello che rimpiazza -- l'area era cliccabile anche in tutta la
+          // fascia morta fino alla linea di base, dove fra serie sovrapposte
+          // il clic era ambiguo; il corridoio e' cliccabile dove sta la
+          // linea, cioe' dove si mira davvero.
+          // Classe a parte da .line: quella ha un tratteggio che si anima, e
+          // il test di collisione seguirebbe i trattini.
+          // [EN] Without the fill the click would lose the wide target the
+          // [EN] area gave it. A hidden corridor along the stroke replaces
+          // [EN] it: the same trick as .dot-hit, applied to the outline
+          // [EN] instead of the surface. And it is a better target than the
+          // [EN] one it replaces -- the area was clickable across the whole
+          // [EN] dead band down to the baseline, where among overlapping
+          // [EN] series the click was ambiguous; the corridor is clickable
+          // [EN] where the line is, i.e. where one actually aims.
+          // [EN] A class apart from .line: that one has a dash pattern that
+          // [EN] animates, and hit testing would follow the dashes.
+          svgBandHits += '<path d="' + d + '" class="line-hit" data-series="' + k + '" data-group-tooltip="' + gi + '"></path>';
+        }
       }
-      pts.forEach(function (b, idx) {
-        svgDots += '<circle cx="' + xOf(b).toFixed(1) + '" cy="' + yOf(b).toFixed(1) + '" r="3.5" class="dot" style="fill: ' + stroke +
-          '; animation-delay: ' + (idx * 0.05).toFixed(2) + 's"></circle>';
-        // Due tooltip sullo stesso punto, con due gesti diversi e nessuna
-        // ambiguita': il passaggio del mouse mostra il dettaglio
-        // dell'intervallo (data-tooltip), il clic il totale del gruppo
-        // (data-group-tooltip). Stanno sul bersaglio invisibile, non sul
-        // pallino disegnato, cosi' non dipendono dall'animazione d'ingresso.
-        // [EN] Two tooltips on the same dot, with two different gestures
-        // [EN] and no ambiguity: hovering shows the interval detail
-        // [EN] (data-tooltip), clicking the group total
-        // [EN] (data-group-tooltip). They sit on the invisible target, not
-        // [EN] on the drawn dot, so they do not depend on the entrance
-        // [EN] animation.
-        svgHits += '<circle cx="' + xOf(b).toFixed(1) + '" cy="' + yOf(b).toFixed(1) + '" r="6" class="dot-hit" data-tooltip="' +
-          tooltipAttr(bucketTooltipData(b, mode.titleFn(b), windowHours)) + '" data-group-tooltip="' + gi + '"></circle>';
-      });
+      pts.forEach(function (b, idx) { addDot(b, xOf(b), stroke, gi, k, idx); });
     }
 
-    if (!multiSeries) {
+    // Stelo dalla linea di base piu' la testa, non un pallino nudo: il
+    // pallino da solo galleggia, e senza un aggancio al basso l'occhio non ha
+    // riferimento per confrontare due altezze -- su scala logaritmica meno
+    // che mai. Lo stelo e' la stessa grammatica dei grafici a barre qui sopra
+    // (altezza = quantita', ancorata allo zero), cosi' la pagina si legge
+    // tutta allo stesso modo, e in piu' e' il bersaglio di clic largo che
+    // altrove danno le aree.
+    // La x non si sposta mai per evitare le sovrapposizioni: un marcatore
+    // spostato renderebbe falsa l'unica cosa che afferma con precisione.
+    // [EN] A stem from the baseline plus the head, not a bare dot: the dot
+    // [EN] alone floats, and with no anchor at the bottom the eye has no
+    // [EN] reference to compare two heights -- on a log scale even less so.
+    // [EN] The stem is the same visual grammar as the bar charts above
+    // [EN] (height = quantity, anchored at zero), so the whole page reads the
+    // [EN] same way, and on top of that it is the wide click target that
+    // [EN] areas provide elsewhere.
+    // [EN] The x never moves to dodge overlaps: a shifted marker would make
+    // [EN] false the one thing it states precisely.
+    function drawScatterMarker(p, stroke, gid, colorKey, idx) {
+      var gi = registerGroupTooltip(gid, [p]);
+      // L'identificativo per l'isolamento segue il COLORE, non la sessione:
+      // e' la legenda a comandarlo, e la legenda qui elenca progetti.
+      // [EN] The identifier for isolation follows the COLOR, not the session:
+      // [EN] the legend drives it, and here the legend lists projects.
+      var k = seriesIdx[colorKey];
+      var x = xAt(p.start);
+      var y = yOf(p);
+      // L'asta va solo alle sessioni piu' costose del periodo -- e' lei a
+      // portare il "quali contano", da quando il colore e' passato a dire il
+      // progetto. Darla a tutte riempirebbe il grafico di una staccionata di
+      // aste uguali, e su scala logaritmica sono aste lunghe: coprirebbero
+      // proprio le poche che si devono poter confrontare. Le altre restano un
+      // pallino: di loro interessa la nuvola, cioe' dove si addensa e quanto
+      // sta in basso, non l'altezza di ciascuna. Il pallino resta cliccabile,
+      // quindi non si perde nulla di consultabile.
+      // [EN] The stem only goes to the window's most expensive sessions -- it
+      // [EN] is what carries the "which ones count", now that color moved to
+      // [EN] saying the project. Giving it to all of them would fill the
+      // [EN] chart with a picket fence of identical rods, and on a log scale
+      // [EN] they are long rods: they would cover exactly the few one must be
+      // [EN] able to compare. The others stay a dot: what matters about them
+      // [EN] is the cloud, i.e. where it clusters and how low it sits, not
+      // [EN] each one's height. The dot stays clickable, so nothing
+      // [EN] consultable is lost.
+      var quiet = !stemmed[gid];
+      if (!quiet) {
+        svg += '<line x1="' + x.toFixed(1) + '" y1="' + y.toFixed(1) + '" x2="' + x.toFixed(1) + '" y2="' + baseY +
+          '" class="stem" data-series="' + k + '" style="stroke: ' + stroke + '" />';
+        svgBandHits += '<rect x="' + (x - 4).toFixed(1) + '" y="' + y.toFixed(1) + '" width="8" height="' +
+          Math.max(0, baseY - y).toFixed(1) + '" class="stem-hit" data-series="' + k +
+          '" data-group-tooltip="' + gi + '"></rect>';
+      }
+      addDot(p, x, stroke, gi, k, idx, quiet);
+    }
+
+    if (scatter) {
+      // In ordine di valore decrescente: cosi' i marcatori piccoli finiscono
+      // disegnati per ultimi, cioe' sopra i grandi, e non restano sepolti
+      // sotto lo stelo di una sessione costosa che gli passa accanto.
+      // [EN] In descending value order: this way the small markers end up
+      // [EN] drawn last, i.e. above the big ones, and are not left buried
+      // [EN] under the stem of an expensive session passing next to them.
+      points.forEach(function (p, idx) {
+        var col = colorInfo.map[colorKeyOf(p)] || { stroke: OTHER_COLOR };
+        drawScatterMarker(p, col.stroke, p.groupId, colorKeyOf(p), idx);
+      });
+    } else if (!multiSeries) {
       // Un gruppo solo: il suo id e' l'unico in colorInfo.order.
       // [EN] A single group: its id is the only one in colorInfo.order.
-      drawSeries(buckets, 'var(--series-1)', 'var(--series-1-fill)', colorInfo.order[0]);
+      drawSeries(series, 'var(--series-1)', 'var(--series-1-fill)', colorInfo.order[0]);
     } else {
       // Una polilinea continua per gruppo: contiene SOLO gli intervalli di
       // quel gruppo (in ordine cronologico), anche se altri gruppi hanno
@@ -4187,13 +5107,21 @@ __SITE_HEADER__
       // [EN] groups have intervals interleaved in time. No broken segments.
       colorInfo.order.forEach(function (gid) {
         var col = colorInfo.map[gid];
-        var pts = buckets.filter(function (b) { return b.groupId === gid; });
+        var pts = series.filter(function (b) { return b.groupId === gid; });
         drawSeries(pts, col.stroke, col.fill, gid);
       });
     }
 
-    svg += svgDots + svgHits + '</svg>';
-    el.innerHTML = svg;
+    svg += svgDots + svgBandHits + svgHits + '</svg>';
+    // La legenda va sotto il disegno, dentro lo stesso contenitore: e' dove
+    // sta gia' quella dei grafici a barre. Con una serie sola non si mette:
+    // direbbe "blu = blu".
+    // [EN] The legend goes below the drawing, inside the same container:
+    // that is where the bar charts' one already sits. With a single series
+    // it is not emitted: it would say "blue = blue".
+    el.innerHTML = svg + (multiSeries ? chartLegendHtml(colorInfo, legendMode, {
+      labelFn: legendMode.legendLabel, interactive: true, otherCount: nTail
+    }) : '');
   }
 
   function buildTurnKey(sid, ts) { return sid + '|' + ts; }
@@ -4582,12 +5510,70 @@ __SITE_HEADER__
   // every slider notch would refilter the entire history to update two bar
   // charts that have nothing to do with it. Here only what changes is
   // redrawn -- and that is why dragging stays smooth even on long windows.
+  // Isolamento dalla legenda, senza ridisegnare: si accendono e si spengono
+  // due classi sugli elementi gia' in pagina. Un ridisegno rifarebbe i
+  // secchi, la graduatoria e tutti i tooltip per una cosa che e' solo
+  // opacita' -- e invaliderebbe gli indici dei tooltip gia' fissati.
+  // L'ascoltatore si registra una volta sola: #line-chart resta lo stesso
+  // nodo, e' il suo contenuto a cambiare.
+  // [EN] Isolation from the legend, without redrawing: two classes are
+  // toggled on elements already on the page. A redraw would redo the
+  // buckets, the ranking and every tooltip for something that is only
+  // opacity -- and would invalidate the indexes of already pinned tooltips.
+  // The listener registers once: #line-chart stays the same node, it is its
+  // content that changes.
+  function toggleSeriesIsolation(item) {
+    var host = document.getElementById('line-chart');
+    var svgEl = host.querySelector('svg.chart');
+    if (!svgEl || !item) { return; }
+    var wasOn = item.classList.contains('muted') === false && svgEl.classList.contains('isolating');
+    var k = item.getAttribute('data-series');
+    host.querySelectorAll('.legend-item[data-series]').forEach(function (li) {
+      li.classList.remove('muted');
+    });
+    svgEl.querySelectorAll('[data-series]').forEach(function (n) { n.classList.remove('on'); });
+    if (wasOn) {
+      svgEl.classList.remove('isolating');
+      return;
+    }
+    svgEl.classList.add('isolating');
+    svgEl.querySelectorAll('[data-series="' + k + '"]').forEach(function (n) { n.classList.add('on'); });
+    host.querySelectorAll('.legend-item[data-series]').forEach(function (li) {
+      li.classList.toggle('muted', li.getAttribute('data-series') !== k);
+    });
+  }
+
+  document.getElementById('line-chart').addEventListener('click', function (e) {
+    var item = e.target.closest ? e.target.closest('.legend-item[data-series]') : null;
+    if (item) { toggleSeriesIsolation(item); }
+  });
+  document.getElementById('line-chart').addEventListener('keydown', function (e) {
+    if (e.key !== 'Enter' && e.key !== ' ') { return; }
+    var item = e.target.closest ? e.target.closest('.legend-item[data-series]') : null;
+    if (!item) { return; }
+    // Spazio su un elemento con role="button" scrollerebbe la pagina.
+    // [EN] Space on an element with role="button" would scroll the page.
+    e.preventDefault();
+    toggleSeriesIsolation(item);
+  });
+
   document.getElementById('range-filter').addEventListener('input', function () {
     hideTooltip();
     updateRangeValueLabel();
     renderLineChart(currentFilteredTurns);
   });
   wireSegmentedControl('mode-filter-custom', 'mode-filter');
+  // La scala tocca SOLO l'asse verticale di questo grafico: come il cursore
+  // del periodo qui sopra, ridisegna quel che cambia invece di rifiltrare
+  // tutto lo storico per due grafici a barre che non c'entrano.
+  // [EN] The scale touches ONLY this chart's vertical axis: like the period
+  // [EN] slider above, it redraws what changes instead of refiltering the
+  // [EN] whole history for two bar charts that have nothing to do with it.
+  wireSegmentedControl('scale-filter-custom', 'scale-filter', function () {
+    scaleChosenByHand = true;
+    hideTooltip();
+    renderLineChart(currentFilteredTurns);
+  });
   wireSegmentedControl('bar-group-filter-custom', 'bar-group-filter');
   wireSegmentedControl('bar2-group-filter-custom', 'bar2-group-filter');
   wireSegmentedControl('unit-filter-custom', 'unit-filter');
@@ -4604,6 +5590,7 @@ __SITE_HEADER__
     positionSegmentedIndicator(document.getElementById('bar-group-filter-custom'));
     positionSegmentedIndicator(document.getElementById('bar2-group-filter-custom'));
     positionSegmentedIndicator(document.getElementById('unit-filter-custom'));
+    positionSegmentedIndicator(document.getElementById('scale-filter-custom'));
   });
 
   // Ripristina i filtri scelti prima dell'ultima ricarica (altrimenti ogni
@@ -4643,6 +5630,15 @@ __SITE_HEADER__
     if (restoredFilters.mode) {
       document.getElementById('mode-filter').value = restoredFilters.mode;
       setSegmentedControl('mode-filter-custom', restoredFilters.mode);
+    }
+    if (restoredFilters.scale) {
+      // Una scala salvata e' una scala che qualcuno ha scelto: ripristinarla
+      // e poi lasciarla sovrascrivere dall'automatismo la butterebbe via.
+      // [EN] A saved scale is a scale someone chose: restoring it and then
+      // [EN] letting the automatism overwrite it would throw it away.
+      document.getElementById('scale-filter').value = restoredFilters.scale;
+      setSegmentedControl('scale-filter-custom', restoredFilters.scale);
+      scaleChosenByHand = true;
     }
     BAR_CHARTS.forEach(function (cfg) {
       var v = restoredFilters[cfg.stateKey];
@@ -4969,6 +5965,7 @@ __SITE_HEADER__
         proj: document.getElementById('project-filter').value,
         rangeIdx: document.getElementById('range-filter').value,
         mode: document.getElementById('mode-filter').value,
+        scale: document.getElementById('scale-filter').value,
         barGroup: document.getElementById('bar-group-filter').value,
         barGroup2: document.getElementById('bar2-group-filter').value,
         unit: document.getElementById('unit-filter').value,
