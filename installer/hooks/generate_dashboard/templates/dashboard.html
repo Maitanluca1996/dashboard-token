@@ -343,6 +343,42 @@ __HEADER_CSS__
      (34px), but written here it stays tied to --ctl-h, so changing that
      does not pull the two apart. */
   .chart-controls-own-row .segmented-control { height: var(--ctl-h); justify-self: start; }
+  /* Il cursore si prende sempre una riga tutta sua, invece di lasciarlo
+     decidere all'andare a capo. Non e' una preferenza: ai numeri i tre
+     riquadri su una riga sola non ci stanno mai (la modalita' e' larga
+     quanto i suoi quattro segmenti, il cursore ne vuole almeno trecento, e
+     il pannello e' largo novecento), quindi il cursore andava a capo
+     comunque -- ma a seconda della larghezza ci trascinava dietro la scala
+     o no, e i due controlli piccoli cambiavano riga sotto gli occhi. Fissata
+     la riga, le posizioni smettono di dipendere da qualche pixel.
+     [EN] The slider always takes a whole row of its own, instead of leaving
+     it to wrapping. It is not a preference: by the numbers the three boxes
+     never fit on one row (the mode box is as wide as its four segments, the
+     slider wants at least three hundred, and the panel is nine hundred
+     wide), so the slider wrapped anyway -- but depending on the width it
+     dragged the scale box along or not, and the two small controls changed
+     row under one's eyes. With the row settled, the positions stop depending
+     on a handful of pixels. */
+  .chart-controls-own-row .chart-control.range-control { flex: 1 1 100%; }
+  /* La scala all'estremita' destra della sua riga, di fronte alla modalita'
+     che sta a sinistra: sono le due scelte che si fanno una volta e si
+     lasciano li', e alle due estremita' si leggono come una coppia invece
+     che come una fila. La colonna elastica qui non serve -- e' quella che
+     nei riquadri col cursore tiene allineati i controlli in verticale --
+     e senza, il riquadro si stringe sul proprio contenuto, cosi'
+     l'interruttore arriva davvero a filo del margine invece di fermarsi
+     qualche decina di pixel prima.
+     [EN] The scale at the right end of its row, facing the mode box on the
+     left: they are the two choices one makes once and leaves alone, and at
+     the two ends they read as a pair instead of as a queue. The elastic
+     column is not needed here -- it is what keeps the controls vertically
+     aligned in the boxes with the slider -- and without it the box shrinks
+     to its own content, so the switch really reaches the margin instead of
+     stopping a few dozen pixels short. */
+  .chart-controls-own-row .scale-control {
+    grid-template-columns: auto auto;
+    margin-left: auto;
+  }
   /* Il cursore del periodo, in riquadro accanto alla modalita'. La corsa e'
      elastica: e' l'unica cosa della riga che puo' cedere larghezza, e su
      schermi stretti deve farlo prima che la riga vada a capo spezzando in
@@ -1534,7 +1570,7 @@ __SITE_HEADER__
            page a binary choice is made this way, and introducing a checkbox
            for a single entry would add a new control language for
            nothing. -->
-      <div class="filter-row chart-control">
+      <div class="filter-row chart-control scale-control">
         <label>Scala:</label>
         <div class="segmented-control" id="scale-filter-custom">
           <div class="indicator"></div>
