@@ -200,6 +200,125 @@ UI = {
         "rows": "Righe:",
     },
 
+    # Le schede in cima alla pagina. "Input", "Output", "Cache write" e
+    # "Cache read" sono i nomi che l'API di Claude da' alle quattro voci di
+    # consumo: restano tali e quali in tutte le lingue, come si fa con i
+    # nomi propri, perche' tradurli allontanerebbe da cio' che si legge
+    # nella documentazione ufficiale.
+    # [EN] The cards at the top of the page. "Input", "Output", "Cache
+    # write" and "Cache read" are the names Claude's API gives the four
+    # usage entries: they stay exactly the same in every language, as with
+    # proper nouns, because translating them would move away from what one
+    # reads in the official documentation.
+    "stats": {
+        "input": "Input",
+        "output": "Output",
+        "cacheWrite": "Cache write",
+        "cacheRead": "Cache read",
+        "estCost": "Costo stimato",
+        "freshTokens": "Token nuovi (input+output)",
+        "costToday": "Costo oggi",
+        "tokensToday": "Token oggi",
+        "turns": "Interazioni registrate",
+        "sessions": "Sessioni",
+        "avgFresh": "Media nuovi/interazione",
+        "totalTokens": "Token totali (con cache)",
+    },
+
+    # I titoli che cambiano con l'unita' di misura scelta: il nome della
+    # grandezza sulle barre, il titolo del grafico a linee e la descrizione
+    # parlata per chi usa un lettore di schermo.
+    # [EN] The titles that change with the chosen unit: the quantity's name
+    # on the bars, the line chart's title and the spoken description for
+    # screen-reader users.
+    "unitMode": {
+        "barUsd": "Costo totale",
+        "lineUsd": "Andamento costo nel tempo",
+        "ariaUsd": "Costo stimato in dollari",
+        "barEur": "Costo totale in euro",
+        "lineEur": "Andamento costo in euro nel tempo",
+        "ariaEur": "Costo stimato in euro",
+        "barTokens": "Token totali",
+        "lineTokens": "Andamento token nel tempo",
+        "ariaTokens": "Token totali",
+    },
+
+    # Le tacche del cursore dei periodi, in forma lunga (la didascalia) e
+    # corta (l'etichetta sotto la corsa).
+    #
+    # Il numero e' un PARAMETRO e non parte del testo: cosi' tredici tacche
+    # stanno in nove frasi invece che in ventisei, e aggiungerne una non
+    # aggiunge traduzioni. Le quattro forme separate per ore, giorni, mesi e
+    # anno non sono un vezzo: in italiano l'aggettivo concorda con il nome
+    # che segue -- "Ultime ore" ma "Ultimi giorni" e "Ultimo anno" -- e una
+    # frase sola non potrebbe soddisfarli tutti e tre.
+    # [EN] The period slider's stops, in long form (the caption) and short
+    # form (the label under the track).
+    #
+    # The number is a PARAMETER and not part of the text: this way thirteen
+    # stops fit in nine sentences instead of twenty-six, and adding one adds
+    # no translations. The four separate forms for hours, days, months and
+    # year are not a whim: in Italian the adjective agrees with the noun
+    # that follows -- "Ultime ore" but "Ultimi giorni" and "Ultimo anno" --
+    # and a single sentence could not satisfy all three.
+    "range": {
+        "lastHours": "Ultime {n} ore",
+        "lastDays": "Ultimi {n} giorni",
+        "lastMonths": "Ultimi {n} mesi",
+        "lastYear": "Ultimo anno",
+        "all": "Tutto lo storico",
+        "shortHours": "{n} ore",
+        "shortDays": "{n} gg",
+        "shortMonths": "{n} mesi",
+        "shortYear": "1 anno",
+        "shortAll": "tutto",
+    },
+
+    # I riquadrini che riassumono i filtri accesi, sopra i grafici. Le
+    # cinque chiavi qui sotto hanno lo stesso nome del tipo di filtro
+    # ("project", "session", ...), perche' il codice le compone al volo:
+    # rinominarne una qui senza rinominarla la' farebbe comparire il nome
+    # della chiave dentro il riquadrino.
+    # [EN] The little boxes summarising the active filters, above the
+    # charts. The five keys below carry the same name as the filter kind
+    # ("project", "session", ...), because the code composes them on the
+    # fly: renaming one here without renaming it there would make the key
+    # name show up inside the box.
+    "chip": {
+        "project": "Progetto",
+        "session": "Sessione",
+        "account": "Account",
+        "period": "Periodo",
+        "model": "Modello",
+        "remove": "Togli questo filtro",
+        "removeAria": "Togli il filtro {kind}",
+        "clearAll": "Azzera tutto",
+    },
+
+    # Le prime voci delle tendine, quelle che non filtrano niente. Ognuna
+    # ha una forma lunga e una corta: la corta e' quella che resta scritta
+    # quando la barra dei filtri si stringe.
+    # [EN] The first entries of the dropdowns, the ones that filter nothing.
+    # Each has a long and a short form: the short one is what stays written
+    # when the filter bar narrows.
+    "dd": {
+        "allSessions": "Tutte le sessioni",
+        "shortSessions": "Sessioni",
+        "sessionCount": {"one": "{n} sessione", "other": "{n} sessioni"},
+        "allPeriods": "Tutti i periodi",
+        "shortPeriods": "Periodi",
+        "allModels": "Tutti i modelli",
+        "shortModels": "Modelli",
+        "allAccounts": "Tutti gli account",
+        "shortAccounts": "Account",
+        "noProject": "Nessun progetto",
+        "allProjects": "Tutti i progetti",
+        "excludeProject": "Escludi sempre questo progetto",
+        "restoreProject": "Rimetti questo progetto fra quelli visibili",
+        "excludeAria": "Escludi sempre {name}",
+        "restoreAria": "Rimetti {name}",
+    },
+
     "footer": {
         "generated": "File generato da ~/.claude/hooks/generate_dashboard/, "
                      "richiamato dall'hook Stop.",

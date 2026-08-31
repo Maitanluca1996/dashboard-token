@@ -3248,13 +3248,21 @@ __I18N_APPLY__
      which is ordered precisely because two adjacent ones look alike; red
      stays out: in here a red chip would look like an error, not a
      filter. */
+  // L'etichetta non e' piu' scritta qui: si ricava dal tipo, che ha lo
+  // stesso nome della chiave nel dizionario ("chip.project" per "project").
+  // Una lista sola invece di due che devono restare in fila.
+  // [EN] The label is no longer written here: it is derived from the kind,
+  // which carries the same name as the dictionary key ("chip.project" for
+  // "project"). One list instead of two that have to stay in step.
   var FILTER_CHIP_DEFS = [
-    { kind: 'project', label: 'Progetto', selectId: 'project-filter', tint: '--series-3' },
-    { kind: 'session', label: 'Sessione', selectId: 'session-filter', tint: '--series-1' },
-    { kind: 'account', label: 'Account', selectId: 'account-filter', tint: '--series-7' },
-    { kind: 'period', label: 'Periodo', selectId: 'period-filter', tint: '--series-4' },
-    { kind: 'model', label: 'Modello', selectId: 'model-filter', tint: '--series-5' }
+    { kind: 'project', selectId: 'project-filter', tint: '--series-3' },
+    { kind: 'session', selectId: 'session-filter', tint: '--series-1' },
+    { kind: 'account', selectId: 'account-filter', tint: '--series-7' },
+    { kind: 'period', selectId: 'period-filter', tint: '--series-4' },
+    { kind: 'model', selectId: 'model-filter', tint: '--series-5' }
   ];
+
+  function chipLabel(kind) { return t('chip.' + kind); }
 
   var FILTER_CHIP_HOSTS = ['bar-chart-chips', 'bar2-chart-chips', 'line-chart-chips'];
 
@@ -3323,7 +3331,7 @@ __I18N_APPLY__
     var chips = activeFilterChips();
     var html = chips.map(function (chip) {
       return '<span class="chip" style="--chip-tint: var(' + chip.tint + '); --chip-wash: var(' + chip.tint + '-fill)">' +
-        '<span class="chip-key">' + esc(chip.label) + '</span>' +
+        '<span class="chip-key">' + esc(chipLabel(chip.kind)) + '</span>' +
         '<span class="chip-val" title="' + esc(chip.text) + '">' + esc(chip.text) + '</span>' +
         '<button type="button" class="chip-x" data-clear-filter="' + esc(chip.kind) + '"' +
         // Solo i progetti hanno un valore da spegnere uno per uno: gli altri
@@ -3331,11 +3339,12 @@ __I18N_APPLY__
         // [EN] Only projects have a value to switch off one at a time: the
         // other filters have at most one chip each, and the x turns it off.
         (chip.value ? (' data-clear-value="' + esc(chip.value) + '"') : '') +
-        ' title="Togli questo filtro" aria-label="Togli il filtro ' + esc(chip.label) + '">&times;</button>' +
+        ' title="' + esc(t('chip.remove')) + '"' +
+        ' aria-label="' + esc(t('chip.removeAria', { kind: chipLabel(chip.kind) })) + '">&times;</button>' +
         '</span>';
     }).join('');
     if (chips.length > 1) {
-      html += '<button type="button" class="chip chip-all" data-clear-filter="all">Azzera tutto</button>';
+      html += '<button type="button" class="chip chip-all" data-clear-filter="all">' + esc(t('chip.clearAll')) + '</button>';
     }
     FILTER_CHIP_HOSTS.forEach(function (id) {
       var host = document.getElementById(id);
@@ -3539,14 +3548,14 @@ __I18N_APPLY__
       ? includedSessions.filter(function (s) { return projs.indexOf(s.project) >= 0; })
       : includedSessions;
 
-    var html = '<div class="dropdown-trigger" title="Tutte le sessioni"><span class="dropdown-trigger-label" data-short="Sessioni">Tutte le sessioni</span><span class="dropdown-icon">▼</span></div>';
+    var html = '<div class="dropdown-trigger" title="' + esc(t('dd.allSessions')) + '"><span class="dropdown-trigger-label" data-short="' + esc(t('dd.shortSessions')) + '">' + esc(t('dd.allSessions')) + '</span><span class="dropdown-icon">▼</span></div>';
     html += '<div class="dropdown-menu">';
 
     // Opzione "Tutte le sessioni" come pill speciale
     // [EN] "Tutte le sessioni" option as a special pill
-    html += '<div class="dropdown-item all-sessions" data-value="" data-short="Sessioni">';
-    html += '<div class="item-title">Tutte le sessioni</div>';
-    html += '<div class="item-meta">' + visibleSessions.length + ' sessioni</div>';
+    html += '<div class="dropdown-item all-sessions" data-value="" data-short="' + esc(t('dd.shortSessions')) + '">';
+    html += '<div class="item-title">' + esc(t('dd.allSessions')) + '</div>';
+    html += '<div class="item-meta">' + esc(t('dd.sessionCount', visibleSessions.length)) + '</div>';
     html += '</div>';
 
     // Popola il select nascosto
@@ -3554,7 +3563,7 @@ __I18N_APPLY__
     select.options.length = 0;
     var opt = document.createElement('option');
     opt.value = '';
-    opt.textContent = 'Tutte le sessioni';
+    opt.textContent = t('dd.allSessions');
     select.appendChild(opt);
 
     // Sessioni ordinate per ultima attività (il Python le passa già ordinate)
@@ -3809,7 +3818,7 @@ __I18N_APPLY__
     // [EN] Tutte le sessioni, ...), and in compact form the whole row reads
     // [EN] with the same scheme -- Periodi, Sessioni, Modelli, Progetti,
     // [EN] Account. "Sempre" was the only entry out of tune.
-    var items = [{ value: '', label: 'Tutti i periodi', short: 'Periodi' }];
+    var items = [{ value: '', label: t('dd.allPeriods'), short: t('dd.shortPeriods') }];
     periodKeysOrdered().forEach(function (k) {
       items.push({ value: k, label: PERIODS[k].label, short: PERIODS[k].short });
     });
@@ -3828,7 +3837,7 @@ __I18N_APPLY__
     models.sort(function (a, b) {
       return modelShortLabel(a).localeCompare(modelShortLabel(b));
     });
-    var items = [{ value: '', label: 'Tutti i modelli', short: 'Modelli' }];
+    var items = [{ value: '', label: t('dd.allModels'), short: t('dd.shortModels') }];
     models.forEach(function (m) { items.push({ value: m, label: modelShortLabel(m) }); });
     buildSimpleDropdown('model-filter-custom', 'model-filter', items);
   }
@@ -3851,13 +3860,13 @@ __I18N_APPLY__
     });
     accounts.sort();
 
-    var html = '<div class="dropdown-trigger" title="Tutti gli account"><span class="dropdown-trigger-label" data-short="Account">Tutti gli account</span><span class="dropdown-icon">▼</span></div>';
+    var html = '<div class="dropdown-trigger" title="' + esc(t('dd.allAccounts')) + '"><span class="dropdown-trigger-label" data-short="' + esc(t('dd.shortAccounts')) + '">' + esc(t('dd.allAccounts')) + '</span><span class="dropdown-icon">▼</span></div>';
     html += '<div class="dropdown-menu">';
 
     // Opzione "Tutti gli account"
     // [EN] "Tutti gli account" option
-    html += '<div class="dropdown-item all-sessions" data-value="" data-short="Account">';
-    html += '<div class="item-title">Tutti gli account</div>';
+    html += '<div class="dropdown-item all-sessions" data-value="" data-short="' + esc(t('dd.shortAccounts')) + '">';
+    html += '<div class="item-title">' + esc(t('dd.allAccounts')) + '</div>';
     html += '</div>';
 
     // Popola il select nascosto
@@ -3865,7 +3874,7 @@ __I18N_APPLY__
     select.options.length = 0;
     var opt = document.createElement('option');
     opt.value = '';
-    opt.textContent = 'Tutti gli account';
+    opt.textContent = t('dd.allAccounts');
     select.appendChild(opt);
 
     accounts.forEach(function (acc) {
@@ -3972,7 +3981,7 @@ __I18N_APPLY__
     });
 
     if (!projects.length) {
-      list.innerHTML = '<div class="check-empty">Nessun progetto</div>';
+      list.innerHTML = '<div class="check-empty">' + esc(t('dd.noProject')) + '</div>';
       return;
     }
 
@@ -3984,14 +3993,15 @@ __I18N_APPLY__
         '<span class="check-count">' + esc(fmtCompactTokens(tokens[p] || 0)) + '</span>' +
         '</label>' +
         '<button type="button" class="check-ban" data-exclude="' + esc(p) + '" title="' +
-        (isBanned ? 'Rimetti questo progetto fra quelli visibili' : 'Escludi sempre questo progetto') +
-        '" aria-label="' + (isBanned ? 'Rimetti ' : 'Escludi sempre ') + esc(p) + '">' +
+        esc(isBanned ? t('dd.restoreProject') : t('dd.excludeProject')) +
+        '" aria-label="' + esc(isBanned ? t('dd.restoreAria', { name: p })
+                                        : t('dd.excludeAria', { name: p })) + '">' +
         (isBanned ? '&#8634;' : '&#8856;') + '</button>' +
         '</div>';
     }
 
     var html = '<button type="button" class="check-row check-all active">' +
-      '<span class="check-name">Tutti i progetti</span>' +
+      '<span class="check-name">' + esc(t('dd.allProjects')) + '</span>' +
       '<span class="check-count">' + choosable.length + '</span></button>';
     choosable.forEach(function (p) { html += rowHtml(p, false); });
     if (banned.length) {
@@ -4193,28 +4203,28 @@ __I18N_APPLY__
     // [EN] measure: the cost card shows the 4 dollar amounts, the token
     // [EN] card shows the 4 counts.
     var costBreakdown = [
-      { label: 'Input', val: fmtUsd(costI), pct: fmtPct(costI, costAll) },
-      { label: 'Output', val: fmtUsd(costO), pct: fmtPct(costO, costAll) },
-      { label: 'Cache write', val: fmtUsd(costCw), pct: fmtPct(costCw, costAll) },
-      { label: 'Cache read', val: fmtUsd(costCr), pct: fmtPct(costCr, costAll) }
+      { label: t('stats.input'), val: fmtUsd(costI), pct: fmtPct(costI, costAll) },
+      { label: t('stats.output'), val: fmtUsd(costO), pct: fmtPct(costO, costAll) },
+      { label: t('stats.cacheWrite'), val: fmtUsd(costCw), pct: fmtPct(costCw, costAll) },
+      { label: t('stats.cacheRead'), val: fmtUsd(costCr), pct: fmtPct(costCr, costAll) }
     ];
     var tokenBreakdown = [
-      { label: 'Input', val: fmtInt(totI), pct: fmtPct(totI, totalAll) },
-      { label: 'Output', val: fmtInt(totO), pct: fmtPct(totO, totalAll) },
-      { label: 'Cache write', val: fmtInt(totCw), pct: fmtPct(totCw, totalAll) },
-      { label: 'Cache read', val: fmtInt(totCr), pct: fmtPct(totCr, totalAll) }
+      { label: t('stats.input'), val: fmtInt(totI), pct: fmtPct(totI, totalAll) },
+      { label: t('stats.output'), val: fmtInt(totO), pct: fmtPct(totO, totalAll) },
+      { label: t('stats.cacheWrite'), val: fmtInt(totCw), pct: fmtPct(totCw, totalAll) },
+      { label: t('stats.cacheRead'), val: fmtInt(totCr), pct: fmtPct(totCr, totalAll) }
     ];
     var heroCards = [
-      ['Costo stimato', fmtUsd(costAll), costBreakdown],
-      ['Token nuovi (input+output)', fmtInt(freshAll), tokenBreakdown]
+      [t('stats.estCost'), fmtUsd(costAll), costBreakdown],
+      [t('stats.freshTokens'), fmtInt(freshAll), tokenBreakdown]
     ];
     var miniCards = [
-      ['Costo oggi', fmtUsd(todayCost)],
-      ['Token oggi', fmtInt(todayTotal)],
-      ['Interazioni registrate', fmtInt(nTurns)],
-      ['Sessioni', fmtInt(nSessions)],
-      ['Media nuovi/interazione', fmtInt(avgFresh)],
-      ['Token totali (con cache)', fmtInt(totalAll)]
+      [t('stats.costToday'), fmtUsd(todayCost)],
+      [t('stats.tokensToday'), fmtInt(todayTotal)],
+      [t('stats.turns'), fmtInt(nTurns)],
+      [t('stats.sessions'), fmtInt(nSessions)],
+      [t('stats.avgFresh'), fmtInt(avgFresh)],
+      [t('stats.totalTokens'), fmtInt(totalAll)]
     ];
 
     // baseDelay: ritardo di partenza dell'intero gruppo, in secondi. Serve
@@ -4265,9 +4275,9 @@ __I18N_APPLY__
     usd: {
       valueOf: function (d) { return d.cost; },
       axis: function (v, scale) { return fmtMoneyAxis(v, scale, MONEY_PRE, MONEY_USD); },
-      barNoun: 'Costo totale',
-      lineTitle: 'Andamento costo nel tempo',
-      aria: 'Costo stimato in dollari'
+      barNoun: t('unitMode.barUsd'),
+      lineTitle: t('unitMode.lineUsd'),
+      aria: t('unitMode.ariaUsd')
     },
     eur: {
       // .cost e' in dollari: la conversione avviene qui, una volta sola,
@@ -4278,16 +4288,16 @@ __I18N_APPLY__
       // [EN] the drawing stays identical to the other units.
       valueOf: function (d) { return d.cost * USD_TO_EUR; },
       axis: function (v, scale) { return fmtMoneyAxis(v, scale, MONEY_PRE, MONEY_EUR); },
-      barNoun: 'Costo totale in euro',
-      lineTitle: 'Andamento costo in euro nel tempo',
-      aria: 'Costo stimato in euro'
+      barNoun: t('unitMode.barEur'),
+      lineTitle: t('unitMode.lineEur'),
+      aria: t('unitMode.ariaEur')
     },
     tokens: {
       valueOf: function (d) { return d.tot; },
       axis: function (v) { return fmtInt(v); },
-      barNoun: 'Token totali',
-      lineTitle: 'Andamento token nel tempo',
-      aria: 'Token totali'
+      barNoun: t('unitMode.barTokens'),
+      lineTitle: t('unitMode.lineTokens'),
+      aria: t('unitMode.ariaTokens')
     }
   };
 
@@ -5165,20 +5175,56 @@ __I18N_APPLY__
   // a linear scale the durations actually used (24 hours, 7 days) would all
   // be crammed into the first centimeter. With growing steps, instead,
   // every position is a round duration and you reach it without aiming.
+  // Ogni tacca dice quanto dura e in quale unita' si conta; le due
+  // etichette (lunga e corta) le compone il dizionario a partire da quei
+  // due dati. Prima ogni tacca si portava le due frasi gia' scritte:
+  // tredici tacche facevano ventisei stringhe da tradurre, e aggiungerne
+  // una ne aggiungeva altre due. Adesso sono nove frasi in tutto e una
+  // tacca nuova non ne aggiunge nessuna.
+  // [EN] Every stop states how long it lasts and in which unit it is
+  // counted; the two labels (long and short) are composed by the
+  // dictionary from those two facts. Each stop used to carry the two
+  // ready-written sentences: thirteen stops made twenty-six strings to
+  // translate, and adding one added two more. Now there are nine sentences
+  // in all and a new stop adds none.
   var RANGE_LADDER = [
-    { hours: 3, label: 'Ultime 3 ore', short: '3 ore' },
-    { hours: 6, label: 'Ultime 6 ore', short: '6 ore' },
-    { hours: 12, label: 'Ultime 12 ore', short: '12 ore' },
-    { hours: 24, label: 'Ultime 24 ore', short: '24 ore' },
-    { hours: 48, label: 'Ultimi 2 giorni', short: '2 gg' },
-    { hours: 72, label: 'Ultimi 3 giorni', short: '3 gg' },
-    { hours: 168, label: 'Ultimi 7 giorni', short: '7 gg' },
-    { hours: 336, label: 'Ultimi 14 giorni', short: '14 gg' },
-    { hours: 720, label: 'Ultimi 30 giorni', short: '30 gg' },
-    { hours: 2160, label: 'Ultimi 3 mesi', short: '3 mesi' },
-    { hours: 4320, label: 'Ultimi 6 mesi', short: '6 mesi' },
-    { hours: 8760, label: 'Ultimo anno', short: '1 anno' }
+    { hours: 3, n: 3, unit: 'Hours' },
+    { hours: 6, n: 6, unit: 'Hours' },
+    { hours: 12, n: 12, unit: 'Hours' },
+    { hours: 24, n: 24, unit: 'Hours' },
+    { hours: 48, n: 2, unit: 'Days' },
+    { hours: 72, n: 3, unit: 'Days' },
+    { hours: 168, n: 7, unit: 'Days' },
+    { hours: 336, n: 14, unit: 'Days' },
+    { hours: 720, n: 30, unit: 'Days' },
+    { hours: 2160, n: 3, unit: 'Months' },
+    { hours: 4320, n: 6, unit: 'Months' },
+    { hours: 8760, n: 1, unit: 'Year' }
   ];
+
+  // Da una tacca della scala alla tacca completa, con le sue due etichette
+  // gia' scritte. Le etichette restano PROPRIETA' della tacca e non
+  // funzioni da chiamare: mezza dozzina di punti legge step.label e
+  // step.short, e uno di loro non e' nemmeno una tacca della scala ma un
+  // periodo costruito al volo. Tenere la stessa forma per entrambi vuol
+  // dire non dover toccare nessuno di quei punti.
+  // La tacca finale ("tutto lo storico") non ha ne' un numero ne'
+  // un'unita', e per questo ha due chiavi sue invece di passare di qui.
+  // [EN] From a ladder rung to the complete stop, with its two labels
+  // already written. The labels stay PROPERTIES of the stop and not
+  // functions to call: half a dozen places read step.label and step.short,
+  // and one of them is not even a ladder rung but a period built on the
+  // fly. Keeping the same shape for both means not having to touch any of
+  // those places.
+  // The final stop ("all history") has neither a number nor a unit, and
+  // therefore has two keys of its own instead of coming through here.
+  function labelledStep(st) {
+    return {
+      hours: st.hours,
+      label: t('range.last' + st.unit, { n: st.n }),
+      short: t('range.short' + st.unit, { n: st.n })
+    };
+  }
   var RANGE_DEFAULT_HOURS = 24;
   var RANGE_STEPS = [];
 
@@ -5203,8 +5249,13 @@ __I18N_APPLY__
       if (ms && (!oldest || ms < oldest)) { oldest = ms; }
     });
     var spanHours = oldest ? Math.ceil((Date.now() - oldest) / 3600000) : RANGE_DEFAULT_HOURS;
-    var steps = RANGE_LADDER.filter(function (st) { return st.hours < spanHours; });
-    steps.push({ hours: Math.max(spanHours, 1), label: 'Tutto lo storico', short: 'tutto' });
+    var steps = RANGE_LADDER.filter(function (st) { return st.hours < spanHours; })
+                            .map(labelledStep);
+    steps.push({
+      hours: Math.max(spanHours, 1),
+      label: t('range.all'),
+      short: t('range.shortAll')
+    });
     return steps;
   }
 
