@@ -2130,8 +2130,49 @@ __I18N_APPLY__
   // [EN] V8 (Node and Chromium) does not group 4-digit numbers (e.g.
   // [EN] "2091" instead of "2.091") while grouping correctly from 5 digits
   // [EN] up -- for visual consistency we format everything manually.
+  // Il profilo di formattazione della lingua attiva: separatori, simboli
+  // di valuta, abbreviazione dei miliardi. Lo pubblica lo script
+  // nell'<head> (vedi I18N_BOOT in header.py); qui lo si legge una volta
+  // sola e lo si ripone in variabili corte, invece di interrogarlo ad ogni
+  // numero formattato.
+  //
+  // I ripieghi sono i valori italiani, per lo stesso motivo per cui il
+  // testo italiano resta scritto nel markup: se il dizionario non si
+  // carica, la pagina resta esattamente quella di prima invece di
+  // diventare una pagina rotta.
+  //
+  // fmtOpt e non "FMT.x || ripiego": in inglese il simbolo di valuta in
+  // coda e' la stringa VUOTA, che in JavaScript e' falsa. Con "||" un
+  // valore corretto ma vuoto verrebbe scambiato per un valore assente, e
+  // gli importi inglesi si ritroverebbero il dollaro sia davanti sia
+  // dietro. Serve distinguere "non c'e'" da "c'e' ed e' vuoto".
+  // [EN] The active language's formatting profile: separators, currency
+  // symbols, billions abbreviation. It is published by the script in the
+  // <head> (see I18N_BOOT in header.py); here it is read once and put away
+  // in short variables, instead of being queried at every formatted number.
+  //
+  // The fallbacks are the Italian values, for the same reason the Italian
+  // text stays written in the markup: if the dictionary does not load, the
+  // page stays exactly as it was instead of becoming a broken page.
+  //
+  // fmtOpt and not "FMT.x || fallback": in English the trailing currency
+  // symbol is the EMPTY string, which in JavaScript is falsy. With "||" a
+  // correct but empty value would be mistaken for a missing one, and
+  // English amounts would end up with the dollar both in front and behind.
+  // We need to tell "absent" from "present and empty" apart.
+  var FMT = window.FMT || {};
+  function fmtOpt(name, fallback) {
+    return FMT[name] === undefined ? fallback : FMT[name];
+  }
+  var DEC = fmtOpt('dec', ',');
+  var THOU = fmtOpt('thou', '.');
+  var MONEY_PRE = fmtOpt('moneyPre', '');
+  var MONEY_USD = fmtOpt('moneyPostUsd', ' $');
+  var MONEY_EUR = fmtOpt('moneyPostEur', ' \u20ac');
+  var BILLION = fmtOpt('billion', 'Md');
+
   function groupThousands(intStr) {
-    return intStr.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    return intStr.replace(/\B(?=(\d{3})+(?!\d))/g, THOU);
   }
   // Numero con 2 decimali e separatore delle migliaia, SENZA simbolo di
   // valuta: e' il motore comune di fmtUsd e fmtEur, cosi' dollari ed euro
@@ -2155,15 +2196,18 @@ __I18N_APPLY__
     var intPart = Math.floor(totalCents / 100);
     var centsPart = totalCents % 100;
     var centsStr = centsPart < 10 ? '0' + centsPart : String(centsPart);
-    return sign + groupThousands(String(intPart)) + ',' + centsStr;
+    return sign + groupThousands(String(intPart)) + DEC + centsStr;
   }
-  // Simbolo in coda per tutte e due le valute, come si scrive in italiano.
-  // Prima il dollaro lo teneva davanti ("$12,34") e l'euro dietro
-  // ("12,34 €"): cambiare unita' faceva saltare il simbolo da un lato
-  // all'altro del numero, un movimento che si notava e non significava
-  // niente. Se un giorno si torna al simbolo davanti, va spostato in
-  // entrambe -- e anche negli assi, dove fmtMoneyAxis prende il simbolo
-  // come parametro (vedi UNIT_MODES).
+  // Da che lato sta il simbolo di valuta lo dice la lingua, non il codice:
+  // in italiano va in coda ("12,34 $"), in inglese davanti ("$12.34"). Per
+  // questo le due valute incollano un pezzo davanti e uno dietro, e in
+  // ciascuna lingua uno dei due e' vuoto.
+  // Quel che NON cambia e' che le due valute si comportino allo stesso
+  // modo fra loro: prima il dollaro teneva il simbolo davanti e l'euro
+  // dietro, e cambiare unita' lo faceva saltare da un lato all'altro del
+  // numero -- un movimento che si notava e non significava niente.
+  // Gli assi seguono da soli: fmtMoneyAxis prende i due pezzi come
+  // parametri e li riceve da UNIT_MODES.
   // [EN] Trailing symbol for both currencies, as written in Italian. The
   // [EN] dollar used to keep it in front ("$12.34") and the euro behind
   // [EN] ("12,34 €"): switching unit made the symbol jump from one side of
@@ -2171,14 +2215,14 @@ __I18N_APPLY__
   // [EN] nothing. If one day the leading symbol comes back, it must move in
   // [EN] both -- and in the axes too, where fmtMoneyAxis takes the symbol
   // [EN] as a parameter (see UNIT_MODES).
-  function fmtUsd(n) { return fmtDecimal2(n) + ' $'; }
+  function fmtUsd(n) { return MONEY_PRE + fmtDecimal2(n) + MONEY_USD; }
   // Prende SEMPRE un importo in dollari e applica il cambio internamente:
   // chi chiama non deve mai ricordarsi di moltiplicare (e non rischia di
   // farlo due volte).
   // [EN] ALWAYS takes an amount in dollars and applies the exchange rate
   // [EN] internally: callers never need to remember to multiply (and cannot
   // [EN] do it twice).
-  function fmtEur(usd) { return fmtDecimal2(usd * USD_TO_EUR) + ' €'; }
+  function fmtEur(usd) { return MONEY_PRE + fmtDecimal2(usd * USD_TO_EUR) + MONEY_EUR; }
   // Coppia "valore ufficiale + controvalore", il formato usato nei tooltip
   // dei grafici: il dollaro e' il dato di listino, l'euro e' la conversione.
   // [EN] "Official value + counter-value" pair, the format used in chart
@@ -2201,8 +2245,8 @@ __I18N_APPLY__
   function fmtMoneyAxis(v, scale, symbolBefore, symbolAfter) {
     var body;
     if (scale >= 100) body = fmtInt(v);
-    else if (scale >= 10) body = v.toFixed(1).replace('.', ',');
-    else body = v.toFixed(2).replace('.', ',');
+    else if (scale >= 10) body = v.toFixed(1).replace('.', DEC);
+    else body = v.toFixed(2).replace('.', DEC);
     return symbolBefore + body + symbolAfter;
   }
   // {ts, sid, tool, target}
@@ -2696,9 +2740,11 @@ __I18N_APPLY__
   // there the number is there to explain the list's order, not to be summed.
   function fmtCompactTokens(n) {
     var v = Math.round(n || 0);
-    // "Md" e non "B": in italiano un bilione e' mille miliardi, e un numero
-    // che vale mille volte meno di quel che sembra e' peggio di un numero
-    // lungo. Il decimale cade oltre le tre cifre intere ("561M" e non
+    // L'abbreviazione dei miliardi arriva dal profilo della lingua: "Md"
+    // in italiano, "B" in inglese. Non e' pignoleria: in italiano un
+    // "bilione" e' mille miliardi, quindi una "B" letta da un italiano
+    // varrebbe mille volte piu' del vero. Le altre abbreviazioni ("k",
+    // "M") si scrivono uguali nelle due lingue e restano scritte qui. Il decimale cade oltre le tre cifre intere ("561M" e non
     // "560,5M"): li' la frazione non aggiunge niente e ruba spazio al nome
     // del progetto.
     // [EN] "Md" (miliardi) and not "B": in Italian a "bilione" is a
@@ -2706,7 +2752,7 @@ __I18N_APPLY__
     // looks is worse than a long number. The decimal drops past three
     // integer digits ("561M" and not "560,5M"): there the fraction adds
     // nothing and steals room from the project's name.
-    if (v >= 1e9) { return oneDecimal(v / 1e9) + 'Md'; }
+    if (v >= 1e9) { return oneDecimal(v / 1e9) + BILLION; }
     if (v >= 1e8) { return Math.round(v / 1e6) + 'M'; }
     if (v >= 1e6) { return oneDecimal(v / 1e6) + 'M'; }
     if (v >= 1e4) { return Math.round(v / 1e3) + 'k'; }
@@ -2720,7 +2766,7 @@ __I18N_APPLY__
   // comma zero says nothing and takes two characters in a narrow column.
   function oneDecimal(v) {
     var s = v.toFixed(1);
-    return (s.slice(-2) === '.0' ? s.slice(0, -2) : s).replace('.', ',');
+    return (s.slice(-2) === '.0' ? s.slice(0, -2) : s).replace('.', DEC);
   }
 
   function fmtInt(n) {
@@ -2729,8 +2775,8 @@ __I18N_APPLY__
     return sign + groupThousands(String(Math.abs(v)));
   }
   function fmtPct(part, whole) {
-    if (!whole) return '0,0%';
-    return (part / whole * 100).toFixed(1).replace('.', ',') + '%';
+    if (!whole) return '0' + DEC + '0%';
+    return (part / whole * 100).toFixed(1).replace('.', DEC) + '%';
   }
   function pad2(n) { return n < 10 ? '0' + n : String(n); }
   function dayKey(ts) {
@@ -2749,10 +2795,18 @@ __I18N_APPLY__
     return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate());
   }
   function pad3(n) { return n < 10 ? '00' + n : (n < 100 ? '0' + n : String(n)); }
+  // I nomi dei mesi arrivano dal profilo della lingua. I due elenchi
+  // italiani restano scritti qui come ripiego: sono la pagina che si vede
+  // quando il dizionario non si carica, la stessa di sempre.
+  // [EN] The month names come from the language profile. The two Italian
+  // lists stay written here as the fallback: they are the page one sees
+  // when the dictionary does not load, the same as ever.
   var MONTHS_IT = ['gen', 'feb', 'mar', 'apr', 'mag', 'giu', 'lug', 'ago', 'set', 'ott', 'nov', 'dic'];
   var MONTHS_IT_FULL = ['gennaio', 'febbraio', 'marzo', 'aprile', 'maggio', 'giugno',
     'luglio', 'agosto', 'settembre', 'ottobre', 'novembre', 'dicembre'];
-  function fmtDayNice(dayNum, monthNum1based) { return dayNum + ' ' + MONTHS_IT[monthNum1based - 1]; }
+  var MONTHS = fmtOpt('monthsShort', MONTHS_IT);
+  var MONTHS_FULL = fmtOpt('monthsLong', MONTHS_IT_FULL);
+  function fmtDayNice(dayNum, monthNum1based) { return dayNum + ' ' + MONTHS[monthNum1based - 1]; }
 
   // Come dayKey, un gradino piu' in alto: "2026-08". Stessa avvertenza sul
   // fuso -- si passa da new Date e dai getter locali, non dalla
@@ -2775,7 +2829,7 @@ __I18N_APPLY__
   // [EN] the same.
   function fmtMonthShort(k) {
     var parts = k.split('-');
-    return MONTHS_IT[parseInt(parts[1], 10) - 1] + ' ' + parts[0].slice(2);
+    return MONTHS[parseInt(parts[1], 10) - 1] + ' ' + parts[0].slice(2);
   }
   // "Agosto 2026": forma estesa per la tendina dei periodi, dove lo spazio
   // c'e' e l'abbreviazione si leggerebbe peggio.
@@ -2783,7 +2837,7 @@ __I18N_APPLY__
   // [EN] room and the abbreviation would read worse.
   function fmtMonthLong(k) {
     var parts = k.split('-');
-    var nome = MONTHS_IT_FULL[parseInt(parts[1], 10) - 1];
+    var nome = MONTHS_FULL[parseInt(parts[1], 10) - 1];
     return nome.charAt(0).toUpperCase() + nome.slice(1) + ' ' + parts[0];
   }
   function fmtTs(ts) {
@@ -4210,7 +4264,7 @@ __I18N_APPLY__
   var UNIT_MODES = {
     usd: {
       valueOf: function (d) { return d.cost; },
-      axis: function (v, scale) { return fmtMoneyAxis(v, scale, '', ' $'); },
+      axis: function (v, scale) { return fmtMoneyAxis(v, scale, MONEY_PRE, MONEY_USD); },
       barNoun: 'Costo totale',
       lineTitle: 'Andamento costo nel tempo',
       aria: 'Costo stimato in dollari'
@@ -4223,7 +4277,7 @@ __I18N_APPLY__
       // [EN] axis and the max value already think in euros and the rest of
       // [EN] the drawing stays identical to the other units.
       valueOf: function (d) { return d.cost * USD_TO_EUR; },
-      axis: function (v, scale) { return fmtMoneyAxis(v, scale, '', ' €'); },
+      axis: function (v, scale) { return fmtMoneyAxis(v, scale, MONEY_PRE, MONEY_EUR); },
       barNoun: 'Costo totale in euro',
       lineTitle: 'Andamento costo in euro nel tempo',
       aria: 'Costo stimato in euro'
