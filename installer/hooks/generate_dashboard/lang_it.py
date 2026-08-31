@@ -367,6 +367,17 @@ UI = {
     # need not hold in every language, and whoever translates must be able
     # to move it.
     "common": {
+        # "Quanto tempo fa", in forma compatta, sotto i titoli delle
+        # sessioni. Tre chiavi separate e non una sola con l'unita'
+        # passata dentro: dove va la parola "fa" cambia da lingua a
+        # lingua, e qui la frase intera e' un dato.
+        # [EN] "How long ago", in compact form, under the session
+        # titles. Three separate keys and not one with the unit passed
+        # in: where the word "ago" goes changes from language to
+        # language, and here the whole phrase is data.
+        "agoMin": "{n}m fa",
+        "agoHour": "{n}h fa",
+        "agoDay": "{n}g fa",
         "turns": {"one": "{n} interazione", "other": "{n} interazioni"},
         "sessions": {"one": "{n} sessione", "other": "{n} sessioni"},
         # Qui il numero arriva gia' formattato (con i separatori delle

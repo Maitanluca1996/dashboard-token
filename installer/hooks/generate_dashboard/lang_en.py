@@ -215,6 +215,11 @@ UI = {
     },
 
     "common": {
+        # Vedi lang_it.py: la posizione di "ago" e' parte del dato.
+        # [EN] See lang_it.py: the position of "ago" is part of the data.
+        "agoMin": "{n}m ago",
+        "agoHour": "{n}h ago",
+        "agoDay": "{n}d ago",
         "turns": {"one": "{n} interaction", "other": "{n} interactions"},
         "sessions": {"one": "{n} session", "other": "{n} sessions"},
         "tokensStr": "{n} tokens",

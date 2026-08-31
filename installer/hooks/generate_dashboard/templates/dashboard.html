@@ -1920,12 +1920,12 @@ __SITE_HEADER__
         <label data-i18n="chart.scale">Scala:</label>
         <div class="segmented-control" id="scale-filter-custom">
           <div class="indicator"></div>
-          <button type="button" data-value="linear" class="active">Lineare</button>
-          <button type="button" data-value="log">Log</button>
+          <button type="button" data-value="linear" class="active" data-i18n="chart.linear">Lineare</button>
+          <button type="button" data-value="log" data-i18n="chart.log">Log</button>
         </div>
         <select id="scale-filter" style="display:none">
-          <option value="linear" selected>Lineare</option>
-          <option value="log">Log</option>
+          <option value="linear" selected data-i18n="chart.linear">Lineare</option>
+          <option value="log" data-i18n="chart.log">Log</option>
         </select>
       </div>
       <!-- Il cursore per ultimo di proposito: e' l'unico dei tre che di
@@ -3580,15 +3580,23 @@ __I18N_APPLY__
     });
   }
 
+  // "5m fa", "3h ago": tre chiavi e non una frase con l'unita' dentro,
+  // perche' la forma cambia da lingua a lingua -- l'italiano mette il
+  // "fa" dopo, l'inglese l'"ago", e una lingua che lo mettesse davanti
+  // non entrerebbe in una concatenazione scritta qui.
+  // [EN] "5m fa", "3h ago": three keys and not one sentence with the unit
+  // inside, because the shape changes from language to language -- Italian
+  // puts "fa" after, English "ago", and a language putting it in front
+  // would not fit a concatenation written here.
   function formatTimeCompact(date) {
     var now = new Date();
     var diffMs = now - date;
     var diffMins = Math.floor(diffMs / 60000);
-    if (diffMins < 60) return diffMins + 'm fa';
+    if (diffMins < 60) return tr('common.agoMin', { n: diffMins });
     var diffHours = Math.floor(diffMins / 60);
-    if (diffHours < 24) return diffHours + 'h fa';
+    if (diffHours < 24) return tr('common.agoHour', { n: diffHours });
     var diffDays = Math.floor(diffHours / 24);
-    return diffDays + 'd fa';
+    return tr('common.agoDay', { n: diffDays });
   }
 
   /* Costruttore generico di dropdown a voci semplici (etichetta + valore).

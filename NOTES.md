@@ -1,6 +1,6 @@
 # Dashboard Token Usage — Technical and Architectural Specifications / Specifiche Tecniche e Architetturali
 
-## 🇬🇧 English
+## <img src="docs/flag-gb.svg" width="24" height="16" alt=""> English
 
 Static HTML dashboard and hook suite for monitoring Claude Code token consumption and costs. Generation happens entirely locally from the CSV logs recorded on disk, with no external API calls.
 
@@ -235,7 +235,7 @@ Ruled out with verification: non-`assistant` entries with `usage` (none exists a
 
 ---
 
-## 🇮🇹 Italiano
+## <img src="docs/flag-it.svg" width="24" height="16" alt=""> Italiano
 
 Dashboard HTML statica e suite di hook per il monitoraggio dei consumi di token e costi di Claude Code. La generazione avviene interamente in locale a partire dai log CSV registrati sul disco, senza effettuare chiamate API esterne.
 
