@@ -149,6 +149,7 @@ UI = {
         "search": "Cerca nella richiesta:",
         "searchPlaceholder": "Testo della richiesta…",
         "searchClear": "Cancella la ricerca",
+        "chooseSessions": "Scegli fra le sessioni",
     },
 
     # Cosa misurano i grafici. Erano tre voci -- dollari, euro, token --
@@ -321,11 +322,10 @@ UI = {
     # fly: renaming one here without renaming it there would make the key
     # name show up inside the box.
     "chip": {
-        "project": "Progetto",
-        "session": "Sessione",
         "account": "Account",
         "period": "Periodo",
         "model": "Modello",
+        "search": "Ricerca",
         "remove": "Togli questo filtro",
         "removeAria": "Togli il filtro {kind}",
         "clearAll": "Azzera tutto",
@@ -337,10 +337,31 @@ UI = {
     # [EN] The first entries of the dropdowns, the ones that filter nothing.
     # Each has a long and a short form: the short one is what stays written
     # when the filter bar narrows.
+    # La finestra da cui si scelgono le sessioni: sono centinaia, e in
+    # colonna non ci stavano.
+    # [EN] The window the sessions are chosen from: there are hundreds of
+    # them, and they did not fit in the column.
+    "picker": {
+        "sessionsTitle": "Scegli le sessioni",
+        "searchSessions": "Cerca una sessione…",
+        "searchClear": "Cancella la ricerca",
+        "close": "Chiudi",
+        "done": "Fatto",
+        "noMatch": "Nessuna sessione corrisponde",
+        "checkAll": "Spunta tutte le sessioni in elenco",
+        "colSession": "Sessione",
+        "colProject": "Progetto",
+        "colModel": "Modello",
+        "colAccount": "Account",
+        "colTurns": "Interazioni",
+        "colLast": "Ultima attività",
+        "none": "Nessuna sessione scelta",
+        "selected": {"one": "{n} sessione scelta", "other": "{n} sessioni scelte"},
+    },
+
     "dd": {
         "allSessions": "Tutte le sessioni",
-        "shortSessions": "Sessioni",
-        "sessionCount": {"one": "{n} sessione", "other": "{n} sessioni"},
+        "noSession": "Nessuna sessione",
         "allPeriods": "Tutti i periodi",
         "shortPeriods": "Periodi",
         "allModels": "Tutti i modelli",

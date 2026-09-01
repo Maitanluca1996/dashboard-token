@@ -85,6 +85,7 @@ UI = {
         "search": "Search in the request:",
         "searchPlaceholder": "Request text…",
         "searchClear": "Clear the search",
+        "chooseSessions": "Choose among the sessions",
     },
 
     # Vedi lang_it.py: "Cost" non nomina la valuta di proposito.
@@ -185,20 +186,38 @@ UI = {
     },
 
     "chip": {
-        "project": "Project",
-        "session": "Session",
         "account": "Account",
         "period": "Period",
         "model": "Model",
+        "search": "Search",
         "remove": "Remove this filter",
         "removeAria": "Remove the {kind} filter",
         "clearAll": "Clear all",
     },
 
+    # Vedi lang_it.py: la finestra da cui si scelgono le sessioni.
+    # [EN] See lang_it.py: the window the sessions are chosen from.
+    "picker": {
+        "sessionsTitle": "Choose the sessions",
+        "searchSessions": "Search a session…",
+        "searchClear": "Clear the search",
+        "close": "Close",
+        "done": "Done",
+        "noMatch": "No session matches",
+        "checkAll": "Tick every session on the list",
+        "colSession": "Session",
+        "colProject": "Project",
+        "colModel": "Model",
+        "colAccount": "Account",
+        "colTurns": "Interactions",
+        "colLast": "Last activity",
+        "none": "No session chosen",
+        "selected": {"one": "{n} session chosen", "other": "{n} sessions chosen"},
+    },
+
     "dd": {
         "allSessions": "All sessions",
-        "shortSessions": "Sessions",
-        "sessionCount": {"one": "{n} session", "other": "{n} sessions"},
+        "noSession": "No session",
         "allPeriods": "All periods",
         "shortPeriods": "Periods",
         "allModels": "All models",
