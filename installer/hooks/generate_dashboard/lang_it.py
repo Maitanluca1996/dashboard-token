@@ -127,13 +127,6 @@ UI = {
               "sul portafoglio.",
     },
 
-    # I titoli delle due sezioni della colonna di sinistra.
-    # [EN] The titles of the two sections in the left-hand column.
-    "side": {
-        "filters": "Filtri",
-        "unit": "Unità",
-    },
-
     # Le etichette dei filtri. I due punti finali fanno parte del testo:
     # non tutte le lingue li usano allo stesso modo, quindi la punteggiatura
     # sta nella traduzione e non incollata nel markup.
@@ -142,13 +135,40 @@ UI = {
     # translation and is not glued on in the markup.
     "filters": {
         "projects": "Progetti:",
-        "session": "Sessione:",
+        "session": "Sessioni:",
         "account": "Account:",
         "period": "Periodo:",
         "model": "Modello:",
         "search": "Cerca nella richiesta:",
         "searchPlaceholder": "Testo della richiesta…",
         "searchClear": "Cancella la ricerca",
+        # Il numero fa parte del testo perche' fa parte della
+        # grammatica: "1 escluso" e "3 esclusi" non si compongono
+        # incollando una cifra davanti a una parola fissa.
+        # [EN] The number is part of the text because it is part of the
+        # grammar: "1 escluso" and "3 esclusi" are not composed by
+        # gluing a digit in front of a fixed word.
+        "excludedCount": {"one": "1 escluso", "other": "{n} esclusi"},
+        "showExcludedAria": "Vedi i progetti sempre esclusi",
+        # Le righe in fondo agli elenchi in colonna: quante ne restano
+        # oltre quelle mostrate. Il genere cambia (progetti/sessioni),
+        # quindi sono due chiavi e non una con il nome dentro. Aprono un
+        # modale con l'elenco intero e non si richiudono, quindi non serve
+        # una voce per il verso contrario.
+        # [EN] The rows at the bottom of the lists in the column: how
+        # many are left beyond the ones shown. The gender changes
+        # (projects/sessions), so they are two keys and not one with
+        # the noun inside. They open a modal with the whole list and do
+        # not fold back, so no entry is needed for the other direction.
+        "moreProjects": {"one": "+ 1 altro", "other": "+ altri {n}"},
+        "moreSessions": {"one": "+ 1 altra", "other": "+ altre {n}"},
+        # La riga che compare al posto dell'elenco quando non c'e' nessuna
+        # sessione spuntata: senza, un blocco vuoto non diceva se il
+        # filtro era spento o se ci si era appena dimenticati di scegliere.
+        # [EN] The row shown in place of the list when no session is
+        # ticked: without it, an empty block did not say whether the
+        # filter was off or one had simply forgotten to choose.
+        "allSessions": "Tutte le sessioni sono incluse.",
     },
 
     # Cosa misurano i grafici. Erano tre voci -- dollari, euro, token --
@@ -182,6 +202,7 @@ UI = {
     # translated all the same: leaving half of two identical lists in
     # Italian is the asymmetry that makes a future reader suspect a bug.
     "chart": {
+        "unit": "Unità:",
         "groupBy": "Raggruppa:",
         "byDay": "Per giorno",
         "byMonth": "Per mese",
@@ -321,11 +342,10 @@ UI = {
     # fly: renaming one here without renaming it there would make the key
     # name show up inside the box.
     "chip": {
-        "project": "Progetto",
-        "session": "Sessione",
         "account": "Account",
         "period": "Periodo",
         "model": "Modello",
+        "search": "Ricerca",
         "remove": "Togli questo filtro",
         "removeAria": "Togli il filtro {kind}",
         "clearAll": "Azzera tutto",
@@ -337,10 +357,38 @@ UI = {
     # [EN] The first entries of the dropdowns, the ones that filter nothing.
     # Each has a long and a short form: the short one is what stays written
     # when the filter bar narrows.
+    # La finestra da cui si scelgono le sessioni: sono centinaia, e in
+    # colonna non ci stavano.
+    # [EN] The window the sessions are chosen from: there are hundreds of
+    # them, and they did not fit in the column.
+    "picker": {
+        "excludedTitle": "Progetti sempre esclusi",
+        "excludedEmpty": "Nessun progetto escluso",
+        # La finestra che si apre da "+ altri n" in fondo all'elenco dei
+        # progetti: la stessa lista della colonna, senza il tetto di righe.
+        # [EN] The window opening from "+ n more" at the bottom of the
+        # projects list: the same list as the column, with no row cap.
+        "projectsTitle": "Tutti i progetti",
+        "sessionsTitle": "Scegli le sessioni",
+        "searchSessions": "Cerca una sessione…",
+        "searchClear": "Cancella la ricerca",
+        "close": "Chiudi",
+        "done": "Fatto",
+        "noMatch": "Nessuna sessione corrisponde",
+        "checkAll": "Spunta tutte le sessioni in elenco",
+        "colSession": "Sessione",
+        "colProject": "Progetto",
+        "colModel": "Modello",
+        "colAccount": "Account",
+        "colTurns": "Interazioni",
+        "colLast": "Ultima attività",
+        "none": "Nessuna sessione scelta",
+        "selected": {"one": "{n} sessione scelta", "other": "{n} sessioni scelte"},
+    },
+
     "dd": {
-        "allSessions": "Tutte le sessioni",
-        "shortSessions": "Sessioni",
-        "sessionCount": {"one": "{n} sessione", "other": "{n} sessioni"},
+        "noSession": "Nessuna sessione",
+        "noProjectsSelected": "Non sono stati selezionati progetti",
         "allPeriods": "Tutti i periodi",
         "shortPeriods": "Periodi",
         "allModels": "Tutti i modelli",
@@ -349,7 +397,6 @@ UI = {
         "shortAccounts": "Account",
         "noProject": "Nessun progetto",
         "allProjects": "Tutti i progetti",
-        "excludedAlways": "Esclusi sempre",
         "excludeProject": "Escludi sempre questo progetto",
         "restoreProject": "Rimetti questo progetto fra quelli visibili",
         "excludeAria": "Escludi sempre {name}",
