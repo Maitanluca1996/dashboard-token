@@ -235,12 +235,12 @@ __HEADER_CSS__
     background: none; border: none; border-radius: 0;
     padding: 0; margin: 0;
   }
-  /* I tre segmenti dell'unita' si dividono in parti uguali la larghezza
-     della colonna, invece di dimensionarsi ciascuno sul proprio testo.
-     [EN] The three unit segments split the column width evenly, instead of
-     each sizing itself on its own text. */
-  .unit-control { display: flex; }
-  .unit-control button { flex: 1; padding: 6px 4px; }
+  /* Niente piu' regole proprie: l'unita' e' uscita dalla colonna e sta in
+     mezzo agli altri controlli dei grafici, dove ogni segmento e' largo
+     quanto il proprio testo come tutti gli altri.
+     [EN] No rules of its own any more: the unit has left the column and
+     sits among the other chart controls, where each segment is as wide as
+     its own text like all the others. */
   /* Sotto questa larghezza la colonna toglierebbe troppo spazio ai
      grafici: torna in cima a tutta larghezza e i filtri riprendono la
      griglia a piu' colonne, che e' come stavano prima.
@@ -253,7 +253,6 @@ __HEADER_CSS__
     .sidebar #filters-bar {
       display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 14px 20px;
     }
-    .sidebar .unit-control { max-width: 360px; }
   }
   /* Entrata a cascata dei filtri: stessa curva delle schede totali, ritmo
      imparentato con quello delle righe della tabella.
@@ -312,10 +311,95 @@ __HEADER_CSS__
     text-align: left;
     cursor: pointer;
   }
-  .filter-head:hover { color: var(--text-secondary); }
+  button.filter-head:hover { color: var(--text-secondary); }
   .filter-head:focus-visible { outline: 2px solid var(--series-1); outline-offset: 2px; border-radius: 4px; }
+  /* Account, Modello e la ricerca stanno sempre aperti: si guardano
+     continuamente, e farli chiudere per far posto vorrebbe dire riaprirli
+     ogni volta. La loro intestazione non e' un comando, quindi non ne ha
+     ne' la freccetta ne' il dito del mouse -- e quella della ricerca torna
+     a essere la <label> del campo, che e' il modo giusto di dargli un
+     nome. A turno si aprono soltanto i tre che possono diventare lunghi o
+     che si guardano di rado.
+     [EN] Account, Modello and the search stay open all the time: they are
+     looked at continuously, and closing them to make room would mean
+     reopening them every time. Their heading is not a command, so it has
+     neither the chevron nor the mouse hand -- and the search's goes back
+     to being the field's <label>, which is the right way to give it a
+     name. Only the three that can grow long or are looked at rarely open
+     in turn. */
+  .filter-head-static { cursor: default; }
   .filter-head-icon { flex: none; font-size: 9px; transition: transform 0.2s ease; }
-  .filter-head[aria-expanded="true"] .filter-head-icon { transform: rotate(90deg); }
+  .filter-item[data-collapsible] .filter-head[aria-expanded="true"] .filter-head-icon { transform: rotate(90deg); }
+  /* Il titolo delle sessioni non apre se stesso, apre una finestra: la
+     freccetta non gira su di se' come quella di un filtro che si chiude,
+     si sposta in avanti come faceva la riga "scegli fra le sessioni" che
+     ha sostituito.
+     [EN] The sessions title does not open itself, it opens a window: its
+     chevron does not turn on itself like that of a filter folding away, it
+     moves forward like the "choose among the sessions" row it replaced. */
+  .filter-head-open:hover .filter-head-icon { transform: translateX(2px); }
+  /* Il titolo di un filtro puo' avere accanto un comando che non e' il
+     titolo: gli esclusi dei progetti. Due bottoni annidati non si possono
+     scrivere, quindi stanno affiancati in una riga, con il titolo che si
+     prende tutto lo spazio e l'altro attaccato al bordo.
+     [EN] A filter title can have next to it a command that is not the
+     title: the projects' excluded ones. Two nested buttons cannot be
+     written, so they sit side by side in a row, with the title taking all
+     the space and the other one stuck to the edge. */
+  .filter-head-row { display: flex; align-items: center; gap: 8px; }
+  .filter-head-row .filter-head { flex: 1 1 auto; width: auto; }
+  .filter-aux {
+    flex: none;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    appearance: none;
+    border: none;
+    background: transparent;
+    padding: 0;
+    font-family: inherit;
+    font-size: 11px;
+    color: var(--text-muted);
+    cursor: pointer;
+    text-decoration: underline;
+    text-decoration-color: var(--border);
+    text-underline-offset: 2px;
+  }
+  .filter-aux[hidden] { display: none; }
+  .filter-aux:hover { color: var(--text-secondary); text-decoration-color: currentColor; }
+  .filter-aux:focus-visible { outline: 2px solid var(--series-1); outline-offset: 2px; border-radius: 4px; }
+  .filter-aux-count { font-variant-numeric: tabular-nums; }
+  /* Etichetta e tendina sulla stessa riga: da sole, incolonnate, le tre
+     tendine si portavano dietro una riga di titolo a testa -- quarantacinque
+     pixel di colonna per tre parole che stanno benissimo di fianco. Vale
+     solo per i filtri a tendina: la ricerca ha un'etichetta lunga e un
+     campo che ha bisogno di tutta la larghezza, e gli elenchi hanno sotto
+     una lista, non un controllo.
+     [EN] Label and dropdown on the same row: stacked, the three dropdowns
+     dragged along a title row each -- forty-five pixels of column for
+     three words that sit perfectly well beside them. It holds for the
+     dropdown filters only: the search has a long label and a field needing
+     the whole width, and the lists have a list underneath, not a
+     control. */
+  .filter-item-inline { flex-direction: row; align-items: center; gap: 8px; }
+  /* Larghezza fissa e non "auto": ACCOUNT/PERIODO/MODELLO sono parole di
+     lunghezza diversa, e senza un binario comune le tre tendine partivano
+     ciascuna dal bordo della propria etichetta -- allineate a sinistra ma
+     non fra loro, tre larghezze leggermente diverse una sotto l'altra.
+     [EN] Fixed width and not "auto": ACCOUNT/PERIODO/MODELLO are words of
+     different length, and with no shared track the three dropdowns each
+     started from their own label's edge -- left-aligned but not with each
+     other, three slightly different widths one under the other. */
+  .filter-item-inline .filter-head { flex: none; width: 60px; }
+  .filter-item-inline .filter-body { flex: 1 1 auto; min-width: 0; }
+  /* Le stesse tendine, ma piu' piccole: qui sono tre di fila invece di una
+     sola nella finestra delle sessioni, e la taglia intera (pensata per
+     un controllo isolato) le faceva pesare piu' del resto della colonna.
+     [EN] The same dropdowns, but smaller: here there are three in a row
+     instead of one alone in the sessions window, and the full size
+     (meant for a single, isolated control) made them weigh more than the
+     rest of the column. */
+  .filter-item-inline .dropdown-trigger { padding: 5px 8px; font-size: 12px; }
   /* Stessa apertura morbida dell'elenco degli esclusi: la riga da 1fr a 0fr
      anima l'altezza vera del contenuto senza doverla sapere in anticipo, e
      la visibilita' si spegne a fine animazione perche' col solo overflow i
@@ -344,7 +428,28 @@ __HEADER_CSS__
   .filters-no-anim .filter-item,
   .filters-no-anim .filter-body,
   .filters-no-anim .filter-body > div { transition: none; }
+  /* Serve a Progetti (che si richiude davvero, e senza ritaglio le righe
+     di troppo si vedrebbero mentre la riga della griglia scende da 1fr a
+     0fr) e a Sessioni (una riga troppo larga -- un nome lungo accanto
+     all'orario -- restava un problema suo, invece di spingere in fuori
+     tutta la colonna e farla scorrere anche in orizzontale).
+     [EN] Serves Progetti (which really does fold away, and without
+     clipping the extra rows would show while the grid row goes from 1fr
+     to 0fr) and Sessioni (an over-wide row -- a long name next to the
+     time -- stayed its own problem, instead of pushing the whole column
+     outward and making it scroll sideways too). */
   .filter-body > div { overflow: hidden; }
+  /* Account/Periodo/Modello non si richiudono mai e non ne hanno bisogno,
+     ma il ritaglio qui sopra li avrebbe presi comunque: il loro menu si
+     apre ASSOLUTO fuori dai 35px del trigger, e il ritaglio lo tagliava a
+     zero pixel di altezza -- una tendina che sembra non rispondere piu'
+     al clic.
+     [EN] Account/Periodo/Modello never fold and do not need it, but the
+     clipping above would have caught them anyway: their menu opens
+     ABSOLUTE outside the trigger's 35 pixels, and the clipping cut it down
+     to zero pixels tall -- a dropdown that looks like it stopped answering
+     to a click. */
+  .filter-item-inline .filter-body > div { overflow: visible; }
   .filter-item.collapsed .filter-body > div { visibility: hidden; transition: visibility 0s linear 0.25s; }
   /* Intestazione di un pannello-grafico: titolo a sinistra, controlli che
      riguardano SOLO quel grafico a destra. La usano sia il grafico a barre
@@ -725,6 +830,21 @@ __HEADER_CSS__
      which is the point -- and a scrolling list hides exactly the ones at
      the bottom, that is, the excluded ones. */
   .check-list { margin: 0 -8px; }
+  /* Il margine negativo qui sopra e' tarato sui 16px di padding della
+     colonna (netto: 8px di scarto dal bordo, come i controlli con
+     riquadro). Nella finestra degli esclusi il check-list vive dentro
+     .picker-grid, che di padding non ne ha: lo stesso margine negativo
+     senza niente da compensare tirava le righe fuori dal riquadro
+     arrotondato, a filo dei bordi della finestra invece che rientrate
+     come intestazione, ricerca e tendine qui sopra.
+     [EN] The negative margin above is tuned against the column's 16px of
+     padding (net: 8px of gap from the edge, like the boxed controls). In
+     the excluded window the check-list lives inside .picker-grid, which
+     has no padding of its own: the same negative margin, with nothing to
+     offset it, pulled the rows out past the rounded panel, flush with the
+     window's own edges instead of inset like the heading, the search and
+     the dropdowns above it. */
+  .picker-grid > .check-list { margin: 0; padding: 0 16px; }
   /* Le sessioni sono centinaia -- una per ogni volta che si e' aperto
      Claude Code -- mentre i progetti sono una manciata. Le caselle sono le
      stesse, ma stanno dentro una finestra che si apre a un clic e che ha
@@ -789,6 +909,13 @@ __HEADER_CSS__
     from { opacity: 0; transform: translateY(8px) scale(0.99); }
     to { opacity: 1; transform: none; }
   }
+  /* La finestra degli esclusi non ha una griglia da mostrare, solo una
+     manciata di nomi: larga come quella delle sessioni sarebbe un riquadro
+     vuoto attorno a cinque righe.
+     [EN] The excluded window has no grid to show, only a handful of names:
+     as wide as the sessions one it would be an empty box around five
+     rows. */
+  .picker-narrow { width: min(420px, 100%); }
   .picker-head { display: flex; align-items: center; gap: 10px; padding: 14px 16px 10px; }
   .picker-title { flex: 1 1 auto; font-size: 14px; font-weight: 600; color: var(--text-primary); }
   .picker-close {
@@ -953,19 +1080,23 @@ __HEADER_CSS__
        da solo e' quattro pixel piu' alto di una casella con accanto del
        testo. Due liste identiche a colpo d'occhio ma con il passo diverso
        si notano appena stanno una sotto l'altra, quindi l'altezza la fissa
-       il contenuto piu' alto delle due e vale per entrambe.
+       il contenuto piu' alto delle due e vale per entrambe. Il minimo e'
+       stato limato di tre pixel per far entrare la colonna nell'altezza di
+       un portatile: l'aria intorno al testo, non il testo.
        [EN] The project rows are taller than the session ones for a reason
        that does not show: they also hold the "exclude" command, which on
        its own is four pixels taller than a box with some text next to it.
        Two lists identical at a glance but with a different rhythm show as
        soon as they sit one under the other, so the height is set by the
-       taller content of the two and holds for both. */
-    min-height: 29px;
+       taller content of the two and holds for both. The minimum was shaved
+       to get the column into a laptop's height, and shaved further along
+       with the font below: the air around the text, not the text. */
+    min-height: 24px;
     box-sizing: border-box;
-    padding: 5px 8px;
+    padding: 4px 8px;
     border-radius: 6px;
     cursor: pointer;
-    font-size: 13px;
+    font-size: 12px;
     color: var(--text-primary);
     transition: background 0.15s ease;
   }
@@ -1028,30 +1159,34 @@ __HEADER_CSS__
   .check-excluded .check-main { cursor: default; }
   .check-excluded .check-name { text-decoration: line-through; }
   .check-excluded .check-ban { opacity: 1; }
-  /* L'intestazione degli esclusi e' un comando, non un'etichetta: apre e
-     chiude l'elenco. Nasce chiusa perche' gli esclusi sono la roba di cui
-     si e' gia' deciso -- il numero accanto basta a ricordare che ci sono, e
-     il posto in cima alla colonna va a quello che si sceglie ogni giorno.
-     [EN] The excluded heading is a command, not a label: it opens and
-     closes the list. It is born closed because the excluded ones are the
-     stuff already decided on -- the number next to it is enough to remember
-     they are there, and the room at the top of the column belongs to what
-     one picks every day. */
+  /* La riga in fondo a un elenco che ne annuncia altri: "+ altri 5". E' un
+     comando, non un'etichetta, ma non e' vestita da titolo di filtro -- il
+     maiuscoletto spaziato in colonna vuol dire una cosa sola, "qui comincia
+     un filtro", e una riga dentro l'elenco scritta uguale si leggerebbe
+     come il filtro seguente. Resta in tono minore (piu' piccola, non
+     maiuscola, grigia) e prende un filo sopra: e' un dentro, non un
+     accanto.
+     [EN] The row at the bottom of a list announcing more of them: "+ 5
+     more". It is a command, not a label, but it is not dressed as a filter
+     title -- in the column, spaced small caps mean one thing only, "a
+     filter starts here", and a row inside the list written the same way
+     would read as the next filter. It stays in a lower key (smaller, not
+     uppercase, gray) and takes a hairline above: it is an inside, not an
+     alongside. */
   .check-divider {
     display: flex;
     align-items: center;
     gap: 6px;
     width: calc(100% - 16px);
-    margin: 10px 8px 2px;
-    padding: 2px 0;
+    margin: 8px 8px 2px;
+    padding: 7px 0 2px;
     appearance: none;
     border: none;
+    border-top: 1px solid var(--border);
     background: transparent;
     font-family: inherit;
-    font-size: 10px;
-    font-weight: 600;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
+    font-size: 11.5px;
+    font-weight: 500;
     color: var(--text-muted);
     cursor: pointer;
     text-align: left;
@@ -1059,67 +1194,7 @@ __HEADER_CSS__
   .check-divider:hover { color: var(--text-secondary); }
   .check-divider:focus-visible { outline: 2px solid var(--series-1); outline-offset: 2px; border-radius: 4px; }
   .check-toggle-label { flex: 1 1 auto; }
-  .check-toggle-count { flex: none; font-variant-numeric: tabular-nums; }
-  .check-toggle-icon { flex: none; font-size: 9px; transition: transform 0.2s ease; }
-  /* Lo stato aperto sta nell'aria-expanded e non in una classe a parte: e'
-     gia' li' per chi legge la pagina con uno screen reader, e due sorgenti
-     per lo stesso stato prima o poi divergono.
-     [EN] The open state lives in aria-expanded and not in a class of its
-     own: it is already there for whoever reads the page with a screen
-     reader, and two sources for the same state drift apart sooner or
-     later. */
-  .check-divider[aria-expanded="true"] .check-toggle-icon { transform: rotate(90deg); }
-  /* Apertura morbida: la riga da 0fr a 1fr anima l'altezza vera del
-     contenuto, senza doverla sapere in anticipo. Da chiusa la visibilita'
-     si spegne -- con il solo overflow le righe nascoste resterebbero
-     raggiungibili col tabulatore -- ma solo a fine animazione, o
-     sparirebbero prima di essersi chiuse.
-     [EN] Soft opening: the row going from 0fr to 1fr animates the content's
-     real height, without having to know it in advance. When closed
-     visibility goes off -- with overflow alone the hidden rows would stay
-     reachable by tabbing -- but only at the end of the animation, or they
-     would vanish before having closed. */
-  .check-excluded-group {
-    display: grid;
-    grid-template-rows: 0fr;
-    transition: grid-template-rows 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-  .check-excluded-group.open { grid-template-rows: 1fr; }
-  .check-excluded-group > div { overflow: hidden; visibility: hidden; transition: visibility 0s linear 0.25s; }
-  .check-excluded-group.open > div { visibility: visible; transition-delay: 0s; }
-  /* "Tutti i progetti" non e' una casella ma il modo di svuotare la
-     selezione, ed e' acceso proprio quando non c'e' nessuna casella
-     spuntata: una casella che non si puo' togliere sarebbe un comando
-     travestito da scelta. Stessa veste della voce "tutti" delle tendine,
-     perche' fa la stessa cosa.
-     [EN] "Tutti i progetti" is not a box but the way to empty the
-     selection, and it is lit exactly when no box is ticked: a box that
-     cannot be unticked would be a command dressed up as a choice. Same look
-     as the "all" entry of the dropdowns, because it does the same thing. */
-  .check-all { appearance: none; border: none; background: transparent; font: inherit; font-size: 13px; text-align: left; color: var(--text-secondary); }
-  .check-all.active {
-    background: linear-gradient(135deg, var(--series-1-fill) 0%, rgba(42, 120, 214, 0.08) 100%);
-    font-weight: 600;
-    color: var(--text-primary);
-  }
-  .check-all:focus-visible { outline: 2px solid var(--series-1); outline-offset: -2px; }
   .check-empty { padding: 8px; font-size: 12px; color: var(--text-muted); }
-  /* Il comando che apre la finestra delle sessioni, in fondo al loro
-     elenco. Ha la veste dell'intestazione "Esclusi sempre" dei progetti --
-     stessa riga piccola in maiuscolo, stessa freccetta -- perche' fa la
-     stessa cosa: apre altro. E' l'unico pezzo che il blocco Sessione ha in
-     piu' rispetto a quello Progetti, ed e' giusto che sia anche l'unico a
-     non somigliargli: i progetti sono pochi e stanno tutti in colonna, le
-     sessioni sono centinaia e vanno cercate da qualche altra parte.
-     [EN] The command opening the sessions window, at the bottom of their
-     list. It is dressed like the projects' "Esclusi sempre" heading --
-     same small uppercase row, same chevron -- because it does the same
-     thing: it opens something else. It is the only piece the Sessione
-     block has beyond the Progetti one, and it is right that it should also
-     be the only one not resembling it: projects are few and all fit in the
-     column, sessions are hundreds and have to be looked for somewhere
-     else. */
-  .check-open:hover .check-toggle-icon { transform: translateX(2px); }
   /* Un titolo lungo (es. un nome sessione) deve troncarsi con ellissi
      invece di traboccare dal riquadro -- prima non c'era nessuna regola di
      overflow qui, quindi un testo lungo spingeva la freccia fuori dal
@@ -2044,14 +2119,43 @@ __SITE_HEADER__
 
   <div class="layout">
   <aside class="sidebar">
+    <!-- La sezione non ha piu' un titolo: sotto ci sono sei intestazioni
+         di filtro una dopo l'altra, e nella colonna non c'e' nient'altro
+         che filtri -- un titolino grigio in cima diceva soltanto quello
+         che gia' si vedeva, e in una colonna che deve stare dentro la
+         finestra ogni riga che non dice niente e' una riga in meno per
+         i progetti.
+         [EN] The section no longer has a title: below it there are six
+         filter headings one after the other, and in the column there is
+         nothing but filters -- a small gray title at the top only said
+         what could already be seen, and in a column that has to fit in
+         the window every row saying nothing is one row less for the
+         projects. -->
     <div class="side-section">
-      <div class="side-title" data-i18n="side.filters">Filtri</div>
       <div class="filter-row" id="filters-bar" data-reveal>
-    <div class="filter-item" id="fi-project">
-      <button type="button" class="filter-head" aria-expanded="true">
-        <span class="filter-head-icon">&#9656;</span>
-        <span class="filter-head-label" data-i18n="filters.projects">Progetti:</span>
-      </button>
+    <div class="filter-item" id="fi-project" data-collapsible>
+      <!-- Gli esclusi non stanno piu' in fondo all'elenco: erano una riga
+           di intestazione piu' una riga per progetto dentro la colonna, per
+           una cosa che si guarda due volte l'anno. Restano raggiungibili da
+           qui, accanto al titolo, in una scritta che compare solo quando
+           c'e' davvero qualcosa di escluso e che apre la finestra dove si
+           rimettono.
+           [EN] The excluded ones no longer sit at the bottom of the list:
+           they were a heading row plus one row per project inside the
+           column, for something looked at twice a year. They stay reachable
+           from here, next to the title, in a line that shows up only when
+           something really is excluded and that opens the window where they
+           are put back. -->
+      <div class="filter-head-row">
+        <button type="button" class="filter-head" aria-expanded="true">
+          <span class="filter-head-icon">&#9656;</span>
+          <span class="filter-head-label" data-i18n="filters.projects">Progetti:</span>
+        </button>
+        <button type="button" class="filter-aux" id="excluded-open" hidden
+                aria-haspopup="dialog" data-i18n-aria-label="filters.showExcludedAria"
+                aria-label="Vedi i progetti sempre esclusi"><span
+                class="filter-aux-count" id="excluded-count"></span></button>
+      </div>
       <!-- Una lista di caselle e non una tendina: i progetti si scelgono
            anche a piu' d'uno per volta, e una tendina a scelta multipla
            nasconde dietro un clic proprio cio' che serve sapere sempre --
@@ -2070,9 +2174,23 @@ __SITE_HEADER__
       <select id="project-filter" multiple style="display:none"></select>
     </div>
     <div class="filter-item" id="fi-session">
-      <button type="button" class="filter-head" aria-expanded="true">
+      <!-- Il titolo non apre e chiude: apre la finestra delle sessioni.
+           Sotto ci sono solo quelle scelte, che spesso sono zero, e un
+           blocco vuoto non ha niente da richiudere; mentre il comando per
+           sceglierle era una riga a se' in fondo all'elenco, che diceva
+           "scegli fra le sessioni" sotto a un titolo che dice "Sessioni".
+           Uno dei due bastava, ed e' rimasto quello che c'era gia'.
+           [EN] The title does not open and close: it opens the sessions
+           window. Below it there are only the chosen ones, which are often
+           none, and an empty block has nothing to fold away; while the
+           command to choose them was a row of its own at the bottom of the
+           list, saying "choose among the sessions" under a title saying
+           "Sessions". One of the two was enough, and the one that was
+           already there stayed. -->
+      <button type="button" class="filter-head filter-head-open" id="session-open"
+              aria-haspopup="dialog" aria-expanded="false">
         <span class="filter-head-icon">&#9656;</span>
-        <span class="filter-head-label" data-i18n="filters.session">Sessione:</span>
+        <span class="filter-head-label" data-i18n="filters.session">Sessioni:</span>
       </button>
       <!-- La stessa lista di caselle dei progetti, e per la stessa
            ragione: sono i due filtri a scelta multipla della pagina, e due
@@ -2097,51 +2215,40 @@ __SITE_HEADER__
       </div></div>
       <select id="session-filter" multiple style="display:none"></select>
     </div>
-    <div class="filter-item" id="fi-account">
-      <button type="button" class="filter-head" aria-expanded="true">
-        <span class="filter-head-icon">&#9656;</span>
+    <div class="filter-item filter-item-inline" id="fi-account">
+      <span class="filter-head filter-head-static">
         <span class="filter-head-label" data-i18n="filters.account">Account:</span>
-      </button>
+      </span>
       <div class="filter-body"><div>
         <div id="account-filter-custom" class="custom-dropdown"></div>
       </div></div>
       <select id="account-filter" style="display:none"></select>
     </div>
-    <div class="filter-item" id="fi-period">
-      <button type="button" class="filter-head" aria-expanded="true">
-        <span class="filter-head-icon">&#9656;</span>
+    <div class="filter-item filter-item-inline" id="fi-period">
+      <span class="filter-head filter-head-static">
         <span class="filter-head-label" data-i18n="filters.period">Periodo:</span>
-      </button>
+      </span>
       <div class="filter-body"><div>
         <div id="period-filter-custom" class="custom-dropdown"></div>
       </div></div>
       <select id="period-filter" style="display:none"></select>
     </div>
-    <div class="filter-item" id="fi-model">
-      <button type="button" class="filter-head" aria-expanded="true">
-        <span class="filter-head-icon">&#9656;</span>
+    <div class="filter-item filter-item-inline" id="fi-model">
+      <span class="filter-head filter-head-static">
         <span class="filter-head-label" data-i18n="filters.model">Modello:</span>
-      </button>
+      </span>
       <div class="filter-body"><div>
         <div id="model-filter-custom" class="custom-dropdown"></div>
       </div></div>
       <select id="model-filter" style="display:none"></select>
     </div>
     <div class="filter-item" id="fi-search">
-      <button type="button" class="filter-head" aria-expanded="true">
-        <span class="filter-head-icon">&#9656;</span>
+      <label for="search-filter" class="filter-head filter-head-static">
         <span class="filter-head-label" data-i18n="filters.search">Cerca nella richiesta:</span>
-      </button>
+      </label>
       <div class="filter-body"><div>
         <div class="search-box">
-          <!-- L'etichetta qui sopra e' diventata un comando (apre e chiude
-               il filtro), quindi non puo' piu' essere la <label> del campo:
-               il nome accessibile lo porta ora il campo stesso.
-               [EN] The heading above became a command (it opens and closes
-               the filter), so it can no longer be the field's <label>: the
-               accessible name is now carried by the field itself. -->
           <input type="search" id="search-filter" class="search-input"
-                 data-i18n-aria-label="filters.search" aria-label="Cerca nella richiesta"
                  data-i18n-placeholder="filters.searchPlaceholder" placeholder="Testo della richiesta&hellip;"
                  autocomplete="off" spellcheck="false">
           <button type="button" class="search-clear" id="search-clear" hidden data-i18n-aria-label="filters.searchClear" aria-label="Cancella la ricerca">&times;</button>
@@ -2149,40 +2256,6 @@ __SITE_HEADER__
       </div></div>
     </div>
       </div>
-    </div>
-    <div class="side-section">
-      <div class="side-title" data-i18n="side.unit">Unità</div>
-      <!-- Cosa misurano i grafici. Vale per TUTTI i grafici, non per
-           uno solo, ed e' per questo che sta nella colonna delle
-           scelte che valgono per tutta la pagina invece che sopra il
-           primo grafico, dov'era prima.
-           Le voci erano tre: dollari, euro, token. Le prime due sono
-           diventate una da quando la valuta si sceglie
-           nell'intestazione: era una scelta a meta', perche' toccava
-           solo i grafici mentre schede, tabelle e tooltip restavano in
-           dollari comunque. Qui resta la domanda che riguarda
-           davvero i grafici, cioe' se l'asse conti soldi o token; in
-           che moneta siano quei soldi lo dice la combo in alto.
-           [EN] What the charts measure. It applies to ALL charts, not
-           just one, which is why it sits in the column of choices
-           that apply to the whole page rather than above the first
-           chart, where it used to be.
-           There were three entries: dollars, euros, tokens. The first
-           two became one once the currency is chosen in the header:
-           it was a half choice, because it touched the charts only
-           while cards, tables and tooltips stayed in dollars anyway.
-           What stays here is the question that really concerns the
-           charts, namely whether the axis counts money or tokens; what
-           money that is, is said by the combo at the top. -->
-      <div class="segmented-control unit-control" id="unit-filter-custom">
-        <div class="indicator"></div>
-        <button type="button" data-value="money" class="active" data-i18n="unit.money">Costo</button>
-        <button type="button" data-value="tokens" data-i18n="unit.tokens">Token</button>
-      </div>
-      <select id="unit-filter" style="display:none">
-        <option value="money" selected data-i18n="unit.money">Costo</option>
-        <option value="tokens" data-i18n="unit.tokens">Token</option>
-      </select>
     </div>
   </aside>
 
@@ -2194,6 +2267,47 @@ __SITE_HEADER__
     <div class="chart-header">
       <h2 id="bar-chart-title">Costo totale per giorno (ultimi 14 giorni)</h2>
       <div class="chart-controls">
+        <!-- Cosa misurano i grafici: soldi o token. Non e' una scelta di
+             questo grafico soltanto -- vale per tutti e tre -- ma sta
+             qui, sul primo, perche' nella colonna dei filtri non ci stava
+             piu': la colonna deve entrare nell'altezza di un portatile, e
+             l'unita' era l'unica cosa la' dentro che non filtrava niente.
+             Che valga per tutti si vede subito, perche' cambiandola
+             cambiano insieme i titoli e gli assi di tutti i grafici.
+             Le voci erano tre: dollari, euro, token. Le prime due sono
+             diventate una da quando la valuta si sceglie
+             nell'intestazione: era una scelta a meta', perche' toccava
+             solo i grafici mentre schede, tabelle e tooltip restavano in
+             dollari comunque. Qui resta la domanda che riguarda davvero i
+             grafici, cioe' se l'asse conti soldi o token; in che moneta
+             siano quei soldi lo dice la combo in alto.
+             [EN] What the charts measure: money or tokens. It is not a
+             choice of this chart alone -- it holds for all three -- but it
+             sits here, on the first one, because it no longer fitted in
+             the filters column: the column has to fit in a laptop's
+             height, and the unit was the only thing in there that filtered
+             nothing. That it holds for all of them shows at once, because
+             changing it changes the titles and the axes of every chart
+             together.
+             There were three entries: dollars, euros, tokens. The first
+             two became one once the currency is chosen in the header: it
+             was a half choice, because it touched the charts only while
+             cards, tables and tooltips stayed in dollars anyway. What
+             stays here is the question that really concerns the charts,
+             namely whether the axis counts money or tokens; what money
+             that is, is said by the combo at the top. -->
+        <div class="filter-row chart-control">
+          <label data-i18n="chart.unit">Unità:</label>
+          <div class="segmented-control unit-control" id="unit-filter-custom">
+            <div class="indicator"></div>
+            <button type="button" data-value="money" class="active" data-i18n="unit.money">Costo</button>
+            <button type="button" data-value="tokens" data-i18n="unit.tokens">Token</button>
+          </div>
+          <select id="unit-filter" style="display:none">
+            <option value="money" selected data-i18n="unit.money">Costo</option>
+            <option value="tokens" data-i18n="unit.tokens">Token</option>
+          </select>
+        </div>
         <!-- Quanto e' largo il passo del tempo: un giorno o un mese.
              Questo grafico risponde a "come e' andata nel tempo", quindi
              le sue barre sono SEMPRE intervalli di tempo; le classifiche
@@ -2411,6 +2525,88 @@ __SITE_HEADER__
      down looks it up by id while loading, and an element written after it
      is not there yet. It is born hidden; the Sessione button is what opens
      it. -->
+<!-- L'elenco intero dei progetti, oltre al tetto della colonna. Stessa
+     veste stretta della finestra degli esclusi, e per lo stesso motivo:
+     una manciata di righe in piu', niente da cercare. Le righe sono
+     IDENTICHE a quelle della colonna (casella, nome, comando escludi):
+     e' lo stesso filtro, solo senza il tetto -- non una vista diversa
+     sui progetti.
+     [EN] The whole list of projects, beyond the column's cap. Same
+     narrow clothes as the excluded window, and for the same reason: a
+     few rows more, nothing to search for. The rows are IDENTICAL to the
+     column's (box, name, exclude command): it is the same filter, only
+     without the cap -- not a different view onto the projects. -->
+<div class="picker-backdrop" id="project-picker" hidden>
+  <div class="picker picker-narrow" role="dialog" aria-modal="true" aria-labelledby="project-picker-title">
+    <div class="picker-head">
+      <span class="picker-title" id="project-picker-title" data-i18n="picker.projectsTitle">Tutti i progetti</span>
+      <button type="button" class="picker-close" id="project-picker-close"
+              data-i18n-aria-label="picker.close" aria-label="Chiudi">&times;</button>
+    </div>
+    <div class="picker-grid">
+      <div id="project-picker-list" class="check-list"></div>
+    </div>
+    <div class="picker-foot">
+      <button type="button" class="picker-btn" id="project-picker-done" data-i18n="picker.done">Fatto</button>
+    </div>
+  </div>
+</div>
+
+<!-- Il modale condiviso da Account, Periodo e Modello: una scelta sola,
+     non una manciata da spuntare una per una, quindi niente casella
+     multipla e niente "Fatto" -- cliccare una riga sceglie e chiude, come
+     faceva prima la tendina che sostituisce. Titolo ed elenco si
+     riscrivono ad ogni apertura (vedi openSimplePicker), perche' lo stesso
+     modale serve a tre filtri diversi uno alla volta.
+     [EN] The modal shared by Account, Periodo and Modello: a single
+     choice, not a handful ticked one by one, so no multi-select box and
+     no "Fatto" -- clicking a row picks it and closes, as the dropdown it
+     replaces used to. Title and list are rewritten on every open (see
+     openSimplePicker), because the same modal serves three different
+     filters, one at a time. -->
+<div class="picker-backdrop" id="simple-picker" hidden>
+  <div class="picker picker-narrow" role="dialog" aria-modal="true" aria-labelledby="simple-picker-title">
+    <div class="picker-head">
+      <span class="picker-title" id="simple-picker-title"></span>
+      <button type="button" class="picker-close" id="simple-picker-close"
+              data-i18n-aria-label="picker.close" aria-label="Chiudi">&times;</button>
+    </div>
+    <div class="picker-grid">
+      <div id="simple-picker-list" class="check-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- I progetti sempre esclusi. Una finestra piccola e senza ricerca:
+     sono pochi per definizione (li si esclude uno alla volta, a mano) e
+     qui dentro si fa una cosa sola, rimetterli. Riusa la veste della
+     finestra delle sessioni perche' e' la stessa cosa -- roba che non
+     sta in colonna e si apre a un clic -- e due finestre diverse nella
+     stessa pagina sarebbero due modi di dire la stessa cosa.
+     [EN] The always-excluded projects. A small window with no search:
+     they are few by definition (one excludes them one at a time, by
+     hand) and in here one does a single thing, put them back. It reuses
+     the sessions window's clothes because it is the same kind of thing
+     -- stuff that does not fit in the column and opens on a click -- and
+     two different windows in the same page would be two ways of saying
+     the same thing. -->
+<div class="picker-backdrop" id="excluded-picker" hidden>
+  <div class="picker picker-narrow" role="dialog" aria-modal="true" aria-labelledby="excluded-picker-title">
+    <div class="picker-head">
+      <span class="picker-title" id="excluded-picker-title" data-i18n="picker.excludedTitle">Progetti sempre esclusi</span>
+      <button type="button" class="picker-close" id="excluded-picker-close"
+              data-i18n-aria-label="picker.close" aria-label="Chiudi">&times;</button>
+    </div>
+    <div class="picker-grid">
+      <div id="excluded-list" class="check-list"></div>
+    </div>
+    <div class="picker-foot">
+      <span class="picker-count" id="excluded-picker-count"></span>
+      <button type="button" class="picker-btn" id="excluded-picker-done" data-i18n="picker.done">Fatto</button>
+    </div>
+  </div>
+</div>
+
 <div class="picker-backdrop" id="session-picker" hidden>
   <div class="picker" role="dialog" aria-modal="true" aria-labelledby="session-picker-title">
     <div class="picker-head">
@@ -2722,22 +2918,206 @@ __I18N_APPLY__
     }
   } catch (e) {}
 
-  // Aperta o chiusa: vive quanto la pagina e non oltre. Ad ogni
-  // caricamento si riparte da chiusa, che e' il senso di "esclusi" -- roba
-  // decisa, non roba da rivedere ogni volta che si apre la dashboard.
-  // [EN] Open or closed: it lives as long as the page and no longer. Every
-  // load starts closed, which is what "excluded" means -- settled stuff,
-  // not stuff to review every time the dashboard is opened.
-  var excludedSectionOpen = false;
+  // I progetti spuntati si ricordano in una chiave a parte da quella dei
+  // filtri di un singolo ricaricamento (dashboardFilters, in
+  // sessionStorage): quella sopravvive a un F5 ma non a una scheda chiusa
+  // e riaperta, e ora che "zero spuntati" vuol dire davvero zero
+  // risultati la scelta -- compreso lo zero -- deve durare quanto quella
+  // degli esclusi.
+  // [EN] The ticked projects are remembered in a key of their own,
+  // separate from the single-reload filter bundle (dashboardFilters, in
+  // sessionStorage): that one survives an F5 but not a closed and
+  // reopened tab, and now that "zero ticked" really means zero results
+  // the choice -- the zero included -- must last as long as the excluded
+  // ones' does.
+  var PROJECT_SELECTION_KEY = 'dashboardSelectedProjects';
+  // Letta SUBITO, prima che qualunque disegno abbia la possibilita' di
+  // scriverci sopra: populateProjectList() salva la selezione ad ogni suo
+  // giro (anche il primissimo, quando non e' ancora stato ripristinato
+  // niente), e se si rileggesse la chiave piu' avanti si troverebbe gia'
+  // un "[]" scritto da quel giro, indistinguibile da "non ho mai salvato
+  // niente" -- proprio il caso che deve invece accendere tutti i
+  // progetti.
+  // [EN] Read RIGHT AWAY, before any draw gets the chance to write over
+  // it: populateProjectList() saves the selection at every one of its
+  // rounds (even the very first, when nothing has been restored yet
+  // either), and re-reading the key later would find an "[]" already
+  // written by that round, indistinguishable from "I never saved
+  // anything" -- exactly the case that must instead turn every project
+  // on.
+  var savedProjectsRawAtBoot = null;
+  try { savedProjectsRawAtBoot = localStorage.getItem(PROJECT_SELECTION_KEY); } catch (e) {}
 
-  function syncExcludedSection() {
-    var list = document.getElementById('project-filter-list');
-    if (!list) { return; }
-    var group = list.querySelector('.check-excluded-group');
-    var toggle = list.querySelector('.check-toggle');
-    if (!group || !toggle) { return; }
-    group.classList.toggle('open', excludedSectionOpen);
-    toggle.setAttribute('aria-expanded', excludedSectionOpen ? 'true' : 'false');
+  /* Quante righe fa un elenco in colonna prima di dire "+ altri n". Due
+     costanti fisse erano un compromesso sbagliato: tarate sul caso
+     peggiore (chi ha molti progetti E molte sessioni insieme), lasciavano
+     indietro spazio vero e mai usato per chiunque ne avesse pochi -- un
+     account con due soli progetti scelgibili non arrivera' mai a un tetto
+     pensato per sette, e quel margine avanzato in basso alla colonna era
+     visibile a chiunque avesse quel caso, non un'eccezione rara.
+     Il tetto si ricalcola invece ad ogni disegno delle due liste, in base
+     a quanto spazio resta DAVVERO: PROJECT_ROW_H e SESSION_ROW_H sono
+     l'altezza di una riga di ciascun elenco (misurate una volta a mano su
+     `.check-row`, non lette dal CSS: sarebbe un giro piu' lungo per lo
+     stesso numero, e andrebbero comunque ritoccate a mano se la riga
+     cambia altezza). recomputeRowCaps() legge quanto e' alta la colonna
+     ORA (il resto del filtro-bar meno le righe attualmente disegnate, cosi'
+     non serve un disegno "scoperto" apposta solo per misurare) e fa
+     crescere alternativamente i due tetti finche' lo spazio non finisce o
+     finiscono le voci da mostrare -- dando prima a chi e' rimasto piu'
+     indietro, cosi' un elenco con pochi elementi (come i due progetti
+     dell'esempio sopra) non ruba spazio a uno che ne avrebbe di piu' da
+     mostrare.
+     Sotto gli 880px la colonna torna a scorrere con la pagina (niente
+     piu' tetto d'altezza): li' recomputeRowCaps() non ha niente da
+     misurare e lascia i tetti come stavano, che e' innocuo perche' in quel
+     layout non c'e' piu' rischio di sforare.
+     Le voci spuntate non contano nel tetto e si vedono sempre: sono lo
+     stato del filtro, e nascondere dietro un "+ altri 3" un progetto che
+     sta filtrando la pagina vorrebbe dire non far vedere cosa si sta
+     guardando.
+     [EN] How many rows a list in the column makes before saying "+ n
+     more". Two fixed constants were the wrong compromise: tuned for the
+     worst case (many projects AND many sessions together), they left
+     real, never-used space behind for anyone with few of either -- an
+     account with only two choosable projects will never reach a cap
+     meant for seven, and that leftover margin at the bottom of the column
+     was visible to anyone in that case, not a rare exception.
+     The cap is recomputed instead at every draw of the two lists, based
+     on how much room is actually left: PROJECT_ROW_H and SESSION_ROW_H
+     are the height of one row of each list (measured once by hand on
+     `.check-row`, not read from the CSS: that would be a longer road to
+     the same number, and would still need retouching by hand if the row's
+     height changes). recomputeRowCaps() reads how tall the column is
+     RIGHT NOW (the rest of the filter bar minus the rows currently drawn,
+     so no throwaway "uncapped" draw is needed just to measure) and grows
+     the two caps in turn until the room runs out or the entries do --
+     giving first to whichever is further behind, so a list with few items
+     (the two projects in the example above) does not steal room from one
+     that would have more to show.
+     Below 880px the column goes back to scrolling with the page (no more
+     height cap): there recomputeRowCaps() has nothing to measure and
+     leaves the caps as they were, which is harmless because that layout
+     no longer risks overflowing.
+     Ticked entries do not count towards the cap and always show: they are
+     the filter's state, and hiding behind a "+ 3 more" a project that is
+     filtering the page would mean not showing what one is looking at. */
+  var PROJECT_ROW_H = 27;
+  var SESSION_ROW_H = 24;
+  var ROW_MIN = 3;
+  // Un margine tenuto apposta indietro: la stima si basa sull'altezza
+  // dichiarata della colonna, e bordi, arrotondamenti del sotto-pixel e
+  // differenze fra motori di rendering possono spostarla di qualche
+  // decina di pixel. Se il conto sbaglia per eccesso, il ripiego esiste
+  // gia' (l'overflow interno della colonna, .sidebar{overflow-y:auto}) --
+  // ma e' comunque meglio spendere un rigo di meno che ritrovarselo
+  // acceso quasi sempre.
+  // [EN] A margin kept back on purpose: the estimate rests on the
+  // column's declared height, and borders, sub-pixel rounding and
+  // differences between rendering engines can shift it by a few dozen
+  // pixels. If the sum errs on the high side, the fallback already
+  // exists (the column's own internal overflow, .sidebar{overflow-y:
+  // auto}) -- but it is still better to spend one row less than to find
+  // it lit almost every time.
+  var SAFETY_MARGIN = 24;
+  var PROJECT_ROWS_MAX = 7;
+  var SESSION_ROWS_MAX = 4;
+
+  // Quanto e' alta la colonna adesso, al netto delle due liste: e' quel
+  // che resta per le combo, la ricerca, le intestazioni -- tutta roba che
+  // non cambia disegnando piu' o meno righe, quindi si puo' dedurre invece
+  // di elencarla a mano una voce alla volta.
+  // [EN] How tall the column is right now, net of the two lists: what is
+  // left for the combos, the search, the headings -- all things that do
+  // not change by drawing more or fewer rows, so it can be inferred
+  // instead of listed by hand one entry at a time.
+  function recomputeRowCaps() {
+    var sidebar = document.querySelector('.sidebar');
+    var bar = document.getElementById('filters-bar');
+    if (!sidebar || !bar) { return; }
+    var maxH = parseFloat(getComputedStyle(sidebar).maxHeight) || 0;
+    // Sotto gli 880px .sidebar non ha piu' un tetto (torna a scorrere con
+    // la pagina): niente da ricalcolare, i tetti restano quelli di prima.
+    // [EN] Below 880px .sidebar no longer has a cap (it goes back to
+    // scrolling with the page): nothing to recompute, the caps stay as
+    // they were.
+    if (!maxH) { return; }
+    var cs = getComputedStyle(sidebar);
+    var padV = (parseFloat(cs.paddingTop) || 0) + (parseFloat(cs.paddingBottom) || 0);
+    var pRowsNow = document.querySelectorAll('#project-filter-list .check-row').length;
+    var sRowsNow = document.querySelectorAll('#session-chosen .check-row').length;
+    var chrome = bar.scrollHeight - pRowsNow * PROJECT_ROW_H - sRowsNow * SESSION_ROW_H;
+    var budget = (maxH - padV) - chrome - SAFETY_MARGIN;
+
+    var choosableCount = Math.max(0, document.querySelectorAll('#project-filter option').length - Object.keys(excludedProjects).length);
+    var chosenCount = selectedSessions().length;
+
+    var p = Math.min(ROW_MIN, choosableCount);
+    var s = Math.min(ROW_MIN, chosenCount);
+    budget -= p * PROJECT_ROW_H + s * SESSION_ROW_H;
+    // Cresce alternando, e a chi ha ancora voci da mostrare ed e' rimasto
+    // piu' indietro dell'altro: cosi' un elenco corto (pochi progetti, o
+    // nessuna sessione scelta) non si tiene una fetta di budget che non
+    // gli serve, e finisce tutto a chi ne avrebbe davvero bisogno.
+    // [EN] Grows in turn, and to whichever still has entries to show and
+    // is further behind the other: so a short list (few projects, or no
+    // session chosen) does not hold on to a slice of budget it does not
+    // need, and it all goes to whoever actually needs it.
+    while (budget > 0 && (p < choosableCount || s < chosenCount)) {
+      var canGrowP = p < choosableCount;
+      var canGrowS = s < chosenCount;
+      // A parita' di margine tocca a chi e' rimasto piu' indietro (p<=s),
+      // ma se quello e' gia' al proprio massimo (niente piu' progetti, o
+      // nessuna sessione scelta) il turno passa senza altro giro all'unico
+      // che ha ancora voci da mostrare -- prima il ciclo si fermava e
+      // basta, lasciando sul tavolo un budget che l'altra lista avrebbe
+      // potuto usare.
+      // [EN] At an even margin it is whichever is further behind's turn
+      // (p<=s), but if that one is already at its own ceiling (no more
+      // projects, or no session chosen) the turn passes with no further
+      // ado to the only one still having entries to show -- before, the
+      // loop just stopped, leaving on the table a budget the other list
+      // could have used.
+      var growP = canGrowP && (!canGrowS || p <= s);
+      if (growP) {
+        if (budget < PROJECT_ROW_H) { break; }
+        p += 1; budget -= PROJECT_ROW_H;
+      } else if (canGrowS) {
+        if (budget < SESSION_ROW_H) { break; }
+        s += 1; budget -= SESSION_ROW_H;
+      } else {
+        break;
+      }
+    }
+    PROJECT_ROWS_MAX = p;
+    SESSION_ROWS_MAX = s;
+  }
+
+  // La riga in fondo: "+ altri n" quando ce ne sono di nascosti, apre un
+  // modale con l'elenco intero. Non e' un ripiego -- e' cosi' che restano
+  // vere le due cose insieme: la colonna che non sfora la finestra di un
+  // portatile, e ogni progetto o sessione comunque a un clic di distanza.
+  // Prima si mostravano tutti li' in colonna, e a ogni "mostra tutti" la
+  // colonna tornava a sforare proprio nel caso che il tetto esiste per
+  // evitare -- quindi non serve neanche una voce per il verso contrario:
+  // il modale si chiude, non si "richiude in colonna".
+  // Una sola funzione per i due elenchi, che cambiano soltanto nella
+  // chiave del testo (progetti e sessioni hanno generi diversi in
+  // italiano).
+  // [EN] The row at the bottom: "+ n more" when some are hidden, opens a
+  // modal with the whole list. It is not a fallback -- it is how both
+  // things stay true at once: the column not overflowing a laptop's
+  // window, and every project or session still one click away. They used
+  // to all show right there in the column, and every "show all" sent the
+  // column back to overflowing, in the very case the cap exists to avoid
+  // -- so there is not even an entry needed for the other direction: the
+  // modal closes, it does not "fold back into the column".
+  // A single function for both lists, which differ only in the text's
+  // key (projects and sessions have different genders in Italian).
+  function moreRowHtml(hidden, key) {
+    if (!hidden) { return ''; }
+    return '<button type="button" class="check-divider check-more">' +
+      '<span class="check-toggle-label">' + esc(tr(key, hidden)) + '</span></button>';
   }
 
   function saveExcludedProjects() {
@@ -3437,6 +3817,7 @@ __I18N_APPLY__
     var select = document.getElementById('project-filter');
     if (!select) { return; }
     markSelectedOptions('project-filter', projs, excludedProjects);
+    saveProjectSelection();
     syncProjectChecks();
     refreshDependentFilters();
     // Il bordo acceso della lista si aggiorna qui e non solo al clic
@@ -3446,6 +3827,37 @@ __I18N_APPLY__
     // (syncFilterChrome sits on a document listener): the selection also
     // changes from a chart bar and from "Azzera tutto".
     syncFilterChrome();
+  }
+
+  // Si salva la selezione VERA (letta dal <select> dopo markSelectedOptions),
+  // non l'elenco passato a setProjectSelection: i due possono differire,
+  // perche' markSelectedOptions scarta gli esclusi ("skip"). Salvando
+  // l'elenco grezzo si sarebbe ripresentato al prossimo giro un progetto
+  // che in quello vero non c'era.
+  // [EN] The REAL selection is saved (read from the <select> after
+  // markSelectedOptions), not the list passed to setProjectSelection: the
+  // two can differ, because markSelectedOptions discards the excluded
+  // ones ("skip"). Saving the raw list would have brought back next time
+  // a project that was not in the real one.
+  function saveProjectSelection() {
+    try { localStorage.setItem(PROJECT_SELECTION_KEY, JSON.stringify(selectedProjects())); } catch (e) {}
+  }
+
+  // Tutti i progetti scegliibili adesso, cioe' non esclusi: e' cosa vuol
+  // dire "nessun filtro" per Progetti da quando "nessuno spuntato" e'
+  // diventato un filtro vero (zero risultati) invece che un modo per
+  // dire "tutti". Serve sia al primo avvio di sempre sia ad "Azzera
+  // tutto", che deve allargare la vista e non svuotarla.
+  // [EN] Every choosable project right now, i.e. not excluded: this is
+  // what "no filter" means for Progetti now that "none ticked" became a
+  // real filter (zero results) instead of a way of saying "all". Needed
+  // both on the very first ever start and by "Azzera tutto", which must
+  // widen the view and not empty it.
+  function allChoosableProjects() {
+    var select = document.getElementById('project-filter');
+    if (!select) { return []; }
+    return [].filter.call(select.options, function (o) { return !excludedProjects[o.value]; })
+      .map(function (o) { return o.value; });
   }
 
   // Le caselle seguono la selezione, non il contrario: la si cambia anche
@@ -3462,12 +3874,18 @@ __I18N_APPLY__
     list.querySelectorAll('input[type="checkbox"]').forEach(function (box) {
       box.checked = !!wanted[box.value];
     });
-    var all = list.querySelector('.check-all');
-    if (all) { all.classList.toggle('active', chosen.length === 0); }
   }
 
   function syncProjectChecks() {
-    syncCheckList('project-filter-list', selectedProjects());
+    var chosen = selectedProjects();
+    syncCheckList('project-filter-list', chosen);
+    // Il modale ha le sue righe, non le stesse del DOM della colonna:
+    // seguono la selezione allo stesso modo, o una spunta data li' dentro
+    // sparirebbe tornando alla colonna.
+    // [EN] The modal has its own rows, not the same DOM as the column's:
+    // they follow the selection the same way, or a tick made in there
+    // would vanish when going back to the column.
+    syncCheckList('project-picker-list', chosen);
   }
 
   // Le righe della griglia non sono l'unica cosa che segue la selezione:
@@ -3538,21 +3956,44 @@ __I18N_APPLY__
     var host = document.getElementById('session-chosen');
     var select = document.getElementById('session-filter');
     if (!host || !select) { return; }
+    recomputeRowCaps();
     var chosen = selectedSessions();
-    // La riga si rifa' anche a finestra aperta (spuntare una sessione la
-    // rifa'): senza rileggere lo stato, l'aria-expanded tornerebbe a
-    // "false" mentre la finestra e' li' aperta.
-    // [EN] The row is rebuilt with the window open too (ticking a session
-    // rebuilds it): without re-reading the state, aria-expanded would go
-    // back to "false" while the window is sitting there open.
-    var back = document.getElementById('session-picker');
-    var open = !!back && !back.hidden;
-
-    var html = '<button type="button" class="check-row check-all' +
-      (chosen.length ? '' : ' active') + '">' +
-      '<span class="check-name">' + esc(tr('dd.allSessions')) + '</span>' +
-      '<span class="check-count">' + select.options.length + '</span></button>';
-    chosen.forEach(function (sid) {
+    // Un blocco del tutto vuoto non diceva se il filtro non era mai stato
+    // toccato o se si era appena rimessa l'ultima sessione: nessuna delle
+    // due si distingue da "non sto guardando niente", e un elenco senza
+    // nessuna riga sembra un elenco rotto piu' che un filtro spento. Una
+    // riga sola, in tono minore come quella degli esclusi, basta a dire
+    // qual e' delle due -- ed e' un costo che oggi la colonna puo'
+    // permettersi: il tetto delle righe si ricalcola da solo (vedi
+    // recomputeRowCaps), quindi una riga in piu' qui e' una in meno che
+    // il calcolo concede altrove, non uno sforamento.
+    // [EN] A block left entirely empty did not say whether the filter had
+    // never been touched or the last session had just been put back --
+    // neither is told apart from "I am looking at nothing", and a list
+    // with no row at all reads more like a broken list than a filter
+    // that is off. One row, in the same low key as the excluded ones, is
+    // enough to say which of the two it is -- and it is a cost the column
+    // can afford today: the row cap recomputes itself (see
+    // recomputeRowCaps), so one row more here is one less the computation
+    // grants elsewhere, not an overflow.
+    if (!chosen.length) {
+      // "Tutte le sessioni sono incluse." vale solo se c'e' un "tutte" da
+      // includere: con zero progetti spuntati la lista Sessione e'
+      // vuota per davvero (filterByProject, populateSessionList), e la
+      // stessa riga direbbe il contrario di cio' che schede e grafici
+      // mostrano un dito piu' sopra.
+      // [EN] "Tutte le sessioni sono incluse." only holds if there is an
+      // "all" to include: with zero projects ticked the Sessione list is
+      // genuinely empty (filterByProject, populateSessionList), and the
+      // same line would say the opposite of what the cards and charts an
+      // inch above are showing.
+      var emptyKey = selectedProjects().length ? 'filters.allSessions' : 'dd.noProjectsSelected';
+      host.innerHTML = '<div class="check-empty">' + esc(tr(emptyKey)) + '</div>';
+      return;
+    }
+    var shown = chosen.slice(0, SESSION_ROWS_MAX);
+    var html = '';
+    shown.forEach(function (sid) {
       var name = sessionLabel(sid);
       var ts = lastTsById[sid] ? new Date(lastTsById[sid]) : null;
       var when = ts && !isNaN(ts.getTime()) ? formatTimeCompact(ts) : '';
@@ -3564,11 +4005,14 @@ __I18N_APPLY__
         '</label>' +
         '</div>';
     });
-    html += '<button type="button" class="check-divider check-open" id="session-open"' +
-      ' aria-haspopup="dialog" aria-expanded="' + (open ? 'true' : 'false') + '">' +
-      '<span class="check-toggle-icon">&#9656;</span>' +
-      '<span class="check-toggle-label">' + esc(tr('filters.chooseSessions')) + '</span>' +
-      '</button>';
+    // "+ altre n" apre la finestra delle sessioni gia' pronta allo scopo:
+    // elenca tutte quelle scelte (e le altre), con la casella che le
+    // rappresenta gia' qui in colonna. Nessun modale nuovo da costruire.
+    // [EN] "+ n more" opens the sessions window, already fit for the
+    // purpose: it lists every chosen one (and the rest), with the same box
+    // that already represents them here in the column. No new modal to
+    // build.
+    html += moreRowHtml(chosen.length - shown.length, 'filters.moreSessions');
     host.innerHTML = html;
   }
 
@@ -3677,15 +4121,6 @@ __I18N_APPLY__
     var prevModel = document.getElementById('model-filter').value;
     var prevPeriod = document.getElementById('period-filter').value;
 
-    // La lista Sessione si tiene da se' la selezione di prima: rifatta
-    // ristretta ai progetti scelti, le sessioni che non ci sono piu' non
-    // hanno piu' una casella e si spengono da sole -- lo stesso che fa
-    // restoreSelectValue per le tre tendine qui sotto.
-    // [EN] The Sessione list keeps its previous selection by itself:
-    // rebuilt narrowed to the chosen projects, the sessions that are gone
-    // no longer have a box and turn themselves off -- the same thing
-    // restoreSelectValue does for the three dropdowns below.
-    populateSessionList(projs);
     populateAccountSelect(scoped);
     populateModelSelect(scoped);
     refreshDataPeriods(scoped);
@@ -3693,6 +4128,52 @@ __I18N_APPLY__
     restoreSelectValue('account-filter', prevAcc);
     restoreSelectValue('model-filter', prevModel);
     restoreSelectValue('period-filter', prevPeriod);
+
+    // La lista Sessione dipende anche da Account, Periodo e Modello, non
+    // solo dal Progetto che ha appena scatenato questo giro: li rilegge
+    // qui sotto, gia' ripristinati due righe sopra.
+    // [EN] The Sessione list also depends on Account, Periodo and Modello,
+    // not only on the Progetto that just triggered this round: it reads
+    // them below, already restored two lines above.
+    refreshSessionsScope();
+  }
+
+  // La lista Sessione (nella colonna e nella finestra) mostra solo le
+  // sessioni con ALMENO un turno che passa anche Account, Periodo e
+  // Modello -- non solo quelle del progetto giusto, a prescindere dal
+  // resto. Prima restringeva solo per progetto: cambiando Account restava
+  // piena di sessioni che quell'account non lo usano mai, e spuntarne una
+  // dava un filtro che sembrava non aver preso.
+  // Non entra la Sessione stessa (sarebbe circolare: si sta costruendo
+  // l'elenco fra cui scegliere) ne' la Ricerca (testo libero su un campo
+  // del turno, non uno dei quattro criteri categorici/temporali che
+  // Progetto, Account, Periodo e Modello condividono).
+  // Va richiamata ad ogni cambio di uno qualunque dei quattro, non solo
+  // di Progetto: vedere buildSimpleDropdown, populateAccountSelect,
+  // applyChartFilter e il gestore di "Azzera tutto"/chip.
+  // [EN] The Sessione list (in the column and in the window) shows only
+  // sessions with AT LEAST one turn that also passes Account, Periodo and
+  // Modello -- not just the ones in the right project, regardless of the
+  // rest. It used to narrow by project alone: changing Account left it
+  // full of sessions that never use that account, and ticking one gave a
+  // filter that looked like it had not taken.
+  // Sessione itself does not enter (it would be circular: this is
+  // building the list to choose FROM) nor does Ricerca (free text on a
+  // turn field, not one of the four categorical/temporal criteria
+  // Progetto, Account, Periodo and Modello share).
+  // It must be called on every change of any of the four, not just
+  // Progetto: see buildSimpleDropdown, populateAccountSelect,
+  // applyChartFilter and the "Azzera tutto"/chip handler.
+  function refreshSessionsScope() {
+    var projs = selectedProjects();
+    var acc = document.getElementById('account-filter').value;
+    var period = document.getElementById('period-filter').value;
+    var model = document.getElementById('model-filter').value;
+    var scopedTurns = filterByModel(
+      filterByPeriod(filterByAccount(filterByProject(includedTurns, projs), acc), period),
+      model
+    );
+    populateSessionList(projs, scopedTurns);
   }
 
   var CHART_FILTER_SELECTS = {
@@ -3975,18 +4456,25 @@ __I18N_APPLY__
     }
     var multi = MULTI_FILTERS[kind];
     if (multi) {
-      // Con un valore si toglie QUELLA voce (la x di un chip); senza, si
-      // svuota la selezione (il comando "Azzera tutto"). In entrambi i casi
-      // la vista si allarga, e cio' che resta acceso negli altri filtri
-      // resta valido -- se lo era prima, lo e' anche in una selezione piu'
-      // larga.
-      // [EN] With a value THAT entry is removed (a chip's x); without one,
-      // the selection is emptied (the "Azzera tutto" command). Either way
-      // the view widens, and whatever stays on in the other filters stays
-      // valid -- if it was before, it is in a wider selection too.
-      multi.write(value
-        ? multi.read().filter(function (v) { return v !== value; })
-        : []);
+      // Con un valore si toglie QUELLA voce (la x di un chip). Senza, e'
+      // "Azzera tutto": deve allargare la vista, mai restringerla. Per
+      // Sessioni questo vuol dire svuotare (nessuna spuntata e' gia' "tutte
+      // incluse"); per Progetti vuol dire l'opposto, spuntarli TUTTI --
+      // svuotarli e' ormai un filtro vero che le mostra zero, l'esatto
+      // contrario di "azzera".
+      // [EN] With a value THAT entry is removed (a chip's x). Without one,
+      // it is "Azzera tutto": it must widen the view, never narrow it. For
+      // Sessioni this means emptying it (none ticked already means "all
+      // included"); for Progetti it means the opposite, ticking ALL of
+      // them -- emptying it is now a real filter showing zero, the exact
+      // opposite of "clear".
+      if (value) {
+        multi.write(multi.read().filter(function (v) { return v !== value; }));
+      } else if (kind === 'project') {
+        multi.write(allChoosableProjects());
+      } else {
+        multi.write([]);
+      }
       return;
     }
     setChartFilter(kind, '');
@@ -4032,6 +4520,15 @@ __I18N_APPLY__
     if (value === null || value === undefined) { return; }
     setChartFilter(spec.kind, current === value ? '' : value);
     applyFilters();
+    // Account, Periodo e Modello sono tre dei quattro criteri da cui
+    // dipende la lista Sessione (vedi refreshSessionsScope): un clic sul
+    // grafico li cambia tanto quanto una scelta nella tendina, e deve
+    // restringerla allo stesso modo.
+    // [EN] Account, Periodo and Modello are three of the four criteria the
+    // Sessione list depends on (see refreshSessionsScope): a chart click
+    // changes them just as much as a dropdown pick, and must narrow it the
+    // same way.
+    refreshSessionsScope();
   }
 
   // Sposta la pillola colorata (.indicator) sotto il bottone attivo del
@@ -4104,6 +4601,16 @@ __I18N_APPLY__
     positionSegmentedIndicator(container);
   }
 
+  // Le etichette della colonna finiscono per i due punti ("Periodo:"),
+  // giusto li' ma fuori posto come titolo di un modale, dove non c'e'
+  // nessun valore a seguire sulla stessa riga.
+  // [EN] The column's labels end in a colon ("Periodo:"), right there but
+  // out of place as a modal's title, where no value follows on the same
+  // line.
+  function filterHeadLabel(key) {
+    return tr(key).replace(/:\s*$/, '');
+  }
+
   function updateDropdownTrigger(container, value) {
     var trigger = container.querySelector('.dropdown-trigger');
     var items = container.querySelectorAll('.dropdown-item');
@@ -4157,23 +4664,49 @@ __I18N_APPLY__
      the elapsed time, not the tokens: that is what explains the order, and
      a count next to a row ordered by date would look put there at
      random. */
-  function populateSessionList(projs) {
+  // "scopedTurns" e' gia' ristretto a Progetto, Account, Periodo e Modello
+  // insieme (vedi refreshSessionsScope): una sessione entra in elenco se ha
+  // almeno un turno che li passa tutti, non solo se il suo progetto e'
+  // spuntato. E' cosi' che una sessione con piu' account o modelli (vedi
+  // computeSessionFacets) resta in vista finche' anche uno solo dei suoi
+  // turni corrisponde -- lo stesso criterio con cui quelle colonne le
+  // scrivono entrambe, non solo quella filtrata.
+  // [EN] "scopedTurns" is already narrowed to Progetto, Account, Periodo
+  // and Modello together (see refreshSessionsScope): a session makes the
+  // list if it has at least one turn passing all of them, not merely if
+  // its project is ticked. This is how a session with more than one
+  // account or model (see computeSessionFacets) stays in view as long as
+  // even one of its turns matches -- the same criterion by which those
+  // columns write both of them, not only the filtered one.
+  function populateSessionList(projs, scopedTurns) {
     var list = document.getElementById('session-filter-list');
     var select = document.getElementById('session-filter');
     if (!list || !select) return;
 
-    // Con dei progetti spuntati la lista Sessione mostra solo le loro
-    // sessioni: e' una dipendenza a cascata, non un filtro AND indipendente
-    // -- e da qui passa anche lo spegnimento automatico delle sessioni
-    // scelte prima, che semplicemente non si ritrovano piu' in elenco.
-    // [EN] With some projects ticked the Sessione list shows only their
-    // sessions: a cascading dependency, not an independent AND filter --
+    // La lista Sessione mostra solo le sessioni dei progetti spuntati: e'
+    // una dipendenza a cascata, non un filtro AND indipendente -- e da qui
+    // passa anche lo spegnimento automatico delle sessioni scelte prima,
+    // che semplicemente non si ritrovano piu' in elenco.
+    // Nessun progetto spuntato non e' piu' un caso a parte da leggere
+    // come "tutti i progetti": da quando "nessuno spuntato" e' diventato
+    // un filtro vero per Progetti (zero risultati, non tutti -- vedi
+    // filterByProject), anche la finestra delle sessioni deve mostrare
+    // zero sessioni nello stesso caso, o la si vedrebbe piena di righe
+    // che i grafici e le schede, poco sopra, dicono valere zero.
+    // [EN] The Sessione list shows only the sessions of the ticked
+    // projects: a cascading dependency, not an independent AND filter --
     // and this is also where the automatic switch-off of previously-chosen
     // sessions goes through, as they simply no longer find themselves on
     // the list.
-    var visibleSessions = (projs && projs.length)
-      ? includedSessions.filter(function (s) { return projs.indexOf(s.project) >= 0; })
-      : includedSessions;
+    // No project ticked is no longer a special case read as "all
+    // projects": since "none ticked" became a real filter for Progetto
+    // (zero results, not all -- see filterByProject), the sessions window
+    // must show zero sessions in that same case too, or it would be seen
+    // full of rows that the charts and cards, just above it, say are
+    // worth zero.
+    var wantedSids = {};
+    (scopedTurns || []).forEach(function (t) { wantedSids[t.sid] = true; });
+    var visibleSessions = includedSessions.filter(function (s) { return !!wantedSids[s.id]; });
 
     // Il <select multiple> nascosto tiene solo le sessioni visibili: e' il
     // deposito della selezione, e una sessione fuori dai progetti scelti
@@ -4191,7 +4724,31 @@ __I18N_APPLY__
     });
 
     if (!visibleSessions.length) {
-      list.innerHTML = '<tr><td colspan="7" class="check-empty">' + esc(tr('dd.noSession')) + '</td></tr>';
+      // Zero progetti spuntati e zero sessioni per un motivo qualunque non
+      // sono lo stesso caso da raccontare: il primo si spiega da se' ("non
+      // hai scelto niente a monte"), il secondo lascerebbe intendere un
+      // filtro Sessione che qui non esiste. "Nessuna sessione" da solo,
+      // in quel primo caso, sembrava un elenco vuoto per un motivo che non
+      // c'era.
+      // [EN] Zero projects ticked and zero sessions for some other reason
+      // are not the same case to tell: the first explains itself ("you
+      // haven't chosen anything upstream"), the second would suggest a
+      // Sessione filter that does not exist here. "Nessuna sessione" on
+      // its own, in that first case, looked like an empty list for a
+      // reason that was not there.
+      var emptyKey = projs.length ? 'dd.noSession' : 'dd.noProjectsSelected';
+      list.innerHTML = '<tr><td colspan="7" class="check-empty">' + esc(tr(emptyKey)) + '</td></tr>';
+      // La selezione era gia' svuotata sopra (le <option> non ci sono
+      // piu'), ma nessuno lo aveva ancora detto in colonna: senza questa
+      // chiamata "sessioni scelte" restava com'era prima del giro che ha
+      // azzerato i progetti.
+      // [EN] The selection was already emptied above (the <option>s are
+      // gone), but nothing had said so in the column yet: without this
+      // call "chosen sessions" stayed as it was before the round that
+      // zeroed out the projects.
+      syncSessionChecks();
+      buildPickerFacetDropdowns([]);
+      filterSessionPicker();
       return;
     }
 
@@ -4604,12 +5161,10 @@ __I18N_APPLY__
     });
     host.addEventListener('click', function (e) {
       if (!e.target || !e.target.closest) { return; }
-      if (e.target.closest('.check-open')) { openSessionPicker(); return; }
-      if (e.target.closest('.check-all')) {
-        setSessionSelection([]);
-        applyFilters();
-      }
+      if (e.target.closest('.check-more')) { openSessionPicker(); }
     });
+    var opener = document.getElementById('session-open');
+    if (opener) { opener.addEventListener('click', openSessionPicker); }
     document.getElementById('session-picker-close').addEventListener('click', closeSessionPicker);
     document.getElementById('session-picker-done').addEventListener('click', closeSessionPicker);
     // Solo il fondo scuro chiude: un clic partito da dentro il riquadro
@@ -4677,7 +5232,21 @@ __I18N_APPLY__
   // something else (today: the three inside the sessions window, narrowing
   // only the list in there). Without it, we fall back on applyFilters,
   // which is what every dropdown in the column does.
-  function buildSimpleDropdown(containerId, selectId, items, onPick) {
+  // "modalTitle" e' per le due della colonna (Periodo, Modello): il click
+  // sul trigger apre il modale condiviso invece della tendina qui sotto,
+  // che resta costruita (le voci .dropdown-item servono comunque al
+  // modale, vedi openSimplePicker) ma non si apre piu' da sola. Le tre
+  // dentro la finestra delle sessioni non lo passano: un modale sopra un
+  // modale non e' un modale in piu', e' una finestra che non si chiude
+  // piu' con un click fuori.
+  // [EN] "modalTitle" is for the two in the column (Periodo, Modello):
+  // clicking the trigger opens the shared modal instead of the dropdown
+  // below, which stays built (the .dropdown-item entries are still
+  // needed by the modal, see openSimplePicker) but no longer opens on its
+  // own. The three inside the sessions window do not pass it: a modal on
+  // top of a modal is not one more modal, it is a window that no longer
+  // closes with an outside click.
+  function buildSimpleDropdown(containerId, selectId, items, onPick, modalTitle) {
     var container = document.getElementById(containerId);
     var select = document.getElementById(selectId);
     if (!container || !select) return;
@@ -4699,6 +5268,7 @@ __I18N_APPLY__
 
     var menu = container.querySelector('.dropdown-menu');
     container.querySelector('.dropdown-trigger').addEventListener('click', function () {
+      if (modalTitle) { openSimplePicker(modalTitle, container, select); return; }
       menu.classList.toggle('active');
     });
     container.querySelectorAll('.dropdown-item').forEach(function (item) {
@@ -4707,7 +5277,17 @@ __I18N_APPLY__
         select.value = val;
         updateDropdownTrigger(container, val);
         menu.classList.remove('active');
-        if (onPick) { onPick(val); } else { applyFilters(); }
+        // Senza "onPick" questa e' una delle due tendine della colonna
+        // (Periodo, Modello): cambia anche loro la lista Sessione, non
+        // solo il Progetto (vedi refreshSessionsScope). Le due dentro la
+        // finestra delle sessioni (con "onPick") restringono solo quella
+        // finestra, e non c'entrano.
+        // [EN] Without "onPick" this is one of the two dropdowns in the
+        // column (Periodo, Modello): it changes the Sessione list too, not
+        // only Progetto (see refreshSessionsScope). The two inside the
+        // sessions window (with "onPick") narrow only that window, and are
+        // not involved.
+        if (onPick) { onPick(val); } else { applyFilters(); refreshSessionsScope(); }
       });
     });
     // Allinea il trigger al valore iniziale (la prima voce, "tutti").
@@ -4850,7 +5430,7 @@ __I18N_APPLY__
     periodKeysOrdered().forEach(function (k) {
       items.push({ value: k, label: PERIODS[k].label, short: PERIODS[k].short });
     });
-    buildSimpleDropdown('period-filter-custom', 'period-filter', items);
+    buildSimpleDropdown('period-filter-custom', 'period-filter', items, null, filterHeadLabel('filters.period'));
   }
 
   function populateModelSelect(scopedTurns) {
@@ -4867,7 +5447,7 @@ __I18N_APPLY__
     });
     var items = [{ value: '', label: tr('dd.allModels'), short: tr('dd.shortModels') }];
     models.forEach(function (m) { items.push({ value: m, label: modelShortLabel(m) }); });
-    buildSimpleDropdown('model-filter-custom', 'model-filter', items);
+    buildSimpleDropdown('model-filter-custom', 'model-filter', items, null, filterHeadLabel('filters.model'));
   }
 
   // "scopedTurns" sono i turni dei progetti spuntati (tutti, se non ce n'e'
@@ -4921,12 +5501,17 @@ __I18N_APPLY__
     html += '</div>';
     container.innerHTML = html;
 
-    // Toggle del menu
-    // [EN] Menu toggle
+    // Il click sul trigger apre il modale condiviso invece della tendina:
+    // la tendina resta costruita (le sue voci .dropdown-item sono quelle
+    // che il modale legge, vedi openSimplePicker) ma non si apre piu' da
+    // sola.
+    // [EN] Clicking the trigger opens the shared modal instead of the
+    // dropdown: the dropdown stays built (its .dropdown-item entries are
+    // what the modal reads, see openSimplePicker) but no longer opens on
+    // its own.
     var trigger = container.querySelector('.dropdown-trigger');
-    var menu = container.querySelector('.dropdown-menu');
     trigger.addEventListener('click', function () {
-      menu.classList.toggle('active');
+      openSimplePicker(filterHeadLabel('filters.account'), container, select);
     });
 
     // Click su item
@@ -4936,8 +5521,8 @@ __I18N_APPLY__
         var val = item.getAttribute('data-value');
         document.getElementById('account-filter').value = val;
         updateDropdownTrigger(container, val);
-        menu.classList.remove('active');
         applyFilters();
+        refreshSessionsScope();
       });
     });
   }
@@ -4963,6 +5548,7 @@ __I18N_APPLY__
     var list = document.getElementById('project-filter-list');
     var select = document.getElementById('project-filter');
     if (!list || !select) return;
+    recomputeRowCaps();
 
     // Il peso di un progetto si conta su TUTTO lo storico, esclusioni
     // comprese: e' il numero che dice quanto pesa, e serve anche a decidere
@@ -5013,12 +5599,23 @@ __I18N_APPLY__
       return;
     }
 
+    // Niente piu' il conteggio dei token a fianco del nome: serviva a
+    // pesare il progetto per decidere se escluderlo, ma un numero per
+    // riga su un elenco che gia' ne conta undici o dodici e' quel che
+    // rendeva la colonna sporca da leggere. Il peso resta usato per
+    // l'ordine (piu' su nella lista chi ne ha di piu'), solo non si
+    // scrive piu'.
+    // [EN] No more the token count next to the name: it served to weigh
+    // the project when deciding whether to exclude it, but a number per
+    // row on a list already counting eleven or twelve was what made the
+    // column look cluttered. The weight is still used for the order
+    // (whoever has more sits higher in the list), it just is not written
+    // any more.
     function rowHtml(p, isBanned) {
       return '<div class="check-row' + (isBanned ? ' check-excluded' : '') + '">' +
         '<label class="check-main">' +
         '<input type="checkbox" value="' + esc(p) + '"' + (isBanned ? ' disabled' : '') + '>' +
         '<span class="check-name" title="' + esc(p) + '">' + esc(p) + '</span>' +
-        '<span class="check-count">' + esc(fmtCompactTokens(tokens[p] || 0)) + '</span>' +
         '</label>' +
         '<button type="button" class="check-ban" data-exclude="' + esc(p) + '" title="' +
         esc(isBanned ? tr('dd.restoreProject') : tr('dd.excludeProject')) +
@@ -5028,33 +5625,50 @@ __I18N_APPLY__
         '</div>';
     }
 
-    var html = '<button type="button" class="check-row check-all active">' +
-      '<span class="check-name">' + esc(tr('dd.allProjects')) + '</span>' +
-      '<span class="check-count">' + choosable.length + '</span></button>';
-    choosable.forEach(function (p) { html += rowHtml(p, false); });
-    if (banned.length) {
-      html += '<button type="button" class="check-divider check-toggle" aria-expanded="false">' +
-        '<span class="check-toggle-icon">&#9656;</span>' +
-        '<span class="check-toggle-label">' + esc(tr('dd.excludedAlways')) + '</span>' +
-        '<span class="check-toggle-count">' + banned.length + '</span></button>';
-      // Il doppio <div> non e' di troppo: quello fuori anima l'altezza
-      // (grid-template-rows), quello dentro e' cio' che viene ritagliato
-      // mentre si chiude.
-      // [EN] The double <div> is not one too many: the outer one animates
-      // the height (grid-template-rows), the inner one is what gets clipped
-      // while closing.
-      html += '<div class="check-excluded-group"><div>';
-      banned.forEach(function (p) { html += rowHtml(p, true); });
-      html += '</div></div>';
-    }
+    // Le prime PROGETTI_MAX piu' tutte quelle spuntate, ovunque siano
+    // finite: una selezione che non si vede e' una selezione che non si
+    // ricorda.
+    // [EN] The first PROJECT_ROWS_MAX plus every ticked one, wherever it
+    // ended up: a selection one cannot see is a selection one does not
+    // remember.
+    // "previous" e non selectedProjects(): qui sopra le <option> sono
+    // appena state ricreate da zero, quindi in questo istante il deposito
+    // della selezione e' vuoto -- viene ripopolato qualche riga piu' giu'.
+    // Leggendolo adesso, un progetto spuntato oltre il tetto risultava non
+    // spuntato e spariva dietro il "+ altri n" proprio mentre filtrava la
+    // pagina.
+    // [EN] "previous" and not selectedProjects(): the <option>s above have
+    // just been recreated from scratch, so at this instant the selection's
+    // store is empty -- it gets refilled a few lines below. Reading it now,
+    // a project ticked beyond the cap came out unticked and vanished behind
+    // the "+ n more" exactly while it was filtering the page.
+    var ticked = {};
+    previous.forEach(function (name) { ticked[name] = true; });
+    var shown = choosable.filter(function (name, i) {
+      return i < PROJECT_ROWS_MAX || ticked[name];
+    });
+    var html = '';
+    shown.forEach(function (name) { html += rowHtml(name, false); });
+    html += moreRowHtml(choosable.length - shown.length, 'filters.moreProjects');
     list.innerHTML = html;
+    renderExcluded(banned);
+    // "+ altri n" apre un modale con l'elenco completo dei progetti
+    // scegliibili (stesse righe, stesso comando escludi): si rifa' qui
+    // insieme al resto, cosi' un'esclusione fatta da dentro il modale
+    // aggiorna anche lui senza bisogno di un giro a parte.
+    // [EN] "+ n more" opens a modal with the whole list of choosable
+    // projects (same rows, same exclude command): it is rebuilt here
+    // together with the rest, so an exclusion made from inside the modal
+    // updates it too with no round of its own needed.
+    var pickerList = document.getElementById('project-picker-list');
+    if (pickerList) {
+      pickerList.innerHTML = choosable.map(function (name) { return rowHtml(name, false); }).join('');
+    }
     // La sezione si rifa' ad ogni esclusione: se era aperta resta aperta,
     // altrimenti riaprirla ad ogni clic sarebbe un lavoro di Sisifo.
     // [EN] The section is rebuilt on every exclusion: if it was open it
     // stays open, otherwise reopening it at every click would be a
     // Sisyphean chore.
-    syncExcludedSection();
-
     // La selezione sopravvive alla ricostruzione (che avviene ad ogni
     // esclusione): markSelectedOptions rimette le stesse voci, tolte quelle
     // appena escluse, senza far ripartire il giro delle liste dipendenti --
@@ -5064,6 +5678,17 @@ __I18N_APPLY__
     // just-excluded ones, without setting off the dependent lists round --
     // the caller takes care of that.
     markSelectedOptions('project-filter', previous, excludedProjects);
+    // Un'esclusione puo' restringere la selezione (il progetto appena
+    // escluso ne usciva anche prima, ma qui e' dove il <select> lo
+    // riflette davvero): se non si salva anche qui, un ricaricamento
+    // dopo un'esclusione rimetterebbe dentro un progetto che nel
+    // frattempo non c'e' piu' nella selezione vera.
+    // [EN] An exclusion can narrow the selection (the just-excluded
+    // project was already out of it, but this is where the <select>
+    // actually reflects that): without saving here too, a reload after
+    // an exclusion would bring back in a project that meanwhile is no
+    // longer in the real selection.
+    saveProjectSelection();
     syncProjectChecks();
 
     // Gli ascoltatori stanno sul contenitore, che non cambia mai, e si
@@ -5091,14 +5716,8 @@ __I18N_APPLY__
         toggleProjectExclusion(ban.getAttribute('data-exclude'));
         return;
       }
-      if (e.target && e.target.closest && e.target.closest('.check-toggle')) {
-        excludedSectionOpen = !excludedSectionOpen;
-        syncExcludedSection();
-        return;
-      }
-      if (e.target && e.target.closest && e.target.closest('.check-all')) {
-        setProjectSelection([]);
-        applyFilters();
+      if (e.target && e.target.closest && e.target.closest('.check-more')) {
+        openProjectPicker();
       }
     });
   }
@@ -5115,6 +5734,262 @@ __I18N_APPLY__
      looks), so are the lists depending on projects (one project less means
      fewer sessions, accounts, models and months -- or more, if it has just
      been put back) and the drawing. */
+  /* Gli esclusi: la scritta accanto al titolo e l'elenco dentro la
+     finestra si scrivono qui, insieme, perche' dicono la stessa cosa in
+     due posti. Senza nessun escluso la scritta sparisce del tutto -- un
+     comando che apre una finestra vuota e' un comando che non serve -- e
+     con essa si chiude la finestra, se era aperta: e' rimettendo l'ultimo
+     progetto che si arriva a quel punto, e restare davanti a un riquadro
+     vuoto non direbbe niente di piu' di quanto dica il riquadro che si
+     chiude.
+     [EN] The excluded ones: the line next to the title and the list inside
+     the window are written here, together, because they say the same thing
+     in two places. With none excluded the line disappears entirely -- a
+     command opening an empty window is a command that is not needed -- and
+     with it the window closes, if it was open: one gets there by putting
+     the last project back, and being left in front of an empty box would
+     say nothing more than the box closing says. */
+  function renderExcluded(banned) {
+    var aux = document.getElementById('excluded-open');
+    var count = document.getElementById('excluded-count');
+    var list = document.getElementById('excluded-list');
+    var foot = document.getElementById('excluded-picker-count');
+    if (aux) { aux.hidden = !banned.length; }
+    if (count) { count.textContent = banned.length ? tr('filters.excludedCount', banned.length) : ''; }
+    if (foot) { foot.textContent = banned.length ? String(banned.length) : ''; }
+    if (list) {
+      list.innerHTML = banned.length
+        ? banned.map(function (name) { return excludedRowHtml(name); }).join('')
+        : '<div class="check-empty">' + esc(tr('picker.excludedEmpty')) + '</div>';
+    }
+    if (!banned.length) { closeExcludedPicker(); }
+  }
+
+  // La riga della finestra: il nome e il comando che lo rimette. Nessuna
+  // casella, perche' un progetto escluso non e' una scelta di filtro --
+  // e' fuori dai dati, e da qui si fa una cosa sola.
+  // [EN] The window's row: the name and the command putting it back. No
+  // box, because an excluded project is not a filter choice -- it is out
+  // of the data, and from here one does a single thing.
+  function excludedRowHtml(name) {
+    return '<div class="check-row check-excluded">' +
+      '<span class="check-main"><span class="check-name" title="' + esc(name) + '">' +
+      esc(name) + '</span></span>' +
+      '<button type="button" class="check-ban" data-exclude="' + esc(name) + '" title="' +
+      esc(tr('dd.restoreProject')) + '" aria-label="' +
+      esc(tr('dd.restoreAria', { name: name })) + '">&#8634;</button>' +
+      '</div>';
+  }
+
+  // Le righe stanno gia' li' (renderProjectList le rifa' ad ogni
+  // esclusione), quindi aprire vuol dire solo scoprire la finestra.
+  // [EN] The rows are already there (populateProjectList rebuilds them at
+  // every exclusion), so opening means only revealing the window.
+  function openProjectPicker() {
+    var back = document.getElementById('project-picker');
+    if (!back || !back.hidden) { return; }
+    back.hidden = false;
+    var done = document.getElementById('project-picker-done');
+    if (done) { done.focus(); }
+  }
+
+  function closeProjectPicker() {
+    var back = document.getElementById('project-picker');
+    if (!back || back.hidden) { return; }
+    back.hidden = true;
+    // Il "+ altri n" che ha aperto la finestra si rifa' ad ogni spunta e
+    // ad ogni esclusione: cercarlo per selettore invece di tenerne un
+    // riferimento, o potrebbe puntare a un bottone gia' staccato dalla
+    // pagina. Se e' sparito (l'elenco e' sceso sotto il tetto perche' si
+    // e' escluso tutto il resto), il fuoco va al titolo del filtro.
+    // [EN] The "+ n more" that opened the window is rebuilt at every tick
+    // and every exclusion: it is looked up by selector instead of kept as
+    // a reference, or it could point at a button already detached from
+    // the page. If it is gone (the list dropped below the cap because
+    // everything else got excluded), focus goes to the filter's title.
+    var opener = document.querySelector('#project-filter-list .check-more');
+    if (opener) { opener.focus(); return; }
+    var head = document.querySelector('#fi-project .filter-head');
+    if (head) { head.focus(); }
+  }
+
+  (function wireProjectPicker() {
+    var back = document.getElementById('project-picker');
+    var list = document.getElementById('project-picker-list');
+    if (!back || !list) { return; }
+    document.getElementById('project-picker-close').addEventListener('click', closeProjectPicker);
+    document.getElementById('project-picker-done').addEventListener('click', closeProjectPicker);
+    back.addEventListener('click', function (e) { if (e.target === back) { closeProjectPicker(); } });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && !back.hidden) { closeProjectPicker(); }
+    });
+    // Stesso schema della colonna: caselle e comando escludi delegati su
+    // un contenitore che non cambia mai, con le righe che si rifanno ad
+    // ogni esclusione.
+    // [EN] Same pattern as the column: boxes and exclude command
+    // delegated on a container that never changes, with the rows rebuilt
+    // at every exclusion.
+    list.addEventListener('change', function (e) {
+      if (!e.target || !e.target.matches || !e.target.matches('input[type="checkbox"]')) { return; }
+      var chosen = [];
+      list.querySelectorAll('input[type="checkbox"]').forEach(function (b) {
+        if (b.checked) { chosen.push(b.value); }
+      });
+      setProjectSelection(chosen);
+      applyFilters();
+    });
+    list.addEventListener('click', function (e) {
+      var ban = e.target && e.target.closest ? e.target.closest('.check-ban') : null;
+      if (ban) { toggleProjectExclusion(ban.getAttribute('data-exclude')); }
+    });
+  })();
+
+  // Il fuoco torna al trigger che ha aperto il modale: e' un elemento
+  // fisso (il trigger di Account/Periodo/Modello non sparisce mai come
+  // puo' sparire un "+ altri n"), quindi un riferimento diretto basta e
+  // non serve ricercarlo per selettore come per gli altri modali.
+  // [EN] Focus goes back to the trigger that opened the modal: it is a
+  // fixed element (the Account/Periodo/Modello trigger never disappears
+  // the way a "+ n more" can), so a direct reference is enough and there
+  // is no need to look it up by selector as for the other modals.
+  var simplePickerReturnFocus = null;
+  // Il contenitore che ha aperto il modale, tenuto per inoltrargli il
+  // click quando una riga viene scelta (vedi wireSimplePicker): l'unico
+  // altro modo sarebbe passarlo come parametro fin dentro l'ascoltatore
+  // "change", che pero' e' cablato una volta sola all'avvio, prima che
+  // esista un'apertura da ricordare.
+  // [EN] The container that opened the modal, kept to forward it the
+  // click when a row is chosen (see wireSimplePicker): the only other way
+  // would be threading it as a parameter into the "change" listener,
+  // which is wired once at startup though, before there is any opening to
+  // remember.
+  var simplePickerContainer = null;
+
+  // "container" e' il div .custom-dropdown gia' costruito da
+  // buildSimpleDropdown/populateAccountSelect, con le sue voci
+  // .dropdown-item (mai mostrate: il menu a tendina che le contiene non
+  // si apre piu' per queste tre). Il modale non duplica la logica di
+  // scelta: una riga cliccata qui dentro inoltra il click alla voce vera
+  // corrispondente, che gia' sa scrivere il <select>, aggiornare il
+  // trigger e chiamare applyFilters/onPick.
+  // [EN] "container" is the .custom-dropdown div already built by
+  // buildSimpleDropdown/populateAccountSelect, with its .dropdown-item
+  // entries (never shown: the dropdown menu holding them no longer opens
+  // for these three). The modal does not duplicate the picking logic: a
+  // row clicked in here forwards the click to the matching real entry,
+  // which already knows how to write the <select>, update the trigger
+  // and call applyFilters/onPick.
+  function openSimplePicker(titleText, container, select) {
+    var back = document.getElementById('simple-picker');
+    var list = document.getElementById('simple-picker-list');
+    var titleEl = document.getElementById('simple-picker-title');
+    if (!back || !list || !titleEl || !container || !select || !back.hidden) { return; }
+    simplePickerContainer = container;
+    titleEl.textContent = titleText;
+    var realItems = container.querySelectorAll('.dropdown-item');
+    var html = '';
+    realItems.forEach(function (item, i) {
+      var val = item.getAttribute('data-value') || '';
+      var titleNode = item.querySelector('.item-title');
+      var label = titleNode ? titleNode.textContent : '';
+      html += '<div class="check-row"><label class="check-main">' +
+        '<input type="radio" name="simple-picker-radio" data-index="' + i + '"' +
+        (val === select.value ? ' checked' : '') + '>' +
+        '<span class="check-name" title="' + esc(label) + '">' + esc(label) + '</span>' +
+        '</label></div>';
+    });
+    list.innerHTML = html;
+    back.hidden = false;
+    simplePickerReturnFocus = container.querySelector('.dropdown-trigger');
+    var checked = list.querySelector('input[type="radio"]:checked');
+    (checked || document.getElementById('simple-picker-close')).focus();
+  }
+
+  function closeSimplePicker() {
+    var back = document.getElementById('simple-picker');
+    if (!back || back.hidden) { return; }
+    back.hidden = true;
+    if (simplePickerReturnFocus && simplePickerReturnFocus.focus) { simplePickerReturnFocus.focus(); }
+    simplePickerReturnFocus = null;
+  }
+
+  (function wireSimplePicker() {
+    var back = document.getElementById('simple-picker');
+    var list = document.getElementById('simple-picker-list');
+    if (!back || !list) { return; }
+    document.getElementById('simple-picker-close').addEventListener('click', closeSimplePicker);
+    back.addEventListener('click', function (e) { if (e.target === back) { closeSimplePicker(); } });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && !back.hidden) { closeSimplePicker(); }
+    });
+    // Una riga scelta chiude il modale e basta: chi ha aperto (la voce
+    // .dropdown-item vera, raggiunta per indice) fa gia' tutto il resto.
+    // [EN] A chosen row just closes the modal: the one that opened it
+    // (the real .dropdown-item, reached by index) already does the rest.
+    list.addEventListener('change', function (e) {
+      if (!e.target || !e.target.matches || !e.target.matches('input[type="radio"]')) { return; }
+      var idx = parseInt(e.target.getAttribute('data-index'), 10);
+      var opener = simplePickerContainer;
+      closeSimplePicker();
+      if (opener) {
+        var real = opener.querySelectorAll('.dropdown-item')[idx];
+        if (real) { real.click(); }
+      }
+    });
+  })();
+
+  function openExcludedPicker() {
+    var back = document.getElementById('excluded-picker');
+    if (!back || !back.hidden) { return; }
+    back.hidden = false;
+    var done = document.getElementById('excluded-picker-done');
+    if (done) { done.focus(); }
+  }
+
+  function closeExcludedPicker() {
+    var back = document.getElementById('excluded-picker');
+    if (!back || back.hidden) { return; }
+    back.hidden = true;
+    // Il fuoco torna al comando che ha aperto solo se e' ancora li': se a
+    // chiudere la finestra e' stato il rientro dell'ultimo progetto, quel
+    // comando non esiste piu'.
+    // [EN] Focus goes back to the command that opened it only if it is
+    // still there: if what closed the window was the last project coming
+    // back, that command no longer exists.
+    var opener = document.getElementById('excluded-open');
+    if (opener && !opener.hidden) { opener.focus(); return; }
+    // Sparito il comando, il fuoco va al titolo del filtro che lo teneva:
+    // lasciarlo su un bottone dentro un riquadro appena nascosto vuol dire
+    // perderlo, e chi naviga da tastiera si ritroverebbe a ricominciare
+    // dall'inizio della pagina.
+    // [EN] With the command gone, focus goes to the title of the filter
+    // that held it: leaving it on a button inside a box just hidden means
+    // losing it, and whoever navigates by keyboard would find themselves
+    // starting over from the top of the page.
+    var head = document.querySelector('#fi-project .filter-head');
+    if (head) { head.focus(); }
+  }
+
+  (function wireExcludedPicker() {
+    var aux = document.getElementById('excluded-open');
+    var back = document.getElementById('excluded-picker');
+    if (!aux || !back) { return; }
+    aux.addEventListener('click', openExcludedPicker);
+    document.getElementById('excluded-picker-close').addEventListener('click', closeExcludedPicker);
+    document.getElementById('excluded-picker-done').addEventListener('click', closeExcludedPicker);
+    back.addEventListener('click', function (e) { if (e.target === back) { closeExcludedPicker(); } });
+    // Delegato come nella colonna: l'elenco si rifa' ad ogni rientro.
+    // [EN] Delegated as in the column: the list is rebuilt at every
+    // restore.
+    document.getElementById('excluded-list').addEventListener('click', function (e) {
+      var ban = e.target && e.target.closest ? e.target.closest('.check-ban') : null;
+      if (ban) { toggleProjectExclusion(ban.getAttribute('data-exclude')); }
+    });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && !back.hidden) { closeExcludedPicker(); }
+    });
+  })();
+
   function toggleProjectExclusion(name) {
     if (!name) { return; }
     if (excludedProjects[name]) { delete excludedProjects[name]; }
@@ -5127,10 +6002,16 @@ __I18N_APPLY__
     applyFilters();
   }
 
-  // Nessuna sessione spuntata = tutte, come per i progetti; spuntarne piu'
-  // d'una le mette in OR, che e' quel che vuol dire spuntare due caselle.
-  // [EN] No session ticked = all of them, as for the projects; ticking more
-  // than one puts them in OR, which is what ticking two boxes means.
+  // Nessuna sessione spuntata = tutte: sono centinaia, ed e' un elenco da
+  // restringere, non una manciata di voci da scegliere una per una come i
+  // progetti (dove invece "nessuno" e' ormai un filtro vero, zero
+  // risultati). Spuntarne piu' d'una le mette in OR, che e' quel che vuol
+  // dire spuntare due caselle.
+  // [EN] No session ticked = all of them: there are hundreds, and it is a
+  // list to narrow down, not a handful of entries chosen one by one like
+  // the projects (where "none" is now a real filter instead, zero
+  // results). Ticking more than one puts them in OR, which is what
+  // ticking two boxes means.
   function filterBySession(list, sids) {
     if (!sids || !sids.length) return list;
     var wanted = {};
@@ -5143,13 +6024,24 @@ __I18N_APPLY__
     return list.filter(function (r) { return r.acc === acc; });
   }
 
-  // Nessun progetto spuntato = tutti, come per gli altri filtri;
-  // spuntarne piu' d'uno li mette in OR, che e' quel che si intende
-  // spuntando due caselle.
-  // [EN] No project ticked = all of them, as for the other filters; ticking
-  // more than one puts them in OR, which is what ticking two boxes means.
+  // Nessun progetto spuntato = zero risultati, non tutti: a differenza
+  // di Sessioni (dove "nessuna spuntata" resta "tutte", perche' e' un
+  // elenco di centinaia da restringere, non una scelta), Progetti e' un
+  // pugno di voci che si spuntano una per una -- svuotarle tutte e' un
+  // gesto deliberato quanto spuntarle, e la dashboard deve prendere sul
+  // serio quel "niente" invece di leggerlo come "non ho ancora scelto".
+  // Spuntarne piu' d'uno li mette comunque in OR, che e' quel che si
+  // intende spuntando due caselle.
+  // [EN] No project ticked = zero results, not all of them: unlike
+  // Sessioni (where "none ticked" still means "all", because it is a
+  // list of hundreds to narrow down, not a choice), Progetti is a
+  // handful of entries ticked one by one -- emptying all of them is as
+  // deliberate a gesture as ticking them, and the dashboard must take
+  // that "nothing" at face value instead of reading it as "I have not
+  // chosen yet". Ticking more than one still puts them in OR, which is
+  // what ticking two boxes means.
   function filterByProject(list, projs) {
-    if (!projs || !projs.length) return list;
+    if (!projs || !projs.length) return [];
     var wanted = {};
     projs.forEach(function (p) { wanted[p] = true; });
     return list.filter(function (r) { return !!wanted[projectById[r.sid]]; });
@@ -8147,6 +9039,15 @@ __I18N_APPLY__
     hideTooltip();
     clearFilter(btn.getAttribute('data-clear-filter'), btn.getAttribute('data-clear-value'));
     applyFilters();
+    // Puo' aver appena spento Account, Periodo o Modello (una x di chip, o
+    // "Azzera tutto"): la lista Sessione ne dipende quanto dal Progetto,
+    // gia' coperto dalla propria cascata (setProjectSelection ->
+    // refreshDependentFilters).
+    // [EN] This may have just turned off Account, Periodo or Modello (a
+    // chip's x, or "Azzera tutto"): the Sessione list depends on them as
+    // much as on Progetto, already covered by its own cascade
+    // (setProjectSelection -> refreshDependentFilters).
+    refreshSessionsScope();
   });
 
   /* Doppio clic su una serie del grafico a linea: stessa cosa. Il clic
@@ -8231,43 +9132,75 @@ __I18N_APPLY__
     positionSegmentedIndicator(document.getElementById('scale-filter-custom'));
   });
 
+  // Cambiare l'altezza della finestra cambia quanto budget resta a
+  // Progetti e Sessioni: senza questo, i tetti restano quelli calcolati al
+  // caricamento anche su una finestra diventata piu' bassa (o piu' alta).
+  // Ritardato invece che ad ogni fotogramma di ridimensionamento: chi
+  // trascina il bordo della finestra scatena decine di eventi al secondo,
+  // e ridisegnare due liste ad ognuno si sentirebbe.
+  // [EN] Changing the window's height changes how much budget is left for
+  // Progetti and Sessioni: without this, the caps stay whatever was
+  // computed at load even on a window that became shorter (or taller).
+  // Delayed instead of on every resize frame: dragging the window's edge
+  // fires dozens of events a second, and redrawing two lists at every one
+  // of them would be felt.
+  var rowCapResizeTimer = null;
+  window.addEventListener('resize', function () {
+    clearTimeout(rowCapResizeTimer);
+    rowCapResizeTimer = setTimeout(function () {
+      populateProjectList();
+      renderChosenSessions();
+    }, 150);
+  });
+
   // Ripristina i filtri scelti prima dell'ultima ricarica (altrimenti ogni
   // reload li azzererebbe) e li rimette nei <select> gia' popolati.
   // [EN] Restores the filters chosen before the last reload (otherwise
   // [EN] every reload would reset them) and puts them back into the
   // [EN] already-populated <select> elements.
+  /* I progetti si ripristinano per conto proprio, da PROJECT_SELECTION_KEY
+     (localStorage) e non dal pacchetto dashboardFilters qui sotto: quella
+     chiave sopravvive a una scheda chiusa e riaperta, questo pacchetto no,
+     e ora che "nessuno spuntato" e' un filtro vero (zero risultati) la
+     scelta deve durare quanto quella degli esclusi -- e va fatta PRIMA
+     degli altri filtri, perche' sono loro a decidere quali voci esistono
+     nelle altre tendine (vedi refreshDependentFilters).
+     Se la chiave non c'e' proprio (mai salvata: la primissima apertura di
+     sempre, o un localStorage svuotato) si parte con tutti i progetti
+     accesi -- zero non deve leggersi come "zero risultati" alla primissima
+     visita, sarebbe una pagina che si apre vuota. Un progetto salvato puo'
+     anche non esistere piu' (log ripuliti, cartella rinominata) o essere
+     stato esclso nel frattempo: si tiene solo quel che c'e' ancora e non
+     e' escluso.
+     [EN] Projects restore themselves independently, from
+     PROJECT_SELECTION_KEY (localStorage) and not from the dashboardFilters
+     bundle below: that key survives a closed and reopened tab, this
+     bundle does not, and now that "none ticked" is a real filter (zero
+     results) the choice must last as long as the excluded ones' does --
+     and it must happen BEFORE the other filters, since they decide which
+     entries the other dropdowns hold (see refreshDependentFilters).
+     If the key is not there at all (never saved: the very first opening
+     ever, or a cleared localStorage) it starts with every project on --
+     zero must not read as "zero results" on the very first visit, that
+     would be a page opening empty. A saved project may also no longer
+     exist (logs cleaned up, folder renamed) or have been excluded
+     meanwhile: only what is still there and not excluded is kept. */
+  var knownProjects = {};
+  sessions.forEach(function (s) {
+    if (s.project && !excludedProjects[s.project]) { knownProjects[s.project] = true; }
+  });
+  if (savedProjectsRawAtBoot === null) {
+    setProjectSelection(allChoosableProjects());
+  } else {
+    var savedProjects = [];
+    try { savedProjects = JSON.parse(savedProjectsRawAtBoot); } catch (e) {}
+    if (!Array.isArray(savedProjects)) { savedProjects = []; }
+    setProjectSelection(savedProjects.filter(function (p) { return knownProjects[p]; }));
+  }
+
   var restoredFilters = null;
   try { restoredFilters = JSON.parse(sessionStorage.getItem('dashboardFilters') || 'null'); } catch (e) {}
   if (restoredFilters) {
-    /* I progetti per primi: sono loro a decidere quali voci esistono nelle
-       altre tendine (vedi refreshDependentFilters), quindi rimetterli dopo
-       vorrebbe dire riporre gli altri filtri dentro liste che stanno per
-       essere rifatte da capo.
-       Il valore salvato puo' essere un elenco oppure -- da una pagina
-       lasciata aperta prima che questo filtro diventasse multiplo -- una
-       stringa sola. E un progetto salvato puo' non esistere piu' (log
-       ripuliti, cartella rinominata): si tiene solo quel che c'e' ancora,
-       altrimenti la pagina si riaprirebbe filtrata su un nulla.
-       [EN] Projects first: they decide which entries the other dropdowns
-       hold (see refreshDependentFilters), so restoring them later would
-       mean putting the other filters back inside lists that are about to be
-       rebuilt from scratch.
-       The saved value can be a list or -- from a page left open before this
-       filter became multiple -- a single string. And a saved project may no
-       longer exist (logs cleaned up, folder renamed): only what is still
-       there is kept, otherwise the page would reopen filtered on nothing. */
-    var savedProjects = Array.isArray(restoredFilters.proj)
-      ? restoredFilters.proj
-      : (restoredFilters.proj ? [restoredFilters.proj] : []);
-    var knownProjects = {};
-    sessions.forEach(function (s) {
-      // Un progetto escluso non torna spuntato da un ripristino: l'esclusione
-      // vale "sempre", e i filtri salvati sono di ieri.
-      // [EN] An excluded project does not come back ticked from a restore:
-      // the exclusion holds "always", and the saved filters are yesterday's.
-      if (s.project && !excludedProjects[s.project]) { knownProjects[s.project] = true; }
-    });
-    setProjectSelection(savedProjects.filter(function (p) { return knownProjects[p]; }));
     restoreSelectValue('account-filter', restoredFilters.acc);
     // rangeIdx e' una POSIZIONE sulla scala, non un numero di ore: la
     // scala dipende da quanto e' lungo lo storico, che tra un caricamento e
@@ -8343,6 +9276,21 @@ __I18N_APPLY__
   // ticked stay off, instead of pointing at sessions the page is not
   // looking at.
   if (restoredFilters) { setSessionSelection(restoredFilters.sids || []); }
+
+  // I tetti si sono ricalcolati piu' volte qui sopra (ogni volta che una
+  // lista si e' rifatta), ma il tetto dei progetti finale lo si conosce
+  // solo ora che anche le sessioni si sono sistemate -- e la lista dei
+  // progetti non si rifa' da sola quando cambia solo la selezione delle
+  // sessioni. Un ridisegno in piu', a prezzo trascurabile, cosi' il primo
+  // disegno della pagina e' gia' quello giusto invece di sistemarsi al
+  // primo clic.
+  // [EN] The caps got recomputed several times above (every time a list
+  // was rebuilt), but the final projects cap is only known now that the
+  // sessions have settled too -- and the projects list does not rebuild
+  // itself when only the session selection changes. One more redraw, at a
+  // negligible cost, so the page's first paint is already the right one
+  // instead of settling on the first click.
+  populateProjectList();
 
   renderAll(currentCriteria());
 
@@ -8470,12 +9418,16 @@ __I18N_APPLY__
   });
 
   /* --- Filtri aperti e chiusi --------------------------------------------
-     In colonna i sei filtri stanno uno sotto l'altro, e i due a scelta
-     multipla possono prendersi mezzo schermo per conto loro: chi in questo
-     momento guarda per modello non ha nessun motivo di scorrere
-     l'elenco intero delle sessioni per arrivarci. Chiudere quello che non
-     serve e' l'unico modo di tenere la colonna corta senza togliere niente
-     a nessuno.
+     In colonna i filtri stanno uno sotto l'altro, e i due a scelta
+     multipla sono lunghi quanto i dati: l'elenco dei progetti e' lungo
+     quanti sono i progetti. Chi in questo momento guarda per periodo non
+     ha nessun motivo di tenersi in mezzo ai piedi l'elenco intero, quindi
+     Progetti, Sessioni e Periodo si aprono e si chiudono uno per uno,
+     ognuno per conto proprio.
+     Non tutti: Account, Modello e la ricerca stanno sempre aperti (non
+     hanno data-collapsible e la loro intestazione non e' un bottone). Si
+     guardano di continuo, e farli chiudere per far posto vorrebbe dire
+     riaprirli ogni volta.
      Chiuso non vuol dire spento: un filtro chiuso continua a filtrare
      esattamente come prima -- la selezione vive nei <select> nascosti, che
      restano fuori dal corpo che si chiude. E' un fatto di spazio sullo
@@ -8485,12 +9437,15 @@ __I18N_APPLY__
      vuole la pagina, non un filtro di questa visita, e ricominciare ogni
      volta da tutti aperti vorrebbe dire richiuderli ogni volta.
      [EN] --- Open and closed filters ---
-     In the column the six filters sit one under the other, and the two
-     multiple-choice ones can take half a screen on their own: someone
-     currently looking by model has no reason to scroll the whole list of
-     sessions to get there. Closing what is not needed right now is the
-     only way to keep the column short without taking anything away from
-     anyone.
+     In the column the filters sit one under the other, and the two
+     multiple-choice ones are as long as the data: the projects list is as
+     long as there are projects. Someone currently looking by period has no
+     reason to keep the whole list under their feet, so Progetti, Sessioni
+     and Periodo open and close one by one, each on its own.
+     Not all of them: Account, Modello and the search stay open all the
+     time (they carry no data-collapsible and their heading is not a
+     button). They are looked at continuously, and closing them to make
+     room would mean reopening them every time.
      Closed does not mean off: a closed filter keeps filtering exactly as
      before -- the selection lives in the hidden <select>s, which stay
      outside the body that closes. It is a matter of room on screen, not of
@@ -8502,6 +9457,14 @@ __I18N_APPLY__
      again every time. */
   var COLLAPSED_FILTERS_KEY = 'dashboardCollapsedFilters';
 
+  // Solo i filtri che si aprono a turno. Gli altri tre non compaiono qui
+  // e non compaiono nemmeno nello stato salvato: restano aperti e basta.
+  // [EN] Only the filters that open in turn. The other three do not appear
+  // here, nor in the saved state: they simply stay open.
+  function filterItems() {
+    return [].slice.call(document.querySelectorAll('#filters-bar .filter-item[data-collapsible]'));
+  }
+
   function loadCollapsedFilters() {
     var saved = [];
     try {
@@ -8512,7 +9475,7 @@ __I18N_APPLY__
     saved.forEach(function (id) { wanted[id] = true; });
     var bar = document.getElementById('filters-bar');
     if (bar) { bar.classList.add('filters-no-anim'); }
-    document.querySelectorAll('#filters-bar .filter-item').forEach(function (el) {
+    filterItems().forEach(function (el) {
       setFilterCollapsed(el, !!wanted[el.id]);
     });
     // Leggere offsetHeight costringe il browser a ricalcolare qui e ora:
@@ -8567,9 +9530,22 @@ __I18N_APPLY__
     var bar = document.getElementById('filters-bar');
     if (!bar) { return; }
     bar.addEventListener('click', function (e) {
-      var head = e.target && e.target.closest ? e.target.closest('.filter-head') : null;
+      // button.filter-head e non .filter-head: le intestazioni dei filtri
+      // sempre aperti hanno la stessa veste ma non sono comandi, e un clic
+      // li' non deve chiudere niente.
+      // [EN] button.filter-head and not .filter-head: the headings of the
+      // always-open filters wear the same clothes but are not commands,
+      // and a click there must not close anything.
+      var head = e.target && e.target.closest ? e.target.closest('button.filter-head') : null;
       if (!head) { return; }
-      var item = head.closest('.filter-item');
+      // Il titolo delle sessioni e' un bottone come questi, ma apre una
+      // finestra invece di richiudere se stesso: se ne occupa il suo
+      // ascoltatore, e qui non deve arrivarci.
+      // [EN] The sessions title is a button like these, but it opens a
+      // window instead of folding itself away: its own listener takes care
+      // of it, and it must not get here.
+      var item = head.closest('.filter-item[data-collapsible]');
+      if (!item) { return; }
       setFilterCollapsed(item, !item.classList.contains('collapsed'));
       saveCollapsedFilters();
     });
@@ -8775,9 +9751,14 @@ __I18N_APPLY__
       // [EN] again.
       sessionStorage.setItem('skipPageIntro', '1');
       sessionStorage.setItem('dashboardFilters', JSON.stringify({
+        // I progetti non sono qui: si salvano da soli, in
+        // PROJECT_SELECTION_KEY, appena la selezione cambia -- non solo
+        // qui, a ridosso di un ricaricamento.
+        // [EN] Projects are not here: they save themselves, in
+        // PROJECT_SELECTION_KEY, as soon as the selection changes -- not
+        // only here, right before a reload.
         sids: selectedSessions(),
         acc: document.getElementById('account-filter').value,
-        proj: selectedProjects(),
         rangeIdx: document.getElementById('range-filter').value,
         mode: document.getElementById('mode-filter').value,
         scale: document.getElementById('scale-filter').value,

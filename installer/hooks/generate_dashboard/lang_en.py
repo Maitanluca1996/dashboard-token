@@ -71,21 +71,20 @@ UI = {
               "wallet.",
     },
 
-    "side": {
-        "filters": "Filters",
-        "unit": "Unit",
-    },
-
     "filters": {
         "projects": "Projects:",
-        "session": "Session:",
+        "session": "Sessions:",
         "account": "Account:",
         "period": "Period:",
         "model": "Model:",
         "search": "Search in the request:",
         "searchPlaceholder": "Request text…",
         "searchClear": "Clear the search",
-        "chooseSessions": "Choose among the sessions",
+        "excludedCount": {"one": "1 excluded", "other": "{n} excluded"},
+        "showExcludedAria": "See the always-excluded projects",
+        "moreProjects": {"one": "+ 1 more", "other": "+ {n} more"},
+        "moreSessions": {"one": "+ 1 more", "other": "+ {n} more"},
+        "allSessions": "All sessions are included.",
     },
 
     # Vedi lang_it.py: "Cost" non nomina la valuta di proposito.
@@ -96,6 +95,7 @@ UI = {
     },
 
     "chart": {
+        "unit": "Unit:",
         "groupBy": "Group by:",
         "byDay": "By day",
         "byMonth": "By month",
@@ -198,6 +198,9 @@ UI = {
     # Vedi lang_it.py: la finestra da cui si scelgono le sessioni.
     # [EN] See lang_it.py: the window the sessions are chosen from.
     "picker": {
+        "excludedTitle": "Always-excluded projects",
+        "excludedEmpty": "No excluded project",
+        "projectsTitle": "All projects",
         "sessionsTitle": "Choose the sessions",
         "searchSessions": "Search a session…",
         "searchClear": "Clear the search",
@@ -216,8 +219,8 @@ UI = {
     },
 
     "dd": {
-        "allSessions": "All sessions",
         "noSession": "No session",
+        "noProjectsSelected": "No projects selected",
         "allPeriods": "All periods",
         "shortPeriods": "Periods",
         "allModels": "All models",
@@ -226,7 +229,6 @@ UI = {
         "shortAccounts": "Accounts",
         "noProject": "No project",
         "allProjects": "All projects",
-        "excludedAlways": "Always excluded",
         "excludeProject": "Always exclude this project",
         "restoreProject": "Put this project back among the visible ones",
         "excludeAria": "Always exclude {name}",
