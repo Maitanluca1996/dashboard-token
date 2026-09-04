@@ -201,7 +201,20 @@ def _build_payload(tokens, ops, sessions_sorted, session_info, last_seen, sessio
             {"ts": t["timestamp"], "sid": t["session_id"], "i": t["input"], "o": t["output"],
              "cw": t["cache_write"], "cw1": t["cache_write_1h"],
              "cr": t["cache_read"], "tot": t["total"], "acc": t["account"],
-             "sum": t["summary"], "model": t["model"]}
+             "sum": t["summary"], "model": t["model"],
+             # "st" e non "start": stessa convenzione di abbreviazione delle
+             # chiavi vicine. Uguale a "ts" sulle righe scritte prima che
+             # data.read_tokens() sapesse leggere questo dato (t["start"] e'
+             # gia' ricaduto su t["timestamp"] li', vedi data.py): il JS
+             # legge sempre "st" per ricostruire le finestre di 5 ore, senza
+             # bisogno di un "||" di ripiego ad ogni lettura.
+             # [EN] "st" and not "start": same abbreviation convention as
+             # the neighboring keys. Equal to "ts" on rows written before
+             # data.read_tokens() knew how to read this figure (t["start"]
+             # already fell back to t["timestamp"] there, see data.py): the
+             # JS always reads "st" to rebuild the 5-hour windows, with no
+             # need for a fallback "||" on every read.
+             "st": t["start"]}
             for t in tokens
         ],
         "ops": [

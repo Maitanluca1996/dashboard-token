@@ -439,18 +439,25 @@ __HEADER_CSS__
      time -- stayed its own problem, instead of pushing the whole column
      outward and making it scroll sideways too). */
   .filter-body > div { overflow: hidden; }
-  /* Account/Periodo/Modello non si richiudono mai e non ne hanno bisogno,
-     ma il ritaglio qui sopra li avrebbe presi comunque: il loro menu si
-     apre ASSOLUTO fuori dai 35px del trigger, e il ritaglio lo tagliava a
-     zero pixel di altezza -- una tendina che sembra non rispondere piu'
-     al clic.
-     [EN] Account/Periodo/Modello never fold and do not need it, but the
-     clipping above would have caught them anyway: their menu opens
-     ABSOLUTE outside the trigger's 35 pixels, and the clipping cut it down
-     to zero pixels tall -- a dropdown that looks like it stopped answering
-     to a click. */
-  .filter-item-inline .filter-body > div { overflow: visible; }
   .filter-item.collapsed .filter-body > div { visibility: hidden; transition: visibility 0s linear 0.25s; }
+  /* Account, Periodo e Modello aprono tutti e tre il modale condiviso
+     (openSimplePicker), mai piu' il .dropdown-menu in
+     posizione assoluta che il ritaglio qui sopra avrebbe tagliato a zero
+     pixel: il ritaglio si applica anche a loro senza bisogno di
+     un'eccezione, ed e' quello che tiene "Finestra corrente da 16:04" (o
+     un account dal nome lungo) dentro la riga invece di spingerla fuori a
+     destra -- il testo tronca con ellissi (vedi .dropdown-trigger-label),
+     il valore intero resta leggibile nel tooltip nativo (title, scritto da
+     updateDropdownTrigger).
+     [EN] Account, Periodo and Modello all three open the shared modal
+     (openSimplePicker), never again the absolutely
+     positioned .dropdown-menu the clipping above would have cut down to
+     zero pixels: the clipping applies to them too with no exception
+     needed, and it is what keeps "Finestra corrente da 16:04" (or a
+     long-named account) inside the row instead of pushing it out to the
+     right -- the text truncates with an ellipsis (see
+     .dropdown-trigger-label), the full value stays readable in the native
+     tooltip (title, written by updateDropdownTrigger). */
   /* Intestazione di un pannello-grafico: titolo a sinistra, controlli che
      riguardano SOLO quel grafico a destra. La usano sia il grafico a barre
      (selettore unita') sia quello a linea (modalita') -- per questo le
@@ -916,7 +923,80 @@ __HEADER_CSS__
      as wide as the sessions one it would be an empty box around five
      rows. */
   .picker-narrow { width: min(420px, 100%); }
+  /* Il modale condiviso da Account/Periodo/Modello (#simple-picker):
+     quattro colonne semplici nella tabella delle finestre, non le sette
+     della griglia sessioni -- il min-width di .picker-table (780px,
+     pensato per quella) lascerebbe qui un pannello per meta' vuoto.
+     [EN] The modal shared by Account/Periodo/Modello (#simple-picker):
+     four plain columns in the windows table, not the sessions grid's
+     seven -- .picker-table's min-width (780px, sized for that one) would
+     leave this panel half empty. */
+  .picker-medium { width: min(480px, 100%); }
+  /* .picker-table.block-table e non .block-table da solo: stessa
+     specificita' di .picker-table (una classe), quindi chi vince
+     dipenderebbe dall'ordine nel foglio invece che dall'intento --
+     .picker-table arriva dopo nel file e stravincerebbe silenziosamente
+     min-width:0, lasciando la tabella larga 780px comunque.
+     [EN] .picker-table.block-table and not .block-table alone: same
+     specificity as .picker-table (one class), so who wins would depend
+     on sheet order instead of intent -- .picker-table comes later in
+     the file and would silently overrule min-width:0, leaving the
+     table 780px wide regardless. */
+  .picker-table.block-table { min-width: 0; }
+  /* La paginazione di questo modale e' una <nav> figlia diretta di
+     .picker: non ha, come quella della tabella principale, un .panel
+     attorno che le regala il proprio padding, quindi resta a filo dei
+     bordi senza un margine scritto qui apposta.
+     [EN] This modal's pagination is a <nav> direct child of .picker: it
+     has no .panel around it, unlike the main table's, giving it padding
+     for free, so it sits flush with the edges without a margin written
+     here on purpose. */
+  #block-picker-pagination { padding: 0 16px 14px; }
   .picker-head { display: flex; align-items: center; gap: 10px; padding: 14px 16px 10px; }
+  /* Le schede di macrocategoria (Periodo/Finestre 5h), fra il titolo e
+     l'elenco -- lo stesso posto in cui la finestra delle sessioni mette le
+     sue tre tendine di restringimento (.picker-facets). Nascosto quando
+     c'e' una sola macrocategoria (Account, Modello, o Periodo senza
+     finestre nei dati): openSimplePicker decide, questa regola lo rende
+     davvero invisibile invece di lasciare una barra vuota.
+     [EN] The macro-category tabs (Periodo/Finestre 5h), between the title
+     and the list -- the same spot where the sessions window puts its
+     three narrowing dropdowns (.picker-facets). Hidden when there is a
+     single macro-category (Account, Modello, or Periodo with no windows
+     in the data): openSimplePicker decides, this rule makes it actually
+     invisible instead of leaving an empty bar. */
+  /* .segmented-control base e' inline-flex senza justify-content: i
+     bottoni si accodano a sinistra e si tengono la loro larghezza di
+     testo, che va bene quando stanno accanto a un'etichetta (Modalita',
+     Scala) ma qui lascerebbe meta' riquadro vuoto a destra -- ci sono
+     solo due schede, e devono leggersi come le due meta' di una scelta
+     sola, non come un pulsante piccolo perso in un riquadro grande.
+     flex:1 su ciascun bottone li fa dividere la riga in parti uguali;
+     positionSegmentedIndicator legge la larghezza vera a runtime, quindi
+     la pillola la segue senza bisogno di ritocchi.
+     [EN] The base .segmented-control is inline-flex with no
+     justify-content: buttons queue up on the left and keep their own
+     text width, which is fine next to a label (Modalita', Scala) but
+     here would leave half the box empty on the right -- there are only
+     two tabs, and they must read as the two halves of a single choice,
+     not as a small button lost in a large box. flex:1 on each button
+     splits the row evenly; positionSegmentedIndicator reads the real
+     width at runtime, so the pill follows without needing retouching. */
+  .picker-tabs { margin: 0 16px 12px; }
+  .picker-tabs[hidden] { display: none; }
+  /* min-width:0 e' la parte che conta, non solo flex:1: di default un
+     figlio flessibile non si restringe sotto la larghezza del proprio
+     testo (min-width:auto), quindi "Finestre 5h" -- piu' lunga di
+     "Periodo" -- si sarebbe presa comunque piu' spazio pur con lo
+     stesso flex-grow. Con min-width:0 lo spazio si divide davvero a
+     meta', qualunque sia la lunghezza del testo (e qualunque lingua).
+     [EN] min-width:0 is the part that matters, not just flex:1: by
+     default a flex child does not shrink below its own text's width
+     (min-width:auto), so "Finestre 5h" -- longer than "Periodo" --
+     would still have claimed more room despite the same flex-grow.
+     With min-width:0 the space really splits in half, whatever the
+     text's length (and whatever the language). */
+  .picker-tabs button { flex: 1 1 0; min-width: 0; text-align: center; }
   .picker-title { flex: 1 1 auto; font-size: 14px; font-weight: 600; color: var(--text-primary); }
   .picker-close {
     flex: none;
@@ -960,6 +1040,28 @@ __HEADER_CSS__
   @media (max-width: 620px) {
     .picker-facets { grid-template-columns: minmax(0, 1fr); }
   }
+  /* Due campi data, non tre tendine: la griglia a tre colonne di
+     .picker-facets lascerebbe una terza colonna vuota. Stessa striscia,
+     stesso spazio (eredita padding/gap da .picker-facets), solo il numero
+     di colonne cambia.
+     [EN] Two date fields, not three dropdowns: .picker-facets' three-column
+     grid would leave a third column empty. Same strip, same spacing
+     (inherits padding/gap from .picker-facets), only the column count
+     changes. */
+  .picker-facets.block-facets { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .date-filter { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-muted); }
+  .date-input {
+    flex: 1 1 auto;
+    min-width: 0;
+    background: var(--control-bg);
+    color: var(--text-primary);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 5px 8px;
+    font: inherit;
+    font-size: 12px;
+  }
+  .date-input:focus { outline: none; border-color: var(--series-1); }
   /* Scorre solo la lista: la ricerca in cima e il conteggio in fondo
      restano fermi, o scrivendo si perderebbe di vista proprio la casella
      in cui si sta scrivendo.
@@ -979,6 +1081,15 @@ __HEADER_CSS__
      results are many -- without it, it would overflow instead of
      scrolling. */
   .picker-grid { flex: 0 1 auto; min-height: 0; overflow: auto; margin: 0 0 4px; }
+  /* #simple-picker e' l'unico a chiudersi subito dopo .picker-grid, senza
+     un .picker-foot sotto a dargli respiro (Progetti/Sessioni/Esclusi ce
+     l'hanno, Finestre 5h ha la paginazione): i suoi 4px di margine di
+     default restavano l'unico spazio prima del bordo del modale.
+     [EN] #simple-picker is the only one closing right after .picker-grid,
+     with no .picker-foot below to give it room (Progetti/Sessioni/Esclusi
+     have one, Finestre 5h has pagination): its default 4px margin was the
+     only space before the modal's edge. */
+  #simple-picker .picker-grid { margin-bottom: 16px; }
   .picker-empty { padding: 2px 16px 10px; }
   /* Larghezze fisse per tutte le colonne tranne il titolo, che si prende
      quel che resta: sono l'unica cosa che tiene le intestazioni ferme
@@ -1159,6 +1270,65 @@ __HEADER_CSS__
   .check-excluded .check-main { cursor: default; }
   .check-excluded .check-name { text-decoration: line-through; }
   .check-excluded .check-ban { opacity: 1; }
+  /* Solo la scheda Periodo usa le card (vedi renderPeriodPickerCards): con
+     poche voci a calendario si leggono meglio di un elenco radio. Account e
+     Modello, che possono crescere a decine di righe, restano nell'elenco.
+     Due colonne fisse, non una griglia che scorre: a sinistra i periodi a
+     calendario, a destra i mesi passati piu' recenti -- l'ordine e' quello
+     con cui l'utente li ha chiesti, non un flusso automatico.
+     [EN] Only the Periodo tab uses cards (see renderPeriodPickerCards): with
+     few calendar entries they read better than a radio list. Account and
+     Modello, which can grow to dozens of rows, stay as a list. Two fixed
+     columns, not a flowing grid: calendar periods on the left, the most
+     recent past months on the right -- the order the user asked for, not
+     an automatic flow. */
+  .check-columns { display: flex; gap: 6px; }
+  .check-col { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+  .check-col-label {
+    font-size: 10.5px; font-weight: 700; letter-spacing: 0.06em;
+    text-transform: uppercase; color: var(--text-muted);
+    margin: 0 0 2px;
+  }
+  .check-card {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text-primary);
+    font-family: inherit;
+    font-size: 12px;
+    cursor: pointer;
+    text-align: left;
+    background: none;
+    transition: border-color 0.15s ease, background 0.15s ease;
+  }
+  .check-card .check-main { padding: 8px 10px; }
+  .check-card .check-name { white-space: normal; }
+  .check-card input {
+    position: absolute;
+    width: 1px; height: 1px;
+    margin: -1px; overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+  }
+  .check-card:hover { border-color: var(--text-muted); }
+  .check-card:focus-within, .check-card:focus-visible { outline: 2px solid var(--series-1); outline-offset: 2px; }
+  .check-card.active { border-color: var(--series-1); background: var(--series-1-fill); }
+  /* "Seleziona periodo" e' un bottone vero (non un radio come le altre
+     card): apre il mini-form sotto, non sceglie subito un periodo.
+     [EN] "Seleziona periodo" is a real button (not a radio like the other
+     cards): it opens the mini-form below, it does not pick a period right
+     away. */
+  .check-card-action { padding: 8px 10px; display: flex; align-items: center; justify-content: center; }
+  .picker-back {
+    display: flex; align-items: center; gap: 4px;
+    margin: 4px 8px 6px;
+    padding: 4px;
+    appearance: none; border: none; background: transparent;
+    font: inherit; font-size: 12px; color: var(--text-muted); cursor: pointer;
+  }
+  .picker-back:hover { color: var(--text-primary); }
+  .period-custom-form .date-filter { padding: 6px 16px; }
+  .period-custom-form .picker-facets.block-facets { padding: 0 16px; }
+  .period-custom-form .picker-btn { display: table; margin: 10px 16px 4px auto; }
+  .period-custom-form .check-empty { padding: 0 16px 6px; }
   /* La riga in fondo a un elenco che ne annuncia altri: "+ altri 5". E' un
      comando, non un'etichetta, ma non e' vestita da titolo di filtro -- il
      maiuscoletto spaziato in colonna vuol dire una cosa sola, "qui comincia
@@ -2558,22 +2728,128 @@ __SITE_HEADER__
      faceva prima la tendina che sostituisce. Titolo ed elenco si
      riscrivono ad ogni apertura (vedi openSimplePicker), perche' lo stesso
      modale serve a tre filtri diversi uno alla volta.
+     Le schede di macrocategoria (id="simple-picker-tabs") stanno vuote e
+     nascoste nel markup: solo Periodo ne riempie piu' di una (Periodo,
+     Finestre 5h) e le mostra, Account e Modello lasciano il contenitore
+     com'e'. Cliccando "Finestre 5h" questo modale si chiude e si apre
+     #block-picker qui sotto -- due modali distinti, non due pannelli
+     dello stesso, perche' la tabella ha bisogno del proprio impianto
+     (filtri per data, colonne ordinabili, paginazione): schiacciarla in
+     un pannello dentro questo modale le toglieva lo spazio verticale che
+     le serve. Restano pero' della stessa larghezza (.picker-medium) e con
+     la stessa striscia di schede in cima, cosi' il passaggio dall'uno
+     all'altro non cambia il layout sotto gli occhi -- e #block-picker ha
+     la sua propria scheda "Periodo" per tornare qui (vedi il suo markup
+     piu' sotto).
      [EN] The modal shared by Account, Periodo and Modello: a single
      choice, not a handful ticked one by one, so no multi-select box and
      no "Fatto" -- clicking a row picks it and closes, as the dropdown it
      replaces used to. Title and list are rewritten on every open (see
      openSimplePicker), because the same modal serves three different
-     filters, one at a time. -->
+     filters, one at a time.
+     The macro-category tabs (id="simple-picker-tabs") sit empty and
+     hidden in the markup: only Periodo fills more than one (Periodo,
+     Finestre 5h) and shows them, Account and Modello leave the container
+     as is. Clicking "Finestre 5h" closes this modal and opens
+     #block-picker further down -- two distinct modals, not two panes of
+     the same one, because the table needs its own fixtures (date
+     filters, sortable columns, pagination): squeezing it into a pane
+     inside this modal took away the vertical room it needs. They stay
+     the same width though (.picker-medium) and carry the same tab strip
+     at the top, so switching between them does not change the layout
+     under one's eyes -- and #block-picker carries its own "Periodo" tab
+     to come back here (see its markup below). -->
 <div class="picker-backdrop" id="simple-picker" hidden>
-  <div class="picker picker-narrow" role="dialog" aria-modal="true" aria-labelledby="simple-picker-title">
+  <div class="picker picker-medium" role="dialog" aria-modal="true" aria-labelledby="simple-picker-title">
     <div class="picker-head">
       <span class="picker-title" id="simple-picker-title"></span>
       <button type="button" class="picker-close" id="simple-picker-close"
               data-i18n-aria-label="picker.close" aria-label="Chiudi">&times;</button>
     </div>
+    <div class="segmented-control picker-tabs" id="simple-picker-tabs" hidden></div>
     <div class="picker-grid">
       <div id="simple-picker-list" class="check-list"></div>
     </div>
+  </div>
+</div>
+
+<!-- La tabella delle finestre di 5 ore: tutte quelle che i dati hanno
+     visto (vedi addBlockPeriods). Modale a se', non un pannello dentro
+     #simple-picker qui sopra: filtri per data, colonne ordinabili e
+     paginazione hanno bisogno del proprio spazio verticale, che un
+     pannello nascosto/mostrato dentro un altro flex non garantiva (il
+     figlio senza un proprio min-height si prendeva l'altezza del
+     contenuto e straboccava fuori dal riquadro, portandosi via la
+     paginazione).
+     La scheda "Periodo" qui sopra (id="block-picker-tabs") e' statica,
+     non costruita da JS come quella di #simple-picker: qui le due voci
+     sono sempre le stesse due, "Finestre 5h" e' sempre quella attiva, e
+     cliccare "Periodo" chiude questo modale e riapre #simple-picker
+     forzato sulla scheda Periodo (vedi openSimplePicker, parametro
+     forceCat) -- altrimenti, leggendo il valore corrente del filtro
+     (ancora una finestra), tornerebbe dritto qui.
+     Cliccare una riga non duplica la logica di scelta: inoltra il click
+     alla voce vera in #period-filter-custom, come fa openSimplePicker
+     per le altre tre.
+     [EN] The 5-hour windows table: all the ones the data has seen (see
+     addBlockPeriods). Its own modal, not a pane inside #simple-picker
+     above: date filters, sortable columns and pagination need their own
+     vertical room, which a pane shown/hidden inside another flex column
+     did not guarantee (the child with no min-height of its own took its
+     content's full height and spilled past the box, taking the
+     pagination with it).
+     The "Periodo" tab above (id="block-picker-tabs") is static, not
+     built by JS like #simple-picker's: here the two entries are always
+     the same two, "Finestre 5h" is always the active one, and clicking
+     "Periodo" closes this modal and reopens #simple-picker forced onto
+     the Periodo tab (see openSimplePicker, the forceCat parameter) --
+     otherwise, reading the filter's current value (still a window),it
+     would come straight back here.
+     Clicking a row does not duplicate the picking logic: it forwards the
+     click to the real entry in #period-filter-custom, as openSimplePicker
+     does for the other three. -->
+<div class="picker-backdrop" id="block-picker" hidden>
+  <div class="picker picker-medium" role="dialog" aria-modal="true" aria-labelledby="block-picker-title">
+    <div class="picker-head">
+      <span class="picker-title" id="block-picker-title" data-i18n="picker.blockTitle">Finestre di 5 ore</span>
+      <button type="button" class="picker-close" id="block-picker-close"
+              data-i18n-aria-label="picker.close" aria-label="Chiudi">&times;</button>
+    </div>
+    <div class="segmented-control picker-tabs" id="block-picker-tabs">
+      <div class="indicator"></div>
+      <button type="button" data-cat="preset"></button>
+      <button type="button" data-cat="block" class="active"></button>
+    </div>
+    <div class="picker-facets block-facets">
+      <label class="date-filter">
+        <span data-i18n="picker.dateFrom">Da</span>
+        <input type="date" id="block-picker-from" class="date-input">
+      </label>
+      <label class="date-filter">
+        <span data-i18n="picker.dateTo">A</span>
+        <input type="date" id="block-picker-to" class="date-input">
+      </label>
+    </div>
+    <div class="picker-grid">
+      <table class="picker-table block-table">
+        <thead id="block-picker-thead">
+          <tr>
+            <th class="sortable" data-sort="date"><span data-i18n="picker.colDate">Data</span><span class="sort-arrow"></span></th>
+            <th data-i18n="picker.colStart">Inizio</th>
+            <th data-i18n="picker.colEnd">Fine</th>
+            <th class="num sortable" data-sort="cost"><span data-i18n="turns.colCost">Costo</span><span class="sort-arrow"></span></th>
+          </tr>
+        </thead>
+        <tbody id="block-picker-tbody"></tbody>
+      </table>
+    </div>
+    <div class="check-empty picker-empty" id="block-picker-empty" hidden data-i18n="picker.blockEmpty">Nessuna finestra in questo intervallo</div>
+    <nav class="pagination" id="block-picker-pagination" data-i18n-aria-label="picker.windowsPaginationAria" aria-label="Paginazione finestre" hidden>
+      <div class="pagination-left">
+        <span class="pagination-info" id="block-picker-pagination-info"></span>
+      </div>
+      <div class="pagination-pages" id="block-picker-pagination-pages"></div>
+    </nav>
   </div>
 </div>
 
@@ -3627,6 +3903,11 @@ __I18N_APPLY__
   var MONTHS = fmtOpt('monthsShort', MONTHS_IT);
   var MONTHS_FULL = fmtOpt('monthsLong', MONTHS_IT_FULL);
   function fmtDayNice(dayNum, monthNum1based) { return dayNum + ' ' + MONTHS[monthNum1based - 1]; }
+  // Come fmtDayNice, con l'anno: la tabella delle finestre puo' coprire
+  // piu' di un anno, dove "3 set" da solo sarebbe ambiguo.
+  // [EN] Like fmtDayNice, with the year: the windows table can span more
+  // than a year, where "3 set" alone would be ambiguous.
+  function fmtDayFull(dayNum, monthNum1based, year) { return fmtDayNice(dayNum, monthNum1based) + ' ' + year; }
 
   // Come dayKey, un gradino piu' in alto: "2026-08". Stessa avvertenza sul
   // fuso -- si passa da new Date e dai getter locali, non dalla
@@ -4096,6 +4377,7 @@ __I18N_APPLY__
       months[monthKey(t.ts)] = true;
       days[dayKey(t.ts)] = true;
     });
+    dropBlockPeriods();
     Object.keys(PERIODS).forEach(function (k) {
       var kind = PERIODS[k].kind;
       if (!kind) { return; }
@@ -4103,6 +4385,13 @@ __I18N_APPLY__
       if (!present) { delete PERIODS[k]; }
     });
     addMonthPeriods(scopedTurns);
+    // Le finestre non ricevono "scopedTurns": la catena si ancora su tutti
+    // i turni dell'account, non su quelli dei progetti spuntati. Vedi
+    // blockScopeTurns.
+    // [EN] The windows are not handed "scopedTurns": the chain is anchored
+    // [EN] on all the account's turns, not on the ticked projects'. See
+    // [EN] blockScopeTurns.
+    addBlockPeriods(blockScopeTurns());
     populatePeriodSelect();
   }
 
@@ -4250,6 +4539,26 @@ __I18N_APPLY__
     return key;
   }
 
+  // Un solo intervallo libero alla volta, sovrascritto ad ogni "Applica"
+  // (vedi renderCustomPeriodForm): niente chiave da calcolare, niente voci
+  // vecchie da accumulare in PERIODS. Senza "kind" non viene mai potata da
+  // refreshDataPeriods, come Oggi/Questa settimana/Questo mese/Quest'anno.
+  // [EN] One free range at a time, overwritten on every "Applica" (see
+  // renderCustomPeriodForm): no key to compute, no old entries piling up
+  // in PERIODS. With no "kind" it is never pruned by refreshDataPeriods,
+  // like Oggi/Questa settimana/Questo mese/Quest'anno.
+  function ensureCustomRangePeriod(fromDate, toDateExclusive) {
+    var lastDay = new Date(toDateExclusive.getTime() - 1);
+    PERIODS.customRange = {
+      label: fmtDayFull(fromDate.getDate(), fromDate.getMonth() + 1, fromDate.getFullYear()) +
+        '–' + fmtDayFull(lastDay.getDate(), lastDay.getMonth() + 1, lastDay.getFullYear()),
+      from: function () { return fromDate; },
+      to: function () { return toDateExclusive; }
+    };
+    populatePeriodSelect();
+    return 'customRange';
+  }
+
   function monthPeriodKey(monthK) {
     if (PERIODS['m' + monthK]) { return 'm' + monthK; }
     // Il mese in corso non ha una voce "m...": si chiama "Questo mese".
@@ -4260,12 +4569,24 @@ __I18N_APPLY__
   // Un periodo-giorno salvato prima di una ricarica non esiste piu' nella
   // tendina appena ricostruita, e il <select> rifiuterebbe il valore: lo si
   // ricrea dalla chiave prima di riassegnarlo.
+  // Vale anche per le finestre: la lista non ha un tetto (addBlockPeriods),
+  // ma la catena e' per account, e una finestra dell'account precedente
+  // non e' in quella nuova -- la chiave pero' porta l'ora di inizio, e la
+  // durata e' fissa: basta a ridefinirla senza la catena intera.
   // [EN] A day period saved before a reload no longer exists in the
   // freshly rebuilt dropdown, and the <select> would refuse the value: it is
   // recreated from the key before being assigned again.
+  // Also holds for the windows: the list has no cap (addBlockPeriods), but
+  // the chain is per account, and a window from the previous account is
+  // not in the new one's -- the key carries the start time though, and the
+  // duration is fixed: enough to redefine it without the whole chain.
   function ensureSavedPeriod(key) {
     if (!key || PERIODS[key]) { return; }
-    if (key.charAt(0) === 'd') { ensureDayPeriod(key.slice(1)); }
+    if (key.charAt(0) === 'd') { ensureDayPeriod(key.slice(1)); return; }
+    if (key.charAt(0) === 'b') {
+      var start = Number(key.slice(1));
+      if (isFinite(start)) { defineBlockPeriod(start); populatePeriodSelect(); }
+    }
   }
 
   // Le barre del tempo non portano una chiave di periodo bell'e' pronta ma
@@ -5254,9 +5575,15 @@ __I18N_APPLY__
     var html = '<div class="dropdown-trigger"><span class="dropdown-trigger-label"></span><span class="dropdown-icon">▼</span></div>';
     html += '<div class="dropdown-menu">';
     select.options.length = 0;
+    // "category"/"categoryLabel" sono facoltativi: solo Periodo li usa, per
+    // smistare le voci fra le sue due schede (vedi openSimplePicker).
+    // [EN] "category"/"categoryLabel" are optional: only Periodo uses them,
+    // to sort its entries between its two tabs (see openSimplePicker).
     items.forEach(function (it, i) {
       html += '<div class="dropdown-item' + (i === 0 ? ' all-sessions' : '') + '" data-value="' + esc(it.value) + '"' +
-        (it.short ? ' data-short="' + esc(it.short) + '"' : '') + '>' +
+        (it.short ? ' data-short="' + esc(it.short) + '"' : '') +
+        (it.category ? ' data-category="' + esc(it.category) + '"' : '') +
+        (it.categoryLabel ? ' data-category-label="' + esc(it.categoryLabel) + '"' : '') + '>' +
         '<div class="item-title" title="' + esc(it.label) + '">' + esc(it.label) + '</div></div>';
       var o = document.createElement('option');
       o.value = it.value;
@@ -5337,6 +5664,533 @@ __I18N_APPLY__
     }
   };
 
+  /* Le FINESTRE DI 5 ORE del piano flat: i limiti si azzerano ogni 5 ore
+     dal primo turno, non a un orario fisso, quindi nessun periodo a
+     calendario le rappresenta. Si ricostruiscono dai dati in una passata
+     sola: il primo turno apre una finestra, il primo turno oltre la sua
+     fine ne apre un'altra.
+     AVVERTENZA: i log sono solo di questa macchina. Uso dello stesso
+     account altrove (web, altro PC) puo' far cadere l'inizio ricostruito
+     piu' tardi di quello vero -- approssimazione dichiarata, non il
+     conteggio ufficiale.
+     [EN] The flat plan's 5-HOUR WINDOWS: limits reset every 5 hours from
+     the first turn, not at a fixed clock time, so no calendar period
+     represents them. Rebuilt from the data in one pass: the first turn
+     opens a window, the first turn past its end opens another.
+     CAVEAT: the logs are this machine's only. Using the same account
+     elsewhere (web, another PC) can make the reconstructed start fall
+     later than the true one -- a declared approximation, not the
+     official count. */
+  var BLOCK_MS = 5 * 60 * 60 * 1000;
+
+  /* A differenza dei giorni (ensureDayPeriod), qui non c'e' un tetto:
+     entrano tutte le finestre viste. I giorni si tengono corti perche'
+     riappaiono uno alla volta cliccando una barra; le finestre non hanno
+     un grafico equivalente da cui pescarle, quindi tagliarne la lista le
+     renderebbe irraggiungibili.
+     [EN] Unlike the days (ensureDayPeriod), there is no cap here: every
+     window seen goes in. Days stay short because they reappear one at a
+     time by clicking a bar; windows have no equivalent chart to pull
+     them from, so capping their list would make them unreachable. */
+
+  function blockTime(ms) {
+    var d = new Date(ms);
+    return pad2(d.getHours()) + ':' + pad2(d.getMinutes());
+  }
+
+  /* I turni su cui si ancorano le finestre: TUTTI quelli dell'account
+     scelto (il tetto e' per account, mescolare due account darebbe
+     confini falsi), MAI quelli filtrati per progetto/modello/ricerca --
+     quei filtri scelgono cosa guardare, non quando il piano riparte, e
+     farli entrare sposterebbe i confini a seconda di cosa si sta
+     guardando.
+     [EN] The turns the windows anchor on: ALL of the chosen account's
+     (the cap is per account, mixing two would give false boundaries),
+     NEVER the ones filtered by project/model/search -- those filters
+     choose what to look at, not when the plan resets, and letting them
+     in would shift the boundaries depending on what is being viewed. */
+  function blockScopeTurns() {
+    var acc = document.getElementById('account-filter').value;
+    return acc ? turns.filter(function (t) { return t.acc === acc; }) : turns;
+  }
+
+  function addBlockPeriods(scopeTurns) {
+    var stamps = [];
+    scopeTurns.forEach(function (t) {
+      // "st" e non "ts": la catena si ancora sull'inizio del turno, non
+      // sulla fine -- per un turno lungo i due possono distare minuti, e
+      // "ts" sposterebbe in avanti l'inizio delle finestre. Sulle righe
+      // vecchie "st" vale gia' "ts" (vedi t["start"] in data.py).
+      // [EN] "st" and not "ts": the chain anchors on the turn's start, not
+      // its end -- for a long turn the two can be minutes apart, and "ts"
+      // would push the windows' start forward. On old rows "st" already
+      // equals "ts" (see t["start"] in data.py).
+      var ms = Date.parse(t.st);
+      if (!isNaN(ms)) { stamps.push(ms); }
+    });
+    if (!stamps.length) { return; }
+    stamps.sort(function (a, b) { return a - b; });
+
+    // Una passata sola: si tiene la fine della finestra aperta, e il primo
+    // turno che la supera ne apre una nuova a partire da se stesso. I turni
+    // dentro la finestra non la allungano -- dura cinque ore dal primo, non
+    // cinque ore dall'ultimo.
+    // [EN] A single pass: the end of the open window is kept, and the first
+    // [EN] turn going past it opens a new one starting at itself. The turns
+    // [EN] inside the window do not stretch it -- it lasts five hours from
+    // [EN] the first, not five hours from the last.
+    var starts = [];
+    var end = -Infinity;
+    stamps.forEach(function (ms) {
+      if (ms >= end) { starts.push(ms); end = ms + BLOCK_MS; }
+    });
+
+    starts.forEach(defineBlockPeriod);
+  }
+
+  /* Una finestra sola, dalla sua ora di inizio: la durata e' fissa, quindi
+     l'istante di partenza basta a ricostruirla per intero. Sta a parte
+     perche' la usano in due -- la catena qui sopra e il ripristino dopo una
+     ricarica (ensureSavedPeriod), dove di finestre ne serve una e la catena
+     non c'entra.
+     [EN] A single window, from its start time: the duration is fixed, so
+     the starting instant is enough to rebuild it whole. It stands apart
+     because two callers use it -- the chain above and the restore after a
+     reload (ensureSavedPeriod), where one window is needed and the chain is
+     not involved. */
+  function defineBlockPeriod(start) {
+    var stop = start + BLOCK_MS;
+    // La finestra aperta si chiama "corrente" e porta l'ora di inizio, non
+    // un intervallo (la fine non c'e' ancora): sta in cima all'elenco,
+    // come "Oggi".
+    // [EN] The open window is called "current" and carries its start
+    // time, not a range (there is no end yet): it sits at the top of the
+    // list, like "Oggi".
+    var aperta = Date.now() < stop;
+    PERIODS['b' + start] = {
+      kind: aperta ? 'blockNow' : 'block',
+      label: aperta
+        ? tr('period.block', { start: blockTime(start) })
+        : tr('period.blockPast', { start: fmtTs(start), end: blockTime(stop) }),
+      short: aperta
+        ? tr('period.blockShort', { start: blockTime(start) })
+        : tr('period.blockPast', { start: blockTime(start), end: blockTime(stop) }),
+      from: function () { return new Date(start); },
+      // Nessuna fine per la finestra aperta, come "Oggi": darla per buona
+      // stirerebbe il grafico su ore non ancora successe.
+      // [EN] No end for the open window, like "Oggi": taking one at face
+      // value would stretch the chart over hours not yet happened.
+      to: aperta ? null : function () { return new Date(stop); }
+    };
+  }
+
+  /* Le finestre si rifanno da capo tutte insieme invece di essere tenute o
+     buttate una per una: i loro confini dipendono da DOVE comincia la
+     catena, quindi non c'e' mai una finestra "ancora valida" da salvare --
+     c'e' una catena da ricalcolare.
+     [EN] The windows are rebuilt from scratch all together instead of being
+     kept or thrown away one by one: their boundaries depend on WHERE the
+     chain begins, so there is never a window "still valid" to save -- there
+     is a chain to recompute. */
+  function dropBlockPeriods() {
+    Object.keys(PERIODS).forEach(function (k) {
+      var kind = PERIODS[k].kind;
+      if (kind === 'block' || kind === 'blockNow') { delete PERIODS[k]; }
+    });
+  }
+
+  /* Cambiando account cambia la catena, quindi le finestre si rifanno. Il
+     periodo scelto si tiene solo se esiste ancora: una finestra dell'account
+     di prima, nell'account di adesso, non c'e' -- e restoreSelectValue la
+     spegne invece di lasciare acceso un filtro su un intervallo che non
+     appartiene a nessuno.
+     [EN] Changing account changes the chain, so the windows are rebuilt. The
+     chosen period is kept only if it still exists: a window of the previous
+     account is not there in the current one -- and restoreSelectValue turns
+     it off instead of leaving a filter lit on a range belonging to nobody. */
+  function refreshBlockPeriods() {
+    var prev = document.getElementById('period-filter').value;
+    dropBlockPeriods();
+    addBlockPeriods(blockScopeTurns());
+    populatePeriodSelect();
+    restoreSelectValue('period-filter', prev);
+  }
+
+  /* La tabella grande delle finestre di 5 ore: TUTTE quelle che PERIODS
+     contiene in questo momento (vedi addBlockPeriods, senza tetto). Si
+     ricava da PERIODS invece di tenerne una copia propria: e' sempre la
+     stessa catena, gia' calcolata e gia' ancorata all'account scelto
+     (vedi blockScopeTurns) da chi ha aperto il modale Periodo per
+     arrivare fin qui.
+     [EN] The big 5-hour windows table: ALL the ones PERIODS holds right
+     now (see addBlockPeriods, no cap). It is derived from PERIODS instead
+     of keeping its own copy: it is always the same chain, already
+     computed and already anchored to the chosen account (see
+     blockScopeTurns) by whoever opened the Periodo modal to get here. */
+  /* Il costo di ogni finestra, in un'unica passata sui turni dell'account
+     (blockScopeTurns: stessa fonte, non filtrata per progetto/modello, che
+     ha gia' costruito la catena -- vedi il commento li'). Le finestre non
+     si accavallano per costruzione, quindi un turno appartiene ad al piu'
+     una: turni e finestre, ordinati per inizio, si scorrono insieme una
+     volta sola invece di riscandire i turni finestra per finestra.
+     Il costo NON segue i filtri Progetto/Modello della pagina: e' il
+     totale vero speso in quella finestra, la stessa ragione per cui
+     blockScopeTurns ignora quei due -- il tetto del piano non distingue
+     da quale progetto arriva il consumo.
+     [EN] Every window's cost, in a single pass over the account's turns
+     (blockScopeTurns: the same source that already built the chain, see
+     the comment there -- not filtered by project/model). Windows do not
+     overlap by construction, so a turn belongs to at most one: turns and
+     windows, both ordered by start, are walked together once instead of
+     re-scanning the turns window by window.
+     The cost does NOT follow the page's Progetto/Modello filters: it is
+     the true total spent in that window, the same reason blockScopeTurns
+     ignores those two -- the plan's cap does not care which project the
+     usage came from. */
+  function blockPickerRows() {
+    var rows = [];
+    Object.keys(PERIODS).forEach(function (k) {
+      var p = PERIODS[k];
+      if (p.kind !== 'block' && p.kind !== 'blockNow') { return; }
+      rows.push({ key: k, start: p.from().getTime(), aperta: p.kind === 'blockNow', cost: 0 });
+    });
+    rows.sort(function (a, b) { return a.start - b.start; });
+
+    var scopedTurns = blockScopeTurns().slice().sort(function (a, b) {
+      return (Date.parse(a.st) || 0) - (Date.parse(b.st) || 0);
+    });
+    var ti = 0;
+    rows.forEach(function (r) {
+      var stop = r.start + BLOCK_MS;
+      while (ti < scopedTurns.length) {
+        var ms = Date.parse(scopedTurns[ti].st);
+        if (isNaN(ms) || ms < r.start) { ti++; continue; }
+        if (ms >= stop) { break; }
+        r.cost += turnCostUsd(scopedTurns[ti]);
+        ti++;
+      }
+    });
+
+    // Dalla piu' recente, come nel resto del modale Periodo
+    // (periodKeysOrdered).
+    // [EN] Most recent first, as in the rest of the Periodo modal
+    // (periodKeysOrdered).
+    rows.sort(function (a, b) { return b.start - a.start; });
+    return rows;
+  }
+
+  // Ordinamento della tabella: stesso disegno di SORT_COLUMNS/sortTurnsList
+  // piu' sotto (colonna cliccata, verso di default gia' scelto -- data e
+  // costo partono dal valore piu' alto), ma sul proprio stato: le due
+  // tabelle non condividono ne' la colonna ordinata ne' il verso.
+  // [EN] Table sorting: same design as SORT_COLUMNS/sortTurnsList further
+  // down (clicked column, a default direction already chosen -- date and
+  // cost start from the highest value), but on its own state: the two
+  // tables share neither the sorted column nor the direction.
+  var BLOCK_SORT_COLUMNS = {
+    date: { get: function (r) { return r.start; }, defaultDir: 'desc' },
+    cost: { get: function (r) { return r.cost; }, defaultDir: 'desc' }
+  };
+  var blockSortState = { key: 'date', dir: 'desc' };
+
+  function sortBlockRows(list) {
+    var col = BLOCK_SORT_COLUMNS[blockSortState.key] || BLOCK_SORT_COLUMNS.date;
+    var dir = blockSortState.dir === 'asc' ? 1 : -1;
+    return list.slice().sort(function (a, b) {
+      var va = col.get(a), vb = col.get(b);
+      if (va < vb) return -1 * dir;
+      if (va > vb) return 1 * dir;
+      return 0;
+    });
+  }
+
+  function updateBlockSortHeaderUI() {
+    var thead = document.getElementById('block-picker-thead');
+    if (!thead) return;
+    var ths = thead.querySelectorAll('th[data-sort]');
+    for (var i = 0; i < ths.length; i++) {
+      var th = ths[i];
+      var arrow = th.querySelector('.sort-arrow');
+      if (!arrow) continue;
+      arrow.textContent = th.getAttribute('data-sort') === blockSortState.key
+        ? (blockSortState.dir === 'asc' ? ' \u25b2' : ' \u25bc')
+        : '';
+    }
+  }
+
+  // 14 e non 20: su un portatile (altezza modale limitata da .picker's
+  // max-height, ~1366x768) venti righe sforavano e la tabella prendeva
+  // uno scroll verticale suo, in piu' a quello del modale. A 15 mancavano
+  // ancora una manciata di pixel; 14 e' la prima misura che ci sta.
+  // [EN] 14, not 20: on a laptop (modal height capped by .picker's
+  // max-height, ~1366x768) twenty rows overflowed and the table got its
+  // own vertical scroll, on top of the modal's. 15 was still a few
+  // pixels short; 14 is the first size that fits.
+  var BLOCK_PICKER_PAGE_SIZE = 14;
+  var blockPickerState = null;
+
+  // Applica filtro per data e ordinamento sulla lista grezza
+  // (blockPickerState.master) e riparte dalla prima pagina: l'elenco e'
+  // un altro, restare a meta' pagina non avrebbe senso (come
+  // renderTurnsTable).
+  // [EN] Applies the date filter and sorting on the raw list
+  // (blockPickerState.master) and restarts from the first page: the list
+  // is a different one, staying mid-page would make no sense (as
+  // renderTurnsTable).
+  function applyBlockPickerFilterAndSort() {
+    var fromInput = document.getElementById('block-picker-from');
+    var toInput = document.getElementById('block-picker-to');
+    var fromVal = fromInput ? fromInput.value : '';
+    var toVal = toInput ? toInput.value : '';
+    var filtered = blockPickerState.master.filter(function (r) {
+      var key = dayKey(r.start);
+      if (fromVal && key < fromVal) { return false; }
+      if (toVal && key > toVal) { return false; }
+      return true;
+    });
+    blockPickerState.all = sortBlockRows(filtered);
+    blockPickerState.page = 0;
+  }
+
+  // Filtro e ordinamento ripartono da zero ad ogni apertura, come le tre
+  // tendine della finestra Sessioni: restringono QUESTA visita, non un
+  // secondo filtro che sopravvive alla chiusura.
+  // [EN] Filter and sorting restart from scratch on every opening, like
+  // the Sessioni window's three dropdowns: they narrow THIS visit, not a
+  // second filter surviving the close.
+  function openBlockPicker() {
+    var back = document.getElementById('block-picker');
+    if (!back || !back.hidden) { return; }
+    var fromInput = document.getElementById('block-picker-from');
+    var toInput = document.getElementById('block-picker-to');
+    if (fromInput) { fromInput.value = ''; }
+    if (toInput) { toInput.value = ''; }
+    blockSortState = { key: 'date', dir: 'desc' };
+    blockPickerState = { master: blockPickerRows(), all: [], page: 0 };
+    applyBlockPickerFilterAndSort();
+    // Il pannello va reso visibile PRIMA di posizionare l'indicatore della
+    // scheda: positionSegmentedIndicator legge offsetWidth/offsetLeft, che
+    // restano a zero finche' il modale e' [hidden].
+    // [EN] The panel must be made visible BEFORE positioning the tab
+    // indicator: positionSegmentedIndicator reads offsetWidth/offsetLeft,
+    // which stay zero as long as the modal is [hidden].
+    back.hidden = false;
+    var tabs = document.getElementById('block-picker-tabs');
+    if (tabs) { positionSegmentedIndicator(tabs); }
+    updateBlockSortHeaderUI();
+    renderBlockPickerPage();
+    var close = document.getElementById('block-picker-close');
+    if (close) { close.focus(); }
+  }
+
+  function closeBlockPicker() {
+    var back = document.getElementById('block-picker');
+    if (!back || back.hidden) { return; }
+    back.hidden = true;
+  }
+
+  function blockPickerPageCount() {
+    return Math.max(1, Math.ceil(blockPickerState.all.length / BLOCK_PICKER_PAGE_SIZE));
+  }
+
+  function goToBlockPickerPage(page) {
+    var totalPages = blockPickerPageCount();
+    var target = Math.min(Math.max(page, 0), totalPages - 1);
+    if (target === blockPickerState.page) return;
+    blockPickerState.page = target;
+    renderBlockPickerPage();
+    var head = document.getElementById('block-picker-thead');
+    if (head && head.scrollIntoView) head.scrollIntoView({ block: 'nearest' });
+  }
+
+  function renderBlockPickerPage() {
+    var tbody = document.getElementById('block-picker-tbody');
+    var empty = document.getElementById('block-picker-empty');
+    var pager = document.getElementById('block-picker-pagination');
+    // Nessuna finestra nell'intervallo scelto (il filtro l'ha ristretto a
+    // zero): l'elenco intero vuoto non capita mai, la scheda Finestre 5h
+    // non porta qui se PERIODS non ne contiene nessuna.
+    // [EN] No window in the chosen range (the filter narrowed it to
+    // zero): the whole list empty never happens, the Finestre 5h tab does
+    // not lead here if PERIODS holds none.
+    if (!blockPickerState.all.length) {
+      tbody.innerHTML = '';
+      if (empty) { empty.hidden = false; }
+      if (pager) { pager.hidden = true; }
+      return;
+    }
+    if (empty) { empty.hidden = true; }
+    var start = blockPickerState.page * BLOCK_PICKER_PAGE_SIZE;
+    var slice = blockPickerState.all.slice(start, start + BLOCK_PICKER_PAGE_SIZE);
+    var html = '';
+    slice.forEach(function (r) {
+      var d = new Date(r.start);
+      var stop = r.start + BLOCK_MS;
+      html += '<tr data-key="' + esc(r.key) + '">' +
+        '<td>' + esc(fmtDayFull(d.getDate(), d.getMonth() + 1, d.getFullYear())) + '</td>' +
+        '<td>' + esc(blockTime(r.start)) + '</td>' +
+        // La finestra ancora aperta non ha una fine da mostrare (vedi
+        // defineBlockPeriod): "In corso" al posto di un orario che non
+        // esiste ancora, non una cella vuota che sembrerebbe un dato
+        // mancante.
+        // [EN] The still-open window has no end to show (see
+        // defineBlockPeriod): "In corso" instead of a time that does not
+        // exist yet, not a blank cell that would look like missing data.
+        '<td>' + (r.aperta ? esc(tr('picker.blockOngoing')) : esc(blockTime(stop))) + '</td>' +
+        '<td class="num">' + esc(fmtMoney(r.cost)) + '</td>' +
+        '</tr>';
+    });
+    tbody.innerHTML = html;
+    renderBlockPickerPagination();
+  }
+
+  /* Stessa forma della paginazione delle interazioni (renderTurnsPagination
+     piu' sotto), sui propri elementi: pageButtonsModel e' generica (prende
+     due numeri, non sa nulla di turni o finestre) e si riusa cosi' com'e';
+     il resto -- HTML dei bottoni, calcolo dell'intervallo mostrato -- si
+     riscrive perche' legge blockPickerState invece di turnsState.
+     [EN] Same shape as the interactions pagination (renderTurnsPagination
+     below), on its own elements: pageButtonsModel is generic (it takes
+     two numbers, knows nothing about turns or windows) and is reused as
+     is; the rest -- the buttons' HTML, the shown range's arithmetic -- is
+     rewritten because it reads blockPickerState instead of turnsState. */
+  function renderBlockPickerPagination() {
+    var pager = document.getElementById('block-picker-pagination');
+    var info = document.getElementById('block-picker-pagination-info');
+    var pages = document.getElementById('block-picker-pagination-pages');
+    if (!pager || !info || !pages) return;
+
+    var total = blockPickerState.all.length;
+    var totalPages = blockPickerPageCount();
+    pager.hidden = false;
+
+    var from = total ? blockPickerState.page * BLOCK_PICKER_PAGE_SIZE + 1 : 0;
+    var to = Math.min(from + BLOCK_PICKER_PAGE_SIZE - 1, total);
+    info.textContent = tr('turns.pageInfo', { from: from, to: to, total: total }) +
+      (totalPages > 1
+        ? tr('turns.pageOf', { page: blockPickerState.page + 1, total: totalPages })
+        : '');
+
+    if (totalPages < 2) { pages.innerHTML = ''; return; }
+
+    var html = '<button type="button" class="page-btn" data-goto="prev" aria-label="' + esc(tr('turns.prevPage')) + '"' +
+      (blockPickerState.page === 0 ? ' disabled' : '') + '>\u2039</button>';
+    pageButtonsModel(blockPickerState.page, totalPages).forEach(function (item) {
+      if (item.gap) { html += '<span class="page-gap">\u2026</span>'; return; }
+      var isCurrent = item.page === blockPickerState.page;
+      html += '<button type="button" class="page-btn' + (isCurrent ? ' active' : '') +
+        '" data-goto="' + item.page + '"' + (isCurrent ? ' aria-current="page"' : '') +
+        '>' + (item.page + 1) + '</button>';
+    });
+    html += '<button type="button" class="page-btn" data-goto="next" aria-label="' + esc(tr('turns.nextPage')) + '"' +
+      (blockPickerState.page >= totalPages - 1 ? ' disabled' : '') + '>\u203a</button>';
+    pages.innerHTML = html;
+  }
+
+  (function wireBlockPicker() {
+    var back = document.getElementById('block-picker');
+    var tbody = document.getElementById('block-picker-tbody');
+    var pages = document.getElementById('block-picker-pagination-pages');
+    var thead = document.getElementById('block-picker-thead');
+    var fromInput = document.getElementById('block-picker-from');
+    var toInput = document.getElementById('block-picker-to');
+    var tabs = document.getElementById('block-picker-tabs');
+    if (!back || !tbody || !pages) return;
+
+    document.getElementById('block-picker-close').addEventListener('click', closeBlockPicker);
+    back.addEventListener('click', function (e) { if (e.target === back) { closeBlockPicker(); } });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && !back.hidden) { closeBlockPicker(); }
+    });
+
+    // La scheda "Finestre 5h" e' scritta a mano nel markup (e' sempre
+    // quella attiva, qui non serve costruirla da JS); solo il testo delle
+    // due etichette viene dalla traduzione, una volta sola qui perche' la
+    // lingua non cambia senza un ricaricamento della pagina.
+    // [EN] The "Finestre 5h" tab is written by hand in the markup (it is
+    // always the active one here, no need to build it from JS); only the
+    // two labels' text comes from the translation, set once here because
+    // the language does not change without a page reload.
+    if (tabs) {
+      var tabBtns = tabs.querySelectorAll('button');
+      if (tabBtns[0]) { tabBtns[0].textContent = filterHeadLabel('filters.period'); }
+      if (tabBtns[1]) { tabBtns[1].textContent = filterHeadLabel('filters.periodBlock'); }
+      // "Periodo" e' l'unica cliccabile (l'altra e' gia' quella attiva):
+      // chiude questo modale e riapre #simple-picker forzato sulla scheda
+      // Periodo, o si ritroverebbe dritto qui -- il filtro vale ancora una
+      // finestra, e senza forceCat openSimplePicker lo leggerebbe da li'.
+      // [EN] "Periodo" is the only clickable one (the other is already
+      // active): it closes this modal and reopens #simple-picker forced
+      // onto the Periodo tab, or it would land right back here -- the
+      // filter still holds a window, and without forceCat openSimplePicker
+      // would read it from there.
+      if (tabBtns[0]) {
+        tabBtns[0].addEventListener('click', function () {
+          closeBlockPicker();
+          openSimplePicker(
+            filterHeadLabel('filters.period'),
+            document.getElementById('period-filter-custom'),
+            document.getElementById('period-filter'),
+            'preset'
+          );
+        });
+      }
+    }
+
+    // Una riga cliccata non duplica la logica di scelta: inoltra il click
+    // alla voce vera in #period-filter-custom, esattamente come fa
+    // wireSimplePicker per Account/Periodo/Modello (vedi il commento li').
+    // [EN] A clicked row does not duplicate the picking logic: it forwards
+    // the click to the real entry in #period-filter-custom, exactly as
+    // wireSimplePicker does for Account/Periodo/Modello (see the comment
+    // there).
+    tbody.addEventListener('click', function (e) {
+      var row = e.target && e.target.closest ? e.target.closest('tr[data-key]') : null;
+      if (!row) return;
+      var key = row.getAttribute('data-key');
+      var real = document.querySelector(
+        '#period-filter-custom .dropdown-item[data-value="' + key + '"]'
+      );
+      closeBlockPicker();
+      if (real) { real.click(); }
+    });
+
+    pages.addEventListener('click', function (e) {
+      var btn = e.target && e.target.closest ? e.target.closest('button[data-goto]') : null;
+      if (!btn || btn.disabled) return;
+      var goto = btn.getAttribute('data-goto');
+      if (goto === 'prev') goToBlockPickerPage(blockPickerState.page - 1);
+      else if (goto === 'next') goToBlockPickerPage(blockPickerState.page + 1);
+      else goToBlockPickerPage(parseInt(goto, 10));
+    });
+
+    if (thead) {
+      thead.addEventListener('click', function (e) {
+        var th = e.target && e.target.closest ? e.target.closest('th[data-sort]') : null;
+        if (!th) return;
+        var key = th.getAttribute('data-sort');
+        if (!BLOCK_SORT_COLUMNS[key]) return;
+        if (blockSortState.key === key) {
+          blockSortState.dir = blockSortState.dir === 'asc' ? 'desc' : 'asc';
+        } else {
+          blockSortState.key = key;
+          blockSortState.dir = BLOCK_SORT_COLUMNS[key].defaultDir;
+        }
+        updateBlockSortHeaderUI();
+        applyBlockPickerFilterAndSort();
+        renderBlockPickerPage();
+      });
+    }
+
+    [fromInput, toInput].forEach(function (input) {
+      if (!input) return;
+      input.addEventListener('change', function () {
+        applyBlockPickerFilterAndSort();
+        renderBlockPickerPage();
+      });
+    });
+  })();
+
   /* Ai quattro periodi fissi si aggiungono i mesi che compaiono davvero nei
      dati, dal piu' recente. "Questo mese" risponde solo per il mese in
      corso: per guardare indietro -- "quanto e' costato luglio", e con il
@@ -5403,16 +6257,25 @@ __I18N_APPLY__
      the end instead of breaking the list in half; most recent first, like
      the months. */
   function periodKeysOrdered() {
-    var base = [], months = [], days = [];
+    var now = [], base = [], blocks = [], months = [], days = [];
     Object.keys(PERIODS).forEach(function (k) {
       var kind = PERIODS[k].kind;
-      if (kind === 'month') { months.push(k); }
+      if (kind === 'blockNow') { now.push(k); }
+      else if (kind === 'block') { blocks.push(k); }
+      else if (kind === 'month') { months.push(k); }
       else if (kind === 'day') { days.push(k); }
       else { base.push(k); }
     });
+    // Le chiavi delle finestre finiscono con un istante in millisecondi:
+    // ordinarle come testo funzionerebbe finche' le cifre sono tredici, che
+    // e' vero fino al 2286 ma per caso, non per costruzione.
+    // [EN] The windows keys end with an instant in milliseconds: sorting
+    // [EN] them as text would work as long as the digits are thirteen,
+    // [EN] which holds until 2286 by chance, not by construction.
+    blocks.sort(function (a, b) { return Number(b.slice(1)) - Number(a.slice(1)); });
     months.sort().reverse();
     days.sort().reverse();
-    return base.concat(months, days);
+    return now.concat(base, blocks, months, days);
   }
 
   function populatePeriodSelect() {
@@ -5426,11 +6289,37 @@ __I18N_APPLY__
     // [EN] Tutte le sessioni, ...), and in compact form the whole row reads
     // [EN] with the same scheme -- Periodi, Sessioni, Modelli, Progetti,
     // [EN] Account. "Sempre" was the only entry out of tune.
-    var items = [{ value: '', label: tr('dd.allPeriods'), short: tr('dd.shortPeriods') }];
+    // "category" smista le voci fra le due schede del modale (vedi
+    // openSimplePicker). "Tutte le finestre" ripete "Tutti i periodi"
+    // (stesso azzeramento) ma sulla scheda Finestre 5h, e compare solo
+    // se esistono finestre.
+    // [EN] "category" routes entries between the modal's two tabs (see
+    // openSimplePicker). "Tutte le finestre" repeats "Tutti i periodi"
+    // (same reset) but on the Finestre 5h tab, and only shows up if
+    // windows exist.
+    var PRESET_LABEL = filterHeadLabel('filters.period');
+    var BLOCK_LABEL = filterHeadLabel('filters.periodBlock');
+    var items = [{
+      value: '', label: tr('dd.allPeriods'), short: tr('dd.shortPeriods'),
+      category: 'preset', categoryLabel: PRESET_LABEL
+    }];
+    var hasBlocks = false;
     periodKeysOrdered().forEach(function (k) {
-      items.push({ value: k, label: PERIODS[k].label, short: PERIODS[k].short });
+      var isBlock = PERIODS[k].kind === 'block' || PERIODS[k].kind === 'blockNow';
+      if (isBlock) { hasBlocks = true; }
+      items.push({
+        value: k, label: PERIODS[k].label, short: PERIODS[k].short,
+        category: isBlock ? 'block' : 'preset',
+        categoryLabel: isBlock ? BLOCK_LABEL : PRESET_LABEL
+      });
     });
-    buildSimpleDropdown('period-filter-custom', 'period-filter', items, null, filterHeadLabel('filters.period'));
+    if (hasBlocks) {
+      items.push({
+        value: '', label: tr('dd.allBlocks'), short: tr('dd.shortBlocks'),
+        category: 'block', categoryLabel: BLOCK_LABEL
+      });
+    }
+    buildSimpleDropdown('period-filter-custom', 'period-filter', items, null, PRESET_LABEL);
   }
 
   function populateModelSelect(scopedTurns) {
@@ -5521,6 +6410,13 @@ __I18N_APPLY__
         var val = item.getAttribute('data-value');
         document.getElementById('account-filter').value = val;
         updateDropdownTrigger(container, val);
+        // Le finestre sono per account: cambiato l'account, la catena e'
+        // un'altra e va rifatta PRIMA di applyFilters, cosi' un periodo
+        // che nel nuovo account non esiste e' gia' spento.
+        // [EN] Windows are per account: once it changes, the chain is
+        // another one and must be rebuilt BEFORE applyFilters, so a
+        // period that does not exist in the new account is already off.
+        refreshBlockPeriods();
         applyFilters();
         refreshSessionsScope();
       });
@@ -5879,27 +6775,300 @@ __I18N_APPLY__
   // row clicked in here forwards the click to the matching real entry,
   // which already knows how to write the <select>, update the trigger
   // and call applyFilters/onPick.
-  function openSimplePicker(titleText, container, select) {
-    var back = document.getElementById('simple-picker');
+  // Righe di una sola macrocategoria (o tutte, con category nullo -- il
+  // caso di Account/Modello). "data-index" resta la posizione fra TUTTI i
+  // .dropdown-item, non fra i mostrati: e' cosi' che il click sa quale
+  // voce vera inoltrare (vedi wireSimplePicker).
+  // [EN] Rows of a single macro-category (or all, with a null category --
+  // Account/Modello's case). "data-index" stays the position among ALL
+  // the .dropdown-item elements, not among the shown ones: that is how
+  // the click knows which real entry to forward to (see wireSimplePicker).
+  function renderSimplePickerList(realItems, select, category) {
     var list = document.getElementById('simple-picker-list');
-    var titleEl = document.getElementById('simple-picker-title');
-    if (!back || !list || !titleEl || !container || !select || !back.hidden) { return; }
-    simplePickerContainer = container;
-    titleEl.textContent = titleText;
-    var realItems = container.querySelectorAll('.dropdown-item');
-    var html = '';
+    list.classList.remove('period-custom-form');
+    var rows = [];
     realItems.forEach(function (item, i) {
-      var val = item.getAttribute('data-value') || '';
-      var titleNode = item.querySelector('.item-title');
+      var cat = item.getAttribute('data-category');
+      if (category && cat && cat !== category) { return; }
+      rows.push({ i: i, item: item });
+    });
+    // Il valore vuoto (azzera il filtro) sale in cima alla scheda, come
+    // "Tutti i periodi" prima; il sort e' stabile, quindi il resto
+    // dell'ordine (gia' giusto in periodKeysOrdered) non si tocca.
+    // [EN] The empty value (clears the filter) rises to the top of the
+    // tab, as "Tutti i periodi" did before; the sort is stable, so the
+    // rest of the order (already right in periodKeysOrdered) stays put.
+    rows.sort(function (a, b) {
+      var aEmpty = (a.item.getAttribute('data-value') || '') === '';
+      var bEmpty = (b.item.getAttribute('data-value') || '') === '';
+      if (aEmpty === bEmpty) { return 0; }
+      return aEmpty ? -1 : 1;
+    });
+    var html = '';
+    rows.forEach(function (r) {
+      var val = r.item.getAttribute('data-value') || '';
+      var titleNode = r.item.querySelector('.item-title');
       var label = titleNode ? titleNode.textContent : '';
       html += '<div class="check-row"><label class="check-main">' +
-        '<input type="radio" name="simple-picker-radio" data-index="' + i + '"' +
+        '<input type="radio" name="simple-picker-radio" data-index="' + r.i + '"' +
         (val === select.value ? ' checked' : '') + '>' +
         '<span class="check-name" title="' + esc(label) + '">' + esc(label) + '</span>' +
         '</label></div>';
     });
     list.innerHTML = html;
+  }
+
+  // La scheda Periodo non passa da renderSimplePickerList: l'utente vuole
+  // un ordine fisso in due colonne (a sinistra i quattro periodi a
+  // calendario, a destra gli ultimi mesi passati), non l'elenco intero di
+  // periodKeysOrdered. Mesi piu' vecchi e giorni restano raggiungibili dal
+  // mini-form aperto dall'ultima card (vedi renderCustomPeriodForm).
+  // [EN] The Periodo tab does not go through renderSimplePickerList: the
+  // user wants a fixed two-column order (calendar periods on the left, the
+  // latest past months on the right), not periodKeysOrdered's whole list.
+  // Older months and days stay reachable from the mini-form the last card
+  // opens (see renderCustomPeriodForm).
+  var PERIOD_CARD_KEYS = ['', 'today', 'week', 'month', 'year'];
+  var PERIOD_CARD_MONTHS = 4;
+
+  function periodItemIndex(realItems, val) {
+    for (var i = 0; i < realItems.length; i++) {
+      if (realItems[i].getAttribute('data-category') !== 'preset') { continue; }
+      if ((realItems[i].getAttribute('data-value') || '') === val) { return i; }
+    }
+    return -1;
+  }
+
+  function periodCardHtml(realItems, i, select) {
+    var item = realItems[i];
+    var val = item.getAttribute('data-value') || '';
+    var titleNode = item.querySelector('.item-title');
+    var label = titleNode ? titleNode.textContent : '';
+    var checked = val === select.value;
+    return '<div class="check-card' + (checked ? ' active' : '') + '"><label class="check-main">' +
+      '<input type="radio" name="simple-picker-radio" data-index="' + i + '"' +
+      (checked ? ' checked' : '') + '>' +
+      '<span class="check-name" title="' + esc(label) + '">' + esc(label) + '</span>' +
+      '</label></div>';
+  }
+
+  function renderPeriodPickerCards(realItems, select) {
+    var list = document.getElementById('simple-picker-list');
+    list.classList.remove('period-custom-form');
+    var leftHtml = PERIOD_CARD_KEYS.map(function (val) {
+      var i = periodItemIndex(realItems, val);
+      return i === -1 ? '' : periodCardHtml(realItems, i, select);
+    }).join('');
+    var monthsHtml = '';
+    var monthsShown = 0;
+    for (var i = 0; i < realItems.length && monthsShown < PERIOD_CARD_MONTHS; i++) {
+      var item = realItems[i];
+      if (item.getAttribute('data-category') !== 'preset') { continue; }
+      var val = item.getAttribute('data-value') || '';
+      if (!PERIODS[val] || PERIODS[val].kind !== 'month') { continue; }
+      monthsHtml += periodCardHtml(realItems, i, select);
+      monthsShown++;
+    }
+    monthsHtml += '<button type="button" class="check-card check-card-action" id="period-custom-open">' +
+      '<span class="check-name" data-i18n="picker.customPeriod">' + esc(tr('picker.customPeriod')) + '</span></button>';
+    var leftLabel = '<div class="check-col-label">' + esc(filterHeadLabel('filters.period')) + '</div>';
+    var rightLabel = '<div class="check-col-label">' + esc(tr('picker.pastMonths')) + '</div>';
+    list.innerHTML = '<div class="check-columns"><div class="check-col">' + leftLabel + leftHtml +
+      '</div><div class="check-col">' + rightLabel + monthsHtml + '</div></div>';
+    var openBtn = document.getElementById('period-custom-open');
+    if (openBtn) {
+      openBtn.addEventListener('click', function () { renderCustomPeriodForm(select); });
+    }
+  }
+
+  // Il mini-form dietro "Seleziona periodo": un mese specifico piu' vecchio
+  // dei quattro in card, oppure un intervallo libero di date. Sostituisce
+  // il contenuto della stessa lista (non un pannello a parte) proprio per
+  // evitare il bug di sovrapposizione gia' preso una volta unendo due
+  // pannelli diversi in un solo modale (vedi git log): qui non c'e' nessun
+  // secondo pannello, solo l'innerHTML della lista che cambia.
+  // [EN] The mini-form behind "Seleziona periodo": a specific month older
+  // than the four shown as cards, or a free date range. It replaces the
+  // same list's content (not a separate pane) exactly to avoid the overlap
+  // bug already hit once merging two different panes into one modal (see
+  // git log): there is no second pane here, only the list's innerHTML
+  // changing.
+  function renderCustomPeriodForm(select) {
+    var list = document.getElementById('simple-picker-list');
+    list.classList.add('period-custom-form');
+    // I primi PERIOD_CARD_MONTHS sono gia' in card nella schermata
+    // precedente: qui compaiono solo quelli piu' vecchi.
+    // [EN] The first PERIOD_CARD_MONTHS are already cards on the previous
+    // screen: only the older ones show up here.
+    var monthKeys = periodKeysOrdered().filter(function (k) {
+      return PERIODS[k].kind === 'month';
+    }).slice(PERIOD_CARD_MONTHS);
+    // Niente mesi piu' vecchi dei quattro gia' in card (storico corto):
+    // la riga "Mese" sparisce invece di mostrare una tendina vuota.
+    // [EN] No months older than the four already in cards (short
+    // history): the "Mese" row disappears instead of showing an empty
+    // dropdown.
+    var monthRow = '';
+    if (monthKeys.length) {
+      var monthOptions = monthKeys.map(function (k) {
+        return '<option value="' + esc(k) + '">' + esc(PERIODS[k].label) + '</option>';
+      }).join('');
+      monthRow = '<label class="date-filter"><span>' + esc(tr('picker.pickMonth')) + '</span>' +
+        '<select class="date-input" id="period-custom-month"><option value="" selected>' +
+        esc(tr('picker.pickMonthPlaceholder')) + '</option>' + monthOptions + '</select></label>';
+    }
+    list.innerHTML =
+      '<button type="button" class="picker-back" id="period-custom-back">‹ ' + esc(tr('picker.back')) + '</button>' +
+      monthRow +
+      '<div class="picker-facets block-facets">' +
+      '<label class="date-filter"><span>' + esc(tr('picker.dateFrom')) + '</span>' +
+      '<input type="date" class="date-input" id="period-custom-from"></label>' +
+      '<label class="date-filter"><span>' + esc(tr('picker.dateTo')) + '</span>' +
+      '<input type="date" class="date-input" id="period-custom-to"></label></div>' +
+      '<button type="button" class="picker-btn" id="period-custom-apply">' + esc(tr('picker.apply')) + '</button>' +
+      '<div class="check-empty" id="period-custom-error" hidden>' + esc(tr('picker.customRangeInvalid')) + '</div>';
+
+    function pickPeriod(key) {
+      var real = document.querySelector('#period-filter-custom .dropdown-item[data-value="' + key + '"]');
+      closeSimplePicker();
+      if (real) { real.click(); }
+    }
+    document.getElementById('period-custom-back').addEventListener('click', function () {
+      var realItems = [].slice.call(document.getElementById('period-filter-custom').querySelectorAll('.dropdown-item'));
+      renderPeriodPickerCards(realItems, select);
+    });
+    var monthSelect = document.getElementById('period-custom-month');
+    if (monthSelect) {
+      monthSelect.addEventListener('change', function () {
+        if (this.value) { pickPeriod(this.value); }
+      });
+    }
+    document.getElementById('period-custom-apply').addEventListener('click', function () {
+      var fromVal = document.getElementById('period-custom-from').value;
+      var toVal = document.getElementById('period-custom-to').value;
+      var error = document.getElementById('period-custom-error');
+      var from = fromVal ? fromVal.split('-') : null;
+      var to = toVal ? toVal.split('-') : null;
+      if (!from || !to || toVal < fromVal) {
+        error.hidden = false;
+        return;
+      }
+      var fromDate = new Date(+from[0], +from[1] - 1, +from[2]);
+      var toDate = new Date(+to[0], +to[1] - 1, +to[2] + 1);
+      pickPeriod(ensureCustomRangePeriod(fromDate, toDate));
+    });
+  }
+
+  // "forceCat" scavalca la selezione: usato solo da #block-picker per
+  // tornare su "Periodo" senza che il valore corrente del filtro (ancora
+  // una finestra) lo rimandi dritto alla tabella (vedi wireBlockPicker).
+  // [EN] "forceCat" overrides the selection: used only by #block-picker
+  // to come back to "Periodo" without the filter's current value (still
+  // a window) sending it straight back to the table (see wireBlockPicker).
+  function openSimplePicker(titleText, container, select, forceCat) {
+    var back = document.getElementById('simple-picker');
+    var list = document.getElementById('simple-picker-list');
+    var titleEl = document.getElementById('simple-picker-title');
+    var tabs = document.getElementById('simple-picker-tabs');
+    if (!back || !list || !titleEl || !tabs || !container || !select || !back.hidden) { return; }
+
+    var realItems = [].slice.call(container.querySelectorAll('.dropdown-item'));
+
+    // Le macrocategorie presenti, nell'ordine in cui compaiono. Solo
+    // Periodo ne ha piu' di una (Periodo, Finestre 5h); Account e Modello
+    // non scrivono "data-category" e restano un elenco solo.
+    // [EN] The macro-categories present, in order of appearance. Only
+    // Periodo has more than one (Periodo, Finestre 5h); Account and
+    // Modello write no "data-category" and stay a single list.
+    var cats = [];
+    realItems.forEach(function (item) {
+      var cat = item.getAttribute('data-category');
+      if (!cat || cats.some(function (c) { return c.key === cat; })) { return; }
+      cats.push({ key: cat, label: item.getAttribute('data-category-label') || cat });
+    });
+
+    // La scheda di apertura segue la selezione attuale: una finestra
+    // scelta manda dritti alla tabella (vedi sotto), tutto il resto apre
+    // su "Periodo" -- a meno che il chiamante non forzi la scheda
+    // (forceCat).
+    // [EN] The opening tab follows the current selection: a chosen window
+    // goes straight to the table (see below), everything else opens on
+    // "Periodo" -- unless the caller forces the tab (forceCat).
+    var activeCat = forceCat || (cats.length ? cats[0].key : null);
+    if (!forceCat && cats.length > 1) {
+      realItems.forEach(function (item) {
+        var val = item.getAttribute('data-value') || '';
+        var cat = item.getAttribute('data-category');
+        if (cat && val !== '' && val === select.value) { activeCat = cat; }
+      });
+    }
+
+    // Le finestre non hanno un elenco rapido qui: sono troppe per un
+    // radio-button leggibile (vedi block-picker). "Finestre 5h" e' quindi
+    // un salto diretto alla tabella -- se il valore attivo e' gia'
+    // 'block' (e non e' un arrivo forzato da forceCat), il modale
+    // semplice non si apre nemmeno.
+    // [EN] Windows have no quick list here: too many for a legible
+    // radio-button list (see block-picker). "Finestre 5h" is therefore a
+    // direct jump to the table -- if the active value is already
+    // 'block' (and this is not a forced arrival via forceCat), the
+    // simple modal does not even open.
+    if (activeCat === 'block') {
+      openBlockPicker();
+      return;
+    }
+
+    simplePickerContainer = container;
+    titleEl.textContent = titleText;
+    // Il pannello va reso visibile PRIMA di misurare le schede qui sotto:
+    // positionSegmentedIndicator legge offsetWidth/offsetLeft, che restano
+    // a zero finche' il modale e' [hidden] e non e' impaginato.
+    // [EN] The panel must be made visible BEFORE measuring the tabs below:
+    // positionSegmentedIndicator reads offsetWidth/offsetLeft, which stay
+    // zero as long as the modal is [hidden] and not laid out.
     back.hidden = false;
+
+    if (cats.length > 1) {
+      tabs.hidden = false;
+      tabs.innerHTML = '<div class="indicator"></div>' + cats.map(function (c) {
+        return '<button type="button" data-cat="' + esc(c.key) + '"' +
+          (c.key === activeCat ? ' class="active"' : '') + '>' + esc(c.label) + '</button>';
+      }).join('');
+      tabs.querySelectorAll('button').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          if (btn.classList.contains('active')) { return; }
+          var cat = btn.getAttribute('data-cat');
+          // "Finestre 5h" non si accende mai come scheda attiva: cliccarla
+          // chiude questo modale e apre la tabella, lo stesso salto diretto
+          // di cui sopra.
+          // [EN] "Finestre 5h" never lights up as the active tab: clicking
+          // it closes this modal and opens the table, the same direct jump
+          // as above.
+          if (cat === 'block') {
+            closeSimplePicker();
+            openBlockPicker();
+            return;
+          }
+          tabs.querySelectorAll('button').forEach(function (b) { b.classList.remove('active'); });
+          btn.classList.add('active');
+          positionSegmentedIndicator(tabs);
+          // Fra le schede del modale Periodo, solo "Periodo" arriva qui
+          // ("Finestre 5h" e' intercettata sopra): il cat e' sempre
+          // 'preset'.
+          // [EN] Among the Periodo modal's tabs, only "Periodo" reaches
+          // here ("Finestre 5h" is intercepted above): cat is always
+          // 'preset'.
+          renderPeriodPickerCards(realItems, select);
+        });
+      });
+      positionSegmentedIndicator(tabs);
+    } else {
+      tabs.hidden = true;
+      tabs.innerHTML = '';
+    }
+    if (activeCat === 'preset') { renderPeriodPickerCards(realItems, select); }
+    else { renderSimplePickerList(realItems, select, activeCat); }
+
     simplePickerReturnFocus = container.querySelector('.dropdown-trigger');
     var checked = list.querySelector('input[type="radio"]:checked');
     (checked || document.getElementById('simple-picker-close')).focus();
@@ -6055,12 +7224,12 @@ __I18N_APPLY__
     // [EN] Timestamps in the data are ISO strings in UTC; Date interprets
     // [EN] them correctly and the comparison is between instants, not text.
     var fromMs = p.from().getTime();
-    // Senza "to" il periodo arriva fino ad adesso: e' il caso di tutti i
-    // periodi a calendario ("oggi", "questo mese"), che sono aperti in
-    // avanti. Solo i mesi passati hanno una fine.
-    // [EN] Without "to" the period runs up to now: this is the case for
-    // [EN] all calendar periods ("today", "this month"), which are open
-    // [EN] toward the future. Only past months have an end.
+    // Senza "to" il periodo arriva ad adesso: vale per i calendario
+    // ("oggi", "questo mese") e per la finestra ancora aperta. Solo i
+    // periodi gia' chiusi (mesi, giorni, finestre passate) hanno una fine.
+    // [EN] Without "to" the period runs up to now: true for calendar
+    // periods ("today", "this month") and the still-open window. Only
+    // already closed periods (past months, days, windows) have an end.
     var toMs = p.to ? p.to().getTime() : Infinity;
     return list.filter(function (r) {
       var t = Date.parse(r.ts);
@@ -9729,6 +10898,13 @@ __I18N_APPLY__
     if (tip && tip.classList.contains('visible')) return true;
     if (document.querySelector('.dropdown-menu.active')) return true;
     if (document.querySelector('.help-block.expanded')) return true;
+    // I modali (Periodo, Account, Progetti, Sessioni, Esclusi) condividono
+    // tutti .picker-backdrop: un reload sotto uno di loro aperto lo
+    // chiuderebbe di scatto, buttando via la selezione a meta'.
+    // [EN] The modals (Periodo, Account, Progetti, Sessioni, Esclusi) all
+    // share .picker-backdrop: a reload under an open one would snap it
+    // shut, throwing away a half-made selection.
+    if (document.querySelector('.picker-backdrop:not([hidden])')) return true;
     var sel = window.getSelection ? window.getSelection() : null;
     if (sel && String(sel).length > 0) return true;
     return false;
