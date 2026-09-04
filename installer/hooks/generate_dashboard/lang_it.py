@@ -138,6 +138,13 @@ UI = {
         "session": "Sessioni:",
         "account": "Account:",
         "period": "Periodo:",
+        # La scheda del modale che porta alle finestre di 5 ore -- non una
+        # riga a parte nella colonna dei filtri. Il resto dei testi delle
+        # finestre sta in UI["period"] (period.block e affini).
+        # [EN] The modal tab leading to the 5-hour windows -- not a
+        # separate row in the filters column. The rest of the windows'
+        # texts live in UI["period"] (period.block and friends).
+        "periodBlock": "Finestre 5h:",
         "model": "Modello:",
         "search": "Cerca nella richiesta:",
         "searchPlaceholder": "Testo della richiesta…",
@@ -384,6 +391,42 @@ UI = {
         "colLast": "Ultima attività",
         "none": "Nessuna sessione scelta",
         "selected": {"one": "{n} sessione scelta", "other": "{n} sessioni scelte"},
+
+        # Si apre cliccando la scheda "Finestre 5h" del modale Periodo:
+        # un salto diretto, non una vista dentro quel modale (troppe
+        # finestre per un elenco a radio-button leggibile).
+        # [EN] Opens by clicking the Periodo modal's "Finestre 5h" tab: a
+        # direct jump, not a view inside that modal (too many windows for
+        # a legible radio-button list).
+        "blockTitle": "Finestre di 5 ore",
+        "colDate": "Data",
+        "colStart": "Inizio",
+        "colEnd": "Fine",
+        "blockOngoing": "In corso",
+        # "Da"/"A" e non "Dal"/"Al": davanti a un campo data nativo che
+        # mostra gia' il proprio formato, l'articolo suonerebbe attaccato
+        # a un valore che non c'e' ancora.
+        # [EN] "Da"/"A" and not "Dal"/"Al": in front of a native date
+        # field that already shows its own format, the article would
+        # sound glued to a value not there yet.
+        "dateFrom": "Da",
+        "dateTo": "A",
+        "blockEmpty": "Nessuna finestra in questo intervallo",
+        "windowsPaginationAria": "Paginazione finestre",
+
+        # La card in fondo alla colonna dei mesi nel modale Periodo: apre
+        # il mini-form con la scelta di un mese specifico o di un
+        # intervallo di date libero (vedi renderCustomPeriodForm).
+        # [EN] The card at the bottom of the Periodo modal's months
+        # column: opens the mini-form to pick a specific month or a free
+        # date range (see renderCustomPeriodForm).
+        "customPeriod": "Seleziona periodo",
+        "pastMonths": "Mesi passati",
+        "back": "Indietro",
+        "pickMonth": "Mese",
+        "pickMonthPlaceholder": "Scegli un mese…",
+        "apply": "Applica",
+        "customRangeInvalid": "Scegli due date valide",
     },
 
     "dd": {
@@ -391,6 +434,16 @@ UI = {
         "noProjectsSelected": "Non sono stati selezionati progetti",
         "allPeriods": "Tutti i periodi",
         "shortPeriods": "Periodi",
+        # La voce che azzera il filtro, ma vista dalla scheda Finestre 5h
+        # del modale Periodo: stessa azione di "allPeriods", nome diverso
+        # perche' vive sotto un'intestazione diversa (vedi
+        # populatePeriodSelect in dashboard.html).
+        # [EN] The entry that clears the filter, seen from the Periodo
+        # modal's Finestre 5h tab: same action as "allPeriods", different
+        # name because it lives under a different heading (see
+        # populatePeriodSelect in dashboard.html).
+        "allBlocks": "Tutte le finestre",
+        "shortBlocks": "Finestre",
         "allModels": "Tutti i modelli",
         "shortModels": "Modelli",
         "allAccounts": "Tutti gli account",
@@ -526,6 +579,30 @@ UI = {
         "monthShort": "Mese",
         "year": "Quest'anno",
         "yearShort": "Anno",
+
+        # "Finestra" e non "Sessione": la barra dei filtri ha gia' un
+        # Sessione (le sessioni di Claude Code), e i due nomi vicini
+        # sarebbero un equivoco. "block" mostra l'ora di inizio, non piu'
+        # la durata (gia' detta dalla scheda "Finestre 5h"): serve a
+        # sapere quanto manca al riazzeramento. Solo l'ora e non il
+        # giorno: il chip dei filtri tronca a 28 caratteri (ellipsize in
+        # dashboard.html), col giorno davanti non ci starebbe -- stesso
+        # compromesso di "Oggi", che non porta una data.
+        # "blockPast" e' un template solo per entrambe le larghezze: per
+        # esteso quando c'e' spazio, la sola ora quando il chip si stringe.
+        # [EN] "Finestra" and not "Sessione": the filter bar already has a
+        # Sessione (Claude Code's own sessions), and the two names side by
+        # side would mislead. "block" shows the start time, no longer the
+        # duration (already said by the "Finestre 5h" tab): needed to know
+        # how long until the reset. Time only, not the day: the filter
+        # chip truncates to 28 characters (ellipsize in dashboard.html),
+        # the day in front would not fit -- same trade-off as "Oggi",
+        # which carries no date either.
+        # "blockPast" is one template for both widths: spelled out when
+        # there is room, the time alone when the chip narrows.
+        "block": "Finestra corrente da {start}",
+        "blockShort": "dalle {start}",
+        "blockPast": "{start}–{end}",
     },
 
     # Messaggi che non appartengono a nessuna delle famiglie qui sopra.

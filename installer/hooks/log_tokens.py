@@ -62,6 +62,7 @@ CSV_HEADER = [
     "timestamp", "session_id", "input_tokens", "output_tokens",
     "cache_write_tokens", "cache_read_tokens", "total_tokens",
     "account", "summary", "model", "origine", "cache_write_1h_tokens",
+    "turn_start",
 ]
 
 # Valore della colonna "origine" per le righe scritte qui: sono OSSERVAZIONI
@@ -482,6 +483,50 @@ def extract_summary(transcript_path):
     return msg
 
 
+def extract_turn_start(transcript_path):
+    """L'istante in cui l'utente ha scritto il messaggio che ha aperto
+    questo turno, non quello -- a volte molto piu' tardi -- in cui si e'
+    concluso e "timestamp" e' stato preso. Stessa fonte di
+    extract_summary() (l'ultima "enqueue" del transcript), ma qui
+    interessa il suo timestamp: e' quell'istante, non la fine del turno,
+    a far scattare la finestra di 5 ore del piano flat (vedi
+    addBlockPeriods in templates/dashboard.html).
+
+    Restituisce None se non c'e' nessuna enqueue (turno sintetico o
+    transcript troncato): chi chiama ricade sul timestamp di fine turno.
+
+    [EN] The instant the user wrote the message that opened this turn,
+    not the -- sometimes much later -- one at which it ended and
+    "timestamp" was taken. Same source as extract_summary() (the
+    transcript's last "enqueue"), but here its timestamp matters: that
+    instant, not the turn's end, starts the flat plan's 5-hour window
+    (see addBlockPeriods in templates/dashboard.html).
+
+    Returns None if there is no enqueue (synthetic turn or truncated
+    transcript): the caller falls back to the turn-end timestamp.
+    """
+    ts = None
+    with open(transcript_path, encoding="utf-8", errors="replace") as f:
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                e = json.loads(line)
+            except json.JSONDecodeError:
+                continue
+            if e.get("type") == "queue-operation" and e.get("operation") == "enqueue":
+                if e.get("content"):
+                    # Come in extract_summary(): non ci si ferma alla prima,
+                    # l'ultima assegnazione resta quella dell'enqueue piu'
+                    # recente nel file.
+                    # [EN] As in extract_summary(): we do not stop at the
+                    # [EN] first one, the last assignment remains the most
+                    # [EN] recent enqueue's in the file.
+                    ts = e.get("timestamp") or ts
+    return ts
+
+
 def extract_model(transcript_path):
     """Determina quale modello (es. "claude-sonnet-5") ha effettivamente
     risposto nell'ultimo turno.
@@ -657,11 +702,19 @@ def main():
     account = resolve_account()
     summary = extract_summary(transcript_path)
     model = extract_model(transcript_path)
+    # Puo' essere None (vedi extract_turn_start): "or ''" scrive una
+    # cella vuota nel CSV, che _read_csv/data.read_tokens() leggono gia'
+    # come "assente" e trattano ricadendo su "timestamp".
+    # [EN] Can be None (see extract_turn_start): "or ''" writes an empty
+    # [EN] cell in the CSV, which _read_csv/data.read_tokens() already
+    # [EN] read as "absent" and handle by falling back to "timestamp".
+    turn_start = extract_turn_start(transcript_path) or ""
     total = input_tok + output_tok + cache_write_tok + cache_read_tok
 
     append_csv_row([
         timestamp, session_id, input_tok, output_tok, cache_write_tok,
         cache_read_tok, total, account, summary, model, ORIGINE, cw_1h_tok,
+        turn_start,
     ])
 
     regenerate_dashboard()

@@ -208,6 +208,7 @@ TOKENS_HEADER = [
     "timestamp", "session_id", "input_tokens", "output_tokens",
     "cache_write_tokens", "cache_read_tokens", "total_tokens",
     "account", "summary", "model", "origine", "cache_write_1h_tokens",
+    "turn_start",
 ]
 
 OPS_HEADER = [

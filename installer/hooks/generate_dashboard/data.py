@@ -152,6 +152,21 @@ def read_tokens():
                     "account": r.get("account") or "sconosciuto",
                     "summary": r.get("summary") or "",
                     "model": r.get("model") or pricing.DEFAULT_MODEL_KEY,
+                    # Istante in cui l'utente ha scritto il messaggio, non
+                    # quello -- a volte molto piu' tardi -- in cui il turno
+                    # si e' concluso e "timestamp" e' stato preso (vedi
+                    # extract_turn_start in log_tokens.py). Assente sulle
+                    # righe scritte prima che questa colonna esistesse: "or
+                    # r["timestamp"]" le fa ricadere sul comportamento di
+                    # sempre, un'approssimazione dichiarata e non un errore.
+                    # [EN] The instant the user wrote the message, not the
+                    # -- sometimes much later -- one at which the turn
+                    # ended and "timestamp" was taken (see
+                    # extract_turn_start in log_tokens.py). Absent on rows
+                    # written before this column existed: "or
+                    # r["timestamp"]" falls them back to the long-standing
+                    # behavior, a declared approximation and not an error.
+                    "start": r.get("turn_start") or r["timestamp"],
                 })
             except (ValueError, KeyError):
                 # Una riga corrotta o con un numero non valido non deve far
