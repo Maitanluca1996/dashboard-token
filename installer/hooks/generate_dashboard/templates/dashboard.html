@@ -212,7 +212,15 @@ __HEADER_CSS__
        cut off their bottom with no way to reach it: with a max height the
        column scrolls on its own. */
     max-height: calc(100vh - var(--header-h, 99px) - 20px);
-    overflow-y: auto;
+    /* Nascosto e non "auto": qui la barra di scorrimento non e' un
+       ripiego, e' il segno che nei due "+ altri n" non e' finito
+       abbastanza -- e a non farla mai servire ci pensa trimSidebarToFit,
+       che toglie righe finche' la colonna ci sta davvero.
+       [EN] Hidden and not "auto": here the scrollbar is not a fallback, it
+       is the sign that not enough went into the two "+ n more" -- and what
+       keeps it from ever being needed is trimSidebarToFit, which drops
+       rows until the column really fits. */
+    overflow: hidden;
     display: flex; flex-direction: column; gap: 18px;
     background: var(--surface-1); border: 1px solid var(--border);
     border-radius: 12px; padding: 16px;
@@ -1212,6 +1220,25 @@ __HEADER_CSS__
     transition: background 0.15s ease;
   }
   .check-row:hover { background: var(--surface-1); }
+  /* La prima riga dell'elenco progetti accende e spegne tutte le altre.
+     E' una riga come le altre, non un comando accanto al titolo: la sua
+     casella sta incolonnata con quelle che governa, e questo da solo dice
+     cosa fa -- una casella nuda in testata, lontana dalla colonna delle
+     altre e senza un'etichetta, si poteva leggere in troppi modi.
+     Il conteggio a destra e' l'unico posto dove si vede quanti progetti
+     sono accesi anche quando il tetto della colonna ne nasconde una parte
+     dietro il "+ altri n".
+     [EN] The first row of the projects list lights and unlights all the
+     others. It is a row like the rest and not a command next to the title:
+     its box lines up with the ones it governs, and that alone says what it
+     does -- a bare box in the heading, away from the others' column and
+     with no label, could be read in too many ways.
+     The count on the right is the only place where one sees how many
+     projects are on even when the column's cap hides some of them behind
+     the "+ n more". */
+  .check-all-row { border-bottom: 1px solid var(--border); border-radius: 6px 6px 0 0; }
+  .check-all-row .check-name { color: var(--text-muted); }
+  .check-all-row + .check-row { margin-top: 2px; }
   /* Casella, nome e numero stanno in una <label>: cliccare il nome o il
      numero vale come cliccare la casella. Il comando "escludi" resta FUORI
      dalla label, altrimenti cliccarlo spunterebbe anche la casella --
@@ -3281,21 +3308,20 @@ __I18N_APPLY__
   var PROJECT_ROW_H = 27;
   var SESSION_ROW_H = 24;
   var ROW_MIN = 3;
-  // Un margine tenuto apposta indietro: la stima si basa sull'altezza
-  // dichiarata della colonna, e bordi, arrotondamenti del sotto-pixel e
-  // differenze fra motori di rendering possono spostarla di qualche
-  // decina di pixel. Se il conto sbaglia per eccesso, il ripiego esiste
-  // gia' (l'overflow interno della colonna, .sidebar{overflow-y:auto}) --
-  // ma e' comunque meglio spendere un rigo di meno che ritrovarselo
-  // acceso quasi sempre.
-  // [EN] A margin kept back on purpose: the estimate rests on the
-  // column's declared height, and borders, sub-pixel rounding and
-  // differences between rendering engines can shift it by a few dozen
-  // pixels. If the sum errs on the high side, the fallback already
-  // exists (the column's own internal overflow, .sidebar{overflow-y:
-  // auto}) -- but it is still better to spend one row less than to find
-  // it lit almost every time.
-  var SAFETY_MARGIN = 24;
+  // Nessun margine tenuto indietro. Ce n'era uno di ventiquattro pixel
+  // perche' la stima poteva sbagliare per eccesso e nessuno la
+  // verificava: il ripiego era la barra di scorrimento della colonna, che
+  // oggi non esiste piu'. Adesso a controllare c'e' trimSidebarToFit, che
+  // misura la colonna disegnata e toglie le righe di troppo -- quindi
+  // sbagliare per eccesso non costa piu' niente, mentre il margine
+  // costava una riga buona ad ogni disegno.
+  // [EN] No margin kept back. There was one of twenty-four pixels because
+  // the estimate could err on the high side and nobody checked it: the
+  // fallback was the column's scrollbar, which today no longer exists.
+  // Now trimSidebarToFit does the checking, measuring the drawn column and
+  // dropping the rows too many -- so erring high costs nothing any more,
+  // while the margin cost a good row at every draw.
+  var SAFETY_MARGIN = 0;
   var PROJECT_ROWS_MAX = 7;
   var SESSION_ROWS_MAX = 4;
 
@@ -3311,6 +3337,14 @@ __I18N_APPLY__
     var sidebar = document.querySelector('.sidebar');
     var bar = document.getElementById('filters-bar');
     if (!sidebar || !bar) { return; }
+    // Il tetto tolto dal ripiego di trimSidebarToFit (finestra bassissima)
+    // si rimette prima di misurare: qui si riparte sempre da quello del
+    // CSS, o una finestra tornata alta resterebbe senza tetto per sempre.
+    // [EN] The cap removed by trimSidebarToFit's fallback (a very short
+    // window) is put back before measuring: here one always starts again
+    // from the CSS one, or a window grown tall again would stay capless
+    // forever.
+    sidebar.style.maxHeight = '';
     var maxH = parseFloat(getComputedStyle(sidebar).maxHeight) || 0;
     // Sotto gli 880px .sidebar non ha piu' un tetto (torna a scorrere con
     // la pagina): niente da ricalcolare, i tetti restano quelli di prima.
@@ -3320,7 +3354,7 @@ __I18N_APPLY__
     if (!maxH) { return; }
     var cs = getComputedStyle(sidebar);
     var padV = (parseFloat(cs.paddingTop) || 0) + (parseFloat(cs.paddingBottom) || 0);
-    var pRowsNow = document.querySelectorAll('#project-filter-list .check-row').length;
+    var pRowsNow = document.querySelectorAll('#project-filter-list .check-row:not(.check-all-row)').length;
     var sRowsNow = document.querySelectorAll('#session-chosen .check-row').length;
     var chrome = bar.scrollHeight - pRowsNow * PROJECT_ROW_H - sRowsNow * SESSION_ROW_H;
     var budget = (maxH - padV) - chrome - SAFETY_MARGIN;
@@ -3394,6 +3428,143 @@ __I18N_APPLY__
     if (!hidden) { return ''; }
     return '<button type="button" class="check-divider check-more">' +
       '<span class="check-toggle-label">' + esc(tr(key, hidden)) + '</span></button>';
+  }
+
+  /* La colonna non deve MAI avere una barra di scorrimento: se ce l'ha,
+     vuol dire che nei due "+ altri n" non e' finito abbastanza. Il conto a
+     priori di recomputeRowCaps resta la prima stima -- e' quello che evita
+     di disegnare venti righe per poi toglierne quindici -- ma e' una
+     stima: l'altezza di riga e' scritta a mano, bordi e arrotondamenti al
+     sotto-pixel cambiano da un motore all'altro, e la riga "+ altri n"
+     compare o sparisce proprio come effetto del disegno che si misura.
+     Qui si misura la colonna DAVVERO disegnata, e finche' sfora si toglie
+     una riga -- all'elenco piu' lungo dei due, cosi' il taglio si
+     distribuisce -- aggiornando il "+ altri n" che la raccoglie. Il tetto
+     scende anche nei globali, o il ridisegno successivo rimetterebbe la
+     riga appena tolta.
+     [EN] The column must NEVER have a scrollbar: if it does, it means not
+     enough went into the two "+ n more". recomputeRowCaps' a-priori sum
+     stays the first guess -- it is what avoids drawing twenty rows only to
+     take fifteen away -- but it is a guess: row height is written by hand,
+     borders and sub-pixel rounding differ between engines, and the "+ n
+     more" row appears or disappears as an effect of the very draw being
+     measured.
+     Here the column as ACTUALLY drawn is measured, and while it overflows
+     one row is dropped -- from the longer of the two lists, so the cut
+     spreads out -- updating the "+ n more" that collects it. The cap goes
+     down in the globals too, or the next redraw would put back the row
+     just removed. */
+  function dropLastRow(host, rows, total, key) {
+    rows[rows.length - 1].remove();
+    var shown = rows.length - 1;
+    var more = host.querySelector('.check-more');
+    if (more) {
+      more.querySelector('.check-toggle-label').textContent = tr(key, total - shown);
+    } else {
+      host.insertAdjacentHTML('beforeend', moreRowHtml(total - shown, key));
+    }
+    return shown;
+  }
+
+  /* Il taglio aspetta il fotogramma successivo invece di partire ad ogni
+     disegno. I due elenchi si rifanno uno dopo l'altro nello stesso giro
+     (i progetti cambiano, e con loro le sessioni che dipendono da quali
+     progetti sono accesi): misurando subito dopo il primo si toglieva una
+     riga per un ingombro che il secondo, un istante dopo, non aveva piu'
+     -- e nessuno la rimetteva. Cosi' invece si misura una volta sola,
+     sulla colonna finita. Nel frattempo non si vede niente di storto:
+     l'eccedenza di un fotogramma la nasconde overflow:hidden.
+     [EN] The cut waits for the next frame instead of firing at every
+     draw. The two lists are rebuilt one after the other in the same round
+     (projects change, and with them the sessions that depend on which
+     projects are lit): measuring right after the first one dropped a row
+     for a bulk the second one, an instant later, no longer had -- and
+     nobody put it back. This way it is measured once, on the finished
+     column. Nothing looks wrong in the meantime: one frame's overflow is
+     hidden by overflow:hidden. */
+  var sidebarFitPending = false;
+  function scheduleSidebarFit() {
+    if (sidebarFitPending) { return; }
+    sidebarFitPending = true;
+    // setTimeout e non requestAnimationFrame: serve solo aspettare la fine
+    // del giro corrente, e rAF in una scheda in secondo piano non arriva
+    // -- la colonna resterebbe sforata fino al ritorno sulla pagina.
+    // [EN] setTimeout and not requestAnimationFrame: all that is needed is
+    // the end of the current round, and rAF in a background tab does not
+    // arrive -- the column would stay overflowing until one comes back to
+    // the page.
+    setTimeout(function () {
+      sidebarFitPending = false;
+      trimSidebarToFit();
+    }, 0);
+  }
+
+  /* Quanto e' alta la colonna secondo il LAYOUT, non secondo l'area
+     scorrevole. scrollHeight non andava bene: comprende anche cio' che
+     esce dal riquadro per una trasformazione, e i filtri entrano in pagina
+     con un'animazione che li fa scendere di dieci pixel (filter-in). Per
+     tutta la durata di quell'entrata la colonna risultava sforata di dieci
+     pixel, e il taglio si mangiava una riga vera per un ingombro che
+     sarebbe sparito da solo -- e nessuno la rimetteva.
+     offsetHeight invece e' l'altezza del riquadro come e' impaginato, e
+     una trasformazione non la sposta.
+     [EN] How tall the column is according to LAYOUT, not to the scrollable
+     area. scrollHeight would not do: it also covers whatever leaves the
+     box because of a transform, and the filters enter the page with an
+     animation that drops them ten pixels (filter-in). For the whole of
+     that entrance the column read as overflowing by ten pixels, and the
+     cut ate a real row for a bulk that would have gone away on its own --
+     and nobody put it back.
+     offsetHeight instead is the box's height as laid out, and a transform
+     does not move it. */
+  function sidebarContentHeight(sidebar) {
+    var cs = getComputedStyle(sidebar);
+    var h = (parseFloat(cs.paddingTop) || 0) + (parseFloat(cs.paddingBottom) || 0);
+    var gap = parseFloat(cs.rowGap) || 0;
+    var shown = 0;
+    [].forEach.call(sidebar.children, function (kid) {
+      if (getComputedStyle(kid).display === 'none') { return; }
+      h += kid.offsetHeight;
+      shown += 1;
+    });
+    return h + (shown > 1 ? gap * (shown - 1) : 0);
+  }
+
+  function trimSidebarToFit() {
+    var sidebar = document.querySelector('.sidebar');
+    if (!sidebar) { return; }
+    // Sotto gli 880px la colonna non ha tetto e scorre con la pagina:
+    // niente da tagliare.
+    // [EN] Below 880px the column has no cap and scrolls with the page:
+    // nothing to cut.
+    if (!parseFloat(getComputedStyle(sidebar).maxHeight)) { return; }
+    var pList = document.getElementById('project-filter-list');
+    var sHost = document.getElementById('session-chosen');
+    var pTotal = allChoosableProjects().length;
+    var sTotal = selectedSessions().length;
+    var guard = 0;
+    while (sidebarContentHeight(sidebar) > sidebar.clientHeight && guard++ < 200) {
+      var pRows = pList ? pList.querySelectorAll('.check-row:not(.check-all-row)') : [];
+      var sRows = sHost ? sHost.querySelectorAll('.check-row') : [];
+      if (pRows.length >= sRows.length && pRows.length) {
+        PROJECT_ROWS_MAX = dropLastRow(pList, pRows, pTotal, 'filters.moreProjects');
+      } else if (sRows.length) {
+        SESSION_ROWS_MAX = dropLastRow(sHost, sRows, sTotal, 'filters.moreSessions');
+      } else {
+        // Nemmeno a zero righe ci sta: e' una finestra piu' bassa dei soli
+        // filtri fissi. Il tetto si toglie del tutto -- una colonna piu'
+        // alta della finestra si raggiunge scorrendo la pagina, mentre
+        // overflow:hidden taglierebbe via ricerca e tendine senza modo di
+        // arrivarci.
+        // [EN] Not even zero rows fit: the window is shorter than the
+        // fixed filters alone. The cap comes off entirely -- a column
+        // taller than the window is reached by scrolling the page, while
+        // overflow:hidden would cut the search and the dropdowns away with
+        // no way of getting to them.
+        sidebar.style.maxHeight = 'none';
+        break;
+      }
+    }
   }
 
   function saveExcludedProjects() {
@@ -4100,6 +4271,7 @@ __I18N_APPLY__
     markSelectedOptions('project-filter', projs, excludedProjects);
     saveProjectSelection();
     syncProjectChecks();
+    scheduleSidebarFit();
     refreshDependentFilters();
     // Il bordo acceso della lista si aggiorna qui e non solo al clic
     // (syncFilterChrome sta su un ascoltatore del document): la selezione
@@ -4152,7 +4324,13 @@ __I18N_APPLY__
     if (!list) { return; }
     var wanted = {};
     chosen.forEach(function (v) { wanted[v] = true; });
-    list.querySelectorAll('input[type="checkbox"]').forEach(function (box) {
+    // La riga "tutti" non e' un valore della selezione: la sua casella la
+    // governa syncProjectCheckAll, e passando di qui si spegnerebbe ad
+    // ogni sincronizzazione.
+    // [EN] The "all" row is not a value of the selection: its box is
+    // governed by syncProjectCheckAll, and going through here it would be
+    // switched off at every sync.
+    list.querySelectorAll('input[type="checkbox"]:not([data-check-all])').forEach(function (box) {
       box.checked = !!wanted[box.value];
     });
   }
@@ -4167,6 +4345,111 @@ __I18N_APPLY__
     // they follow the selection the same way, or a tick made in there
     // would vanish when going back to the column.
     syncCheckList('project-picker-list', chosen);
+    syncProjectCheckAll();
+  }
+
+  /* La riga "tutti" dei due elenchi progetti (colonna e finestra): la
+     stessa riga scritta in un posto solo, perche' i due elenchi sono lo
+     stesso filtro visto con e senza il tetto.
+     Niente "value": e' quello che la distingue dalle righe vere quando si
+     rilegge la selezione dalle caselle, e "data-check-all" e' quello che
+     la distingue quando si ascolta un cambiamento.
+     [EN] The "all" row of the two projects lists (column and window): the
+     same row written in a single place, because the two lists are the
+     same filter seen with and without the cap.
+     No "value": that is what tells it apart from the real rows when the
+     selection is read back from the boxes, and "data-check-all" is what
+     tells it apart when a change is heard. */
+  function allRowHtml() {
+    return '<div class="check-row check-all-row">' +
+      '<label class="check-main">' +
+      '<input type="checkbox" data-check-all>' +
+      '<span class="check-name">' + esc(tr('filters.allProjects')) + '</span>' +
+      '<span class="check-count"></span>' +
+      '</label>' +
+      '</div>';
+  }
+
+  /* Lo stato della riga "tutti": spuntata quando lo sono tutti i progetti
+     scegliibili, a trattino quando lo e' una parte -- senza lo stato
+     intermedio, "qualcuno" e "nessuno" si vedrebbero uguali.
+     Conta su TUTTI i progetti scegliibili, non sulle righe a schermo: la
+     colonna ne mostra un tetto, e "tutti" che vuol dire "i primi sette"
+     sarebbe una promessa mancata proprio dove non si vede quanti se ne
+     stanno perdendo.
+     [EN] The "all" row's state: ticked when every choosable project is,
+     dashed when only some are -- without the intermediate state, "some"
+     and "none" would look the same.
+     It counts over ALL choosable projects, not the rows on screen: the
+     column shows a capped number of them, and "all" meaning "the first
+     seven" would be a broken promise exactly where one cannot see how
+     many are being left out. */
+  function syncProjectCheckAll() {
+    var all = allChoosableProjects().length;
+    var ticked = selectedProjects().length;
+    document.querySelectorAll('.check-all-row').forEach(function (row) {
+      var box = row.querySelector('input[data-check-all]');
+      var count = row.querySelector('.check-count');
+      if (box) {
+        box.checked = all > 0 && ticked === all;
+        box.indeterminate = ticked > 0 && ticked < all;
+        box.disabled = all === 0;
+      }
+      if (count) { count.textContent = all ? ticked + '/' + all : ''; }
+    });
+  }
+
+  /* Dalle caselle dei progetti alla selezione. Una riga alla volta e non
+     "tutte le caselle accese che vedo": da quando il tetto vale anche per
+     le spuntate, i progetti accesi finiti dietro il "+ altri n" non hanno
+     una casella in pagina, e rileggendo solo quelle a schermo sarebbero
+     usciti dalla selezione al primo clic su una qualunque delle altre.
+     [EN] From the project boxes to the selection. One row at a time and
+     not "every lit box I can see": since the cap holds for the ticked ones
+     too, lit projects gone behind the "+ n more" have no box on the page,
+     and reading back only the ones on screen would have dropped them from
+     the selection at the first click on any of the others. */
+  function commitProjectBox(box) {
+    if (box.hasAttribute('data-check-all')) {
+      setProjectSelection(box.checked ? allChoosableProjects() : []);
+      // Qui l'elenco si rifa', mentre spuntando una riga alla volta no: e'
+      // il tetto a decidere QUALI progetti si vedono, servendo per primi
+      // quelli accesi, e cambiandoli tutti insieme la scelta di prima non
+      // vale piu' (un progetto spento e poi riacceso da qui sarebbe
+      // rimasto dietro il "+ altri n" pur essendo acceso). Riga per riga
+      // invece non si rifa' apposta: le righe salterebbero sotto il
+      // puntatore ad ogni spunta.
+      // [EN] Here the list is rebuilt, while ticking one row at a time it
+      // is not: it is the cap that decides WHICH projects show, serving
+      // the lit ones first, and changing them all at once makes the
+      // earlier choice moot (a project switched off and then back on from
+      // here would have stayed behind the "+ n more" despite being on).
+      // Row by row it is deliberately not rebuilt: the rows would jump
+      // under the pointer at every tick.
+      var host = box.closest ? box.closest('.check-list') : null;
+      var hadFocus = document.activeElement === box;
+      populateProjectList();
+      applyFilters();
+      // L'elenco appena rifatto ha buttato via la casella che ha ricevuto
+      // il clic: chi la stava usando da tastiera si ritroverebbe il fuoco
+      // sul corpo della pagina, a ricominciare da capo. Il contenitore
+      // invece resta (si riscrive solo il suo contenuto), quindi la nuova
+      // casella si ritrova li' dentro.
+      // [EN] The just-rebuilt list has thrown away the box that took the
+      // click: whoever was using it from the keyboard would find the focus
+      // on the page body, starting over from the top. The container stays
+      // though (only its contents are rewritten), so the new box is found
+      // inside it.
+      if (hadFocus && host) {
+        var again = host.querySelector('input[data-check-all]');
+        if (again) { again.focus(); }
+      }
+      return;
+    }
+    var chosen = selectedProjects().filter(function (v) { return v !== box.value; });
+    if (box.checked) { chosen.push(box.value); }
+    setProjectSelection(chosen);
+    applyFilters();
   }
 
   // Le righe della griglia non sono l'unica cosa che segue la selezione:
@@ -4270,6 +4553,7 @@ __I18N_APPLY__
       // inch above are showing.
       var emptyKey = selectedProjects().length ? 'filters.allSessions' : 'dd.noProjectsSelected';
       host.innerHTML = '<div class="check-empty">' + esc(tr(emptyKey)) + '</div>';
+      scheduleSidebarFit();
       return;
     }
     var shown = chosen.slice(0, SESSION_ROWS_MAX);
@@ -4295,6 +4579,7 @@ __I18N_APPLY__
     // build.
     html += moreRowHtml(chosen.length - shown.length, 'filters.moreSessions');
     host.innerHTML = html;
+    scheduleSidebarFit();
   }
 
   function syncSessionPickerCount() {
@@ -5414,10 +5699,44 @@ __I18N_APPLY__
      No "cancel": every ticked box shows up right away on the charts
      behind, so there is no provisional selection to confirm or throw away.
      "Fatto" just closes. */
+  // Le sessioni che la finestra ha davvero in elenco adesso, cioe' quelle
+  // dei progetti spuntati: le <option> del deposito nascosto, non le righe
+  // -- una ricerca in corso ne nasconde una parte, e "tutte" non vuol dire
+  // "tutte quelle che vedo mentre sto cercando".
+  // [EN] The sessions the window really has on its list right now, i.e.
+  // those of the ticked projects: the hidden store's <option>s and not the
+  // rows -- a search in progress hides some of them, and "all" does not
+  // mean "all the ones I see while searching".
+  function listedSessions() {
+    var select = document.getElementById('session-filter');
+    if (!select) { return []; }
+    return [].map.call(select.options, function (o) { return o.value; });
+  }
+
+  /* Selezione vuota e selezione piena filtrano allo stesso modo (vedi
+     filterBySession), ma si vedono in modo opposto: la colonna dice "tutte
+     le sessioni sono incluse", la finestra le mostrerebbe tutte SPENTE.
+     Le due forme si convertono l'una nell'altra ai due estremi -- vuota
+     diventa piena aprendo, piena torna vuota chiudendo -- cosi' dentro la
+     finestra si vede spuntato quello che fuori si legge come incluso, e
+     fuori si torna a leggere una riga sola invece dell'elenco intero di
+     ogni sessione esistente.
+     [EN] An empty selection and a full one filter the same way (see
+     filterBySession), but they look opposite: the column says "all
+     sessions are included", the window would show them all UNTICKED.
+     The two forms convert into each other at the two ends -- empty becomes
+     full on opening, full goes back to empty on closing -- so inside the
+     window one sees ticked what outside reads as included, and outside one
+     goes back to reading a single line instead of the whole list of every
+     existing session. */
   function openSessionPicker() {
     var back = document.getElementById('session-picker');
     var opener = document.getElementById('session-open');
     if (!back || !back.hidden) { return; }
+    if (!selectedSessions().length) {
+      var all = listedSessions();
+      if (all.length) { setSessionSelection(all); applyFilters(); }
+    }
     back.hidden = false;
     if (opener) { opener.setAttribute('aria-expanded', 'true'); }
     resetSessionPickerSearch();
@@ -5429,6 +5748,11 @@ __I18N_APPLY__
     var back = document.getElementById('session-picker');
     if (!back || back.hidden) { return; }
     back.hidden = true;
+    var all = listedSessions();
+    if (all.length && selectedSessions().length === all.length) {
+      setSessionSelection([]);
+      applyFilters();
+    }
     // Un menu rimasto aperto tornerebbe aperto alla prossima apertura:
     // l'ascoltatore che li chiude cliccando fuori non scatta quando a
     // chiudere e' Esc.
@@ -5469,14 +5793,16 @@ __I18N_APPLY__
     // same pattern as the projects list.
     host.addEventListener('change', function (e) {
       if (!e.target || !e.target.matches || !e.target.matches('input[type="checkbox"]')) { return; }
-      // Qui le caselle sono tutte spuntate per costruzione: toglierne una
-      // vuol dire togliere quella sessione dalla selezione.
-      // [EN] Here the boxes are all ticked by construction: unticking one
-      // means taking that session out of the selection.
-      var kept = [];
-      host.querySelectorAll('input[type="checkbox"]').forEach(function (b) {
-        if (b.checked) { kept.push(b.value); }
-      });
+      // Una riga alla volta sulla selezione di adesso: qui il tetto della
+      // colonna mostra le prime n scelte, e rileggendo solo le caselle a
+      // schermo le altre uscirebbero dalla selezione al primo clic.
+      // [EN] One row at a time over the current selection: here the
+      // column's cap shows the first n chosen ones, and reading back only
+      // the boxes on screen would drop the others from the selection at
+      // the first click.
+      var box = e.target;
+      var kept = selectedSessions().filter(function (v) { return v !== box.value; });
+      if (box.checked) { kept.push(box.value); }
       setSessionSelection(kept);
       applyFilters();
     });
@@ -6540,10 +6866,38 @@ __I18N_APPLY__
     // the "+ n more" exactly while it was filtering the page.
     var ticked = {};
     previous.forEach(function (name) { ticked[name] = true; });
-    var shown = choosable.filter(function (name, i) {
-      return i < PROJECT_ROWS_MAX || ticked[name];
+    // Il tetto vale anche per le spuntate. Prima erano esentate -- una
+    // selezione che non si vede e' una selezione che non si ricorda -- ma
+    // bastava accenderle tutte perche' l'elenco crescesse oltre l'altezza
+    // della colonna e comparisse la barra di scorrimento, che e' proprio
+    // cio' che il "+ altri n" esiste per evitare. Le accese restano
+    // servite per prime -- se ci sta una riga sola, e' una accesa -- e a
+    // dire quante ce ne sono in tutto e' il conteggio della riga "tutti",
+    // che non si nasconde mai.
+    // L'ordine di lettura resta quello per peso: si sceglie CHI entra
+    // guardando le accese, non DOVE si mette, o le righe si
+    // rimescolerebbero sotto il puntatore ad ogni spunta.
+    // [EN] The cap holds for the ticked ones too. They used to be exempt
+    // -- a selection one cannot see is a selection one does not remember
+    // -- but merely lighting them all made the list grow past the
+    // column's height and brought up the scrollbar, which is exactly what
+    // the "+ n more" exists to avoid. The lit ones are still served first
+    // -- if there is room for a single row, it is a lit one -- and what
+    // says how many there are in all is the "all" row's count, which
+    // never hides.
+    // Reading order stays the one by weight: what is chosen is WHO gets
+    // in, looking at the lit ones, not WHERE they go, or the rows would
+    // reshuffle under the pointer at every tick.
+    var room = PROJECT_ROWS_MAX;
+    var keep = {};
+    choosable.forEach(function (name) {
+      if (ticked[name] && room > 0) { keep[name] = true; room -= 1; }
     });
-    var html = '';
+    choosable.forEach(function (name) {
+      if (!keep[name] && room > 0) { keep[name] = true; room -= 1; }
+    });
+    var shown = choosable.filter(function (name) { return !!keep[name]; });
+    var html = allRowHtml();
     shown.forEach(function (name) { html += rowHtml(name, false); });
     html += moreRowHtml(choosable.length - shown.length, 'filters.moreProjects');
     list.innerHTML = html;
@@ -6558,7 +6912,8 @@ __I18N_APPLY__
     // updates it too with no round of its own needed.
     var pickerList = document.getElementById('project-picker-list');
     if (pickerList) {
-      pickerList.innerHTML = choosable.map(function (name) { return rowHtml(name, false); }).join('');
+      pickerList.innerHTML = allRowHtml() +
+        choosable.map(function (name) { return rowHtml(name, false); }).join('');
     }
     // La sezione si rifa' ad ogni esclusione: se era aperta resta aperta,
     // altrimenti riaprirla ad ogni clic sarebbe un lavoro di Sisifo.
@@ -6599,12 +6954,7 @@ __I18N_APPLY__
     list.setAttribute('data-wired', '1');
     list.addEventListener('change', function (e) {
       if (!e.target || !e.target.matches || !e.target.matches('input[type="checkbox"]')) { return; }
-      var chosen = [];
-      list.querySelectorAll('input[type="checkbox"]').forEach(function (b) {
-        if (b.checked) { chosen.push(b.value); }
-      });
-      setProjectSelection(chosen);
-      applyFilters();
+      commitProjectBox(e.target);
     });
     list.addEventListener('click', function (e) {
       var ban = e.target && e.target.closest ? e.target.closest('.check-ban') : null;
@@ -6727,12 +7077,7 @@ __I18N_APPLY__
     // at every exclusion.
     list.addEventListener('change', function (e) {
       if (!e.target || !e.target.matches || !e.target.matches('input[type="checkbox"]')) { return; }
-      var chosen = [];
-      list.querySelectorAll('input[type="checkbox"]').forEach(function (b) {
-        if (b.checked) { chosen.push(b.value); }
-      });
-      setProjectSelection(chosen);
-      applyFilters();
+      commitProjectBox(e.target);
     });
     list.addEventListener('click', function (e) {
       var ban = e.target && e.target.closest ? e.target.closest('.check-ban') : null;
@@ -10314,13 +10659,32 @@ __I18N_APPLY__
   // fires dozens of events a second, and redrawing two lists at every one
   // of them would be felt.
   var rowCapResizeTimer = null;
-  window.addEventListener('resize', function () {
+  function scheduleRowCapRedraw() {
     clearTimeout(rowCapResizeTimer);
     rowCapResizeTimer = setTimeout(function () {
       populateProjectList();
       renderChosenSessions();
     }, 150);
-  });
+  }
+  window.addEventListener('resize', scheduleRowCapRedraw);
+
+  // Non solo la finestra: il tetto d'altezza della colonna e' scritto in
+  // funzione di --header-h, che l'intestazione ripubblica quando cambia
+  // altezza per conto suo -- i font che finiscono di caricare dopo il
+  // primo disegno, le schede che vanno a capo. Senza, i tetti restano
+  // quelli calcolati su un'intestazione che nel frattempo si e' alzata (o
+  // abbassata), e la colonna resta con una riga di meno di quante ne
+  // starebbero.
+  // [EN] Not only the window: the column's height cap is written in terms
+  // of --header-h, which the header republishes when its own height
+  // changes -- fonts finishing to load after the first draw, tabs
+  // wrapping. Without this, the caps stay the ones computed on a header
+  // that has meanwhile grown (or shrunk), and the column keeps one row
+  // fewer than would fit.
+  var siteHeader = document.querySelector('.site-header');
+  if (siteHeader && typeof ResizeObserver !== 'undefined') {
+    new ResizeObserver(scheduleRowCapRedraw).observe(siteHeader);
+  }
 
   // Ripristina i filtri scelti prima dell'ultima ricarica (altrimenti ogni
   // reload li azzererebbe) e li rimette nei <select> gia' popolati.
