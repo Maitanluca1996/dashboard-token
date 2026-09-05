@@ -40,6 +40,81 @@ import os
 
 from . import config
 
+# Versione del formato delle voci di cache. Va alzata di 1 ogni volta che
+# cambia il MODO in cui titolo/progetto vengono calcolati: le voci salvate con
+# una versione piu' vecchia vengono ricalcolate da zero al primo giro, invece
+# di restare congelate col vecchio risultato. (Alzata a 2 quando i worktree
+# hanno smesso di contare come progetti a se'.)
+# [EN] Version of the cache entry format. Bump it by 1 whenever the WAY
+# title/project are computed changes: entries saved with an older
+# version get recomputed from scratch on the first run, instead of
+# staying frozen with the old result. (Bumped to 2 when worktrees
+# stopped counting as projects of their own.)
+INFO_VERSION = 2
+
+# Le due cartelle che, una dentro l'altra, segnalano un worktree creato da
+# Claude Code: <progetto>/.claude/worktrees/<nome-worktree>.
+# [EN] The two folders that, one inside the other, mark a worktree
+# created by Claude Code: <project>/.claude/worktrees/<worktree-name>.
+WORKTREE_MARKER = (".claude", "worktrees")
+
+
+def project_from_cwd(cwd):
+    """Nome del progetto a partire dalla cartella di lavoro di una sessione.
+
+    Di norma e' semplicemente il nome dell'ultima cartella del percorso. Fanno
+    eccezione i worktree (copie di lavoro parallele dello stesso repository):
+    Claude Code li crea dentro il progetto stesso, in
+    <progetto>/.claude/worktrees/<nome-worktree>, quindi l'ultima cartella
+    sarebbe il nome del worktree ("pillole-6a0a4e") invece di quello del
+    progetto ("dashboard-token"). Contarli come progetti a se' spezzerebbe i
+    costi di un solo progetto su decine di voci diverse nei filtri e nei
+    grafici, percio' qui si risale al progetto che li contiene.
+
+    [EN] Project name starting from a session's working directory.
+
+    Normally it is simply the name of the path's last folder. Worktrees
+    (parallel working copies of the same repository) are the exception:
+    Claude Code creates them inside the project itself, at
+    <project>/.claude/worktrees/<worktree-name>, so the last folder
+    would be the worktree's name ("pillole-6a0a4e") instead of the
+    project's ("dashboard-token"). Counting them as projects of their
+    own would split a single project's costs across dozens of separate
+    entries in the filters and the charts, so here we walk back up to
+    the project containing them."""
+    if not cwd:
+        return None
+
+    # Windows separa le cartelle con la barra rovescia e Unix con quella
+    # normale: uniformando le prime alle seconde il percorso si puo' spezzare
+    # in pezzi una volta sola, con la stessa regola sui due sistemi. Il filtro
+    # "if p" scarta i pezzi vuoti, che nascono da barre doppie o finali.
+    # [EN] Windows separates folders with a backslash and Unix with a
+    # forward slash: normalising the former to the latter lets the path
+    # be split into pieces just once, with the same rule on both
+    # systems. The "if p" filter drops the empty pieces, which come
+    # from double or trailing slashes.
+    parts = [p for p in str(cwd).replace("\\", "/").split("/") if p]
+    if not parts:
+        return None
+
+    # Si cerca la coppia ".claude/worktrees" scorrendo i pezzi del percorso e
+    # si restituisce il nome della cartella che sta subito PRIMA: quella e' il
+    # progetto. L'indice parte da 1 perche' prima del marcatore ci deve essere
+    # almeno una cartella, altrimenti non c'e' nessun progetto da recuperare.
+    # [EN] We look for the ".claude/worktrees" pair by scanning the
+    # path's pieces and return the name of the folder sitting right
+    # BEFORE it: that is the project. The index starts at 1 because
+    # there must be at least one folder before the marker, otherwise
+    # there is no project to recover.
+    for i in range(1, len(parts) - 1):
+        if (parts[i], parts[i + 1]) == WORKTREE_MARKER:
+            return parts[i - 1]
+
+    # Nessun worktree di mezzo: il progetto e' l'ultima cartella, come sempre.
+    # [EN] No worktree in the way: the project is the last folder, as always.
+    return parts[-1]
+
 
 def load_cache():
     """Legge session_titles_cache.json e restituisce il suo contenuto come
@@ -121,7 +196,8 @@ def resolve_session_info(session_id):
         # a session from a different machine): fallback title showing
         # only the first 8 letters of the id, just enough to tell it
         # apart in the filters.
-        return {"title": f"Sessione {session_id[:8]}", "project": None}
+        return {"title": f"Sessione {session_id[:8]}", "project": None,
+                "v": INFO_VERSION}
 
     # prendiamo il primo (e di norma unico) risultato
     # [EN] take the first (and normally only) result
@@ -172,18 +248,16 @@ def resolve_session_info(session_id):
                     # "cwd" (current working directory) e' la cartella in cui
                     # gira il progetto. La prendiamo solo la PRIMA volta che
                     # la vediamo (cwd_project is None), tanto non cambia
-                    # durante la sessione. .rstrip("\\/") toglie un'eventuale
-                    # barra finale (Windows "\" o Unix "/") prima di
-                    # estrarne solo il nome dell'ultima cartella con
-                    # os.path.basename.
+                    # durante la sessione. Il nome del progetto non e'
+                    # sempre l'ultima cartella del percorso: ci pensa
+                    # project_from_cwd, qui sopra.
                     # [EN] "cwd" (current working directory) is the
                     # folder the project runs in. We take it only the
                     # FIRST time we see it (cwd_project is None),
-                    # since it does not change during the session.
-                    # .rstrip("\\/") removes a possible trailing slash
-                    # (Windows "\" or Unix "/") before extracting just
-                    # the last folder's name with os.path.basename.
-                    cwd_project = os.path.basename(str(e["cwd"]).rstrip("\\/"))
+                    # since it does not change during the session. The
+                    # project name is not always the path's last
+                    # folder: project_from_cwd above takes care of it.
+                    cwd_project = project_from_cwd(e["cwd"])
     except OSError:
         # transcript non leggibile per qualche motivo: teniamo quello
         # che abbiamo trovato finora
@@ -198,7 +272,7 @@ def resolve_session_info(session_id):
     # chosen by the user, then the AI-generated one, finally a generic
     # title made of the project name plus the id's first 8 characters.
     title = custom_title or ai_title or f"{project_dir} · {session_id[:8]}"
-    return {"title": title, "project": cwd_project}
+    return {"title": title, "project": cwd_project, "v": INFO_VERSION}
 
 
 def resolve_all_session_info(session_ids, most_recent_id):
@@ -222,17 +296,20 @@ def resolve_all_session_info(session_ids, most_recent_id):
         # [EN] None if sid is not in the cache yet
         cached = cache.get(sid)
 
-        # Le voci di cache vecchie (pre-'progetto') sono stringhe semplici:
-        # ri-risolviamo se manca il campo project, oltre al solito refresh
-        # per la sessione corrente o mai vista.
+        # Le voci di cache vecchie (pre-'progetto') sono stringhe semplici, e
+        # quelle scritte prima di un cambio nel calcolo del progetto portano
+        # un numero di versione piu' basso: in entrambi i casi si ri-risolve,
+        # oltre al solito refresh per la sessione corrente o mai vista.
         #
         # "needs_resolve" e' un booleano (True/False) calcolato con un OR
         # (l'operatore "or" tra piu' condizioni su righe diverse, imbustato
         # tra parentesi per leggibilita'): basta che UNA delle condizioni
         # sia vera perche' tutto il blocco valga True.
-        # [EN] Old (pre-'project') cache entries are plain strings: we
-        # re-resolve when the project field is missing, on top of the
-        # usual refresh for the current or never-seen session.
+        # [EN] Old (pre-'project') cache entries are plain strings, and
+        # those written before a change in how the project is computed
+        # carry a lower version number: in both cases we re-resolve, on
+        # top of the usual refresh for the current or never-seen
+        # session.
         #
         # "needs_resolve" is a boolean (True/False) computed with an
         # OR (the "or" operator across several conditions on separate
@@ -254,6 +331,11 @@ def resolve_all_session_info(session_ids, most_recent_id):
             # voce di cache scritta prima che esistesse questo campo
             # [EN] cache entry written before this field existed
             or "project" not in cached
+            # voce calcolata con una versione precedente delle regole
+            # (es. quando i worktree contavano come progetti a se')
+            # [EN] entry computed with an earlier version of the rules
+            # (e.g. when worktrees counted as projects of their own)
+            or cached.get("v") != INFO_VERSION
         )
         info[sid] = resolve_session_info(sid) if needs_resolve else cached
 
