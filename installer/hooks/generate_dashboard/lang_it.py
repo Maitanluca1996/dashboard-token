@@ -176,6 +176,15 @@ UI = {
         # ticked: without it, an empty block did not say whether the
         # filter was off or one had simply forgotten to choose.
         "allSessions": "Tutte le sessioni sono incluse.",
+        # La prima riga dell'elenco progetti, quella che le accende e le
+        # spegne tutte. E' una riga come le altre, quindi ha l'etichetta di
+        # una riga e non di un comando: dice cosa si sta spuntando, non che
+        # cosa succede a spuntarlo.
+        # [EN] The first row of the projects list, the one lighting and
+        # unlighting them all. It is a row like the others, so it carries a
+        # row's label and not a command's: it says what is being ticked,
+        # not what happens when it is.
+        "allProjects": "Tutti i progetti",
     },
 
     # Cosa misurano i grafici. Erano tre voci -- dollari, euro, token --

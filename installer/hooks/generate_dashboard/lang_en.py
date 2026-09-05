@@ -86,6 +86,7 @@ UI = {
         "moreProjects": {"one": "+ 1 more", "other": "+ {n} more"},
         "moreSessions": {"one": "+ 1 more", "other": "+ {n} more"},
         "allSessions": "All sessions are included.",
+        "allProjects": "All projects",
     },
 
     # Vedi lang_it.py: "Cost" non nomina la valuta di proposito.
