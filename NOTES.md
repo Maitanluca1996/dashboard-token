@@ -156,6 +156,7 @@ The `installer/` folder contains the package for deploying the dashboard on Wind
   - Configures `~/.claude/settings.json` with an idempotent merge (updates existing hooks identified by the file name in their arguments, preserving any other hooks defined by the user).
 - **Development-time synchronization**:
   - The `sync-from-live.ps1` script keeps the `installer/hooks/` folder aligned with `~/.claude/hooks/`.
+  - `docs/make_screenshots.py` rebuilds the README's two dashboard pictures: it invents a dataset (made-up projects, sessions and amounts, from a fixed seed), generates the pages into a temporary folder with every `config` path diverted, and photographs them in both languages through Chrome's debug protocol. It needs only Python 3 and Chrome, and it touches neither the real logs nor the installed dashboard. The invented dataset is not a nicety: a shot of this dashboard is almost entirely numbers about someone's spending, so a real one could not be published even with the project names painted over.
 
 ---
 
@@ -402,6 +403,7 @@ La cartella `installer/` contiene il pacchetto per distribuire la dashboard su a
   - Configura `~/.claude/settings.json` eseguendo un merge idempotente (aggiorna gli hook esistenti identificati dal nome file negli argomenti, preservando eventuali altri hook definiti dall'utente).
 - **Sincronizzazione in Sviluppo**:
   - Lo script `sync-from-live.ps1` mantiene allineata la cartella `installer/hooks/` con `~/.claude/hooks/`.
+  - `docs/make_screenshots.py` rifà le due immagini della dashboard nel README: inventa un dataset (progetti, sessioni e importi finti, da un seme fisso), genera le pagine in una cartella temporanea con ogni percorso di `config` dirottato, e le fotografa nelle due lingue attraverso il protocollo di debug di Chrome. Servono solo Python 3 e Chrome, e non tocca né i log veri né la dashboard installata. Il dataset inventato non è un vezzo: uno scatto di questa dashboard è quasi interamente fatto di numeri sulla spesa di qualcuno, quindi uno vero non si potrebbe pubblicare nemmeno coprendo i nomi dei progetti.
 
 ---
 
